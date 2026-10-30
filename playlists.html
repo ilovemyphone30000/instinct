@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>instinct · playlists</title>
+<style>
+:root{--bg:#bfbfbf;--ink:#000;--mute:rgba(0,0,0,.55);--line:rgba(0,0,0,.18);--lime:#d7ff5c;--lemon:#fff38a;--pink:#ffb3d9;--sky:#a8d8ff;
+  --sans:-apple-system,system-ui,Inter,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{color:#000;font:500 10.5px/1.35 var(--sans);text-transform:uppercase;letter-spacing:.04em;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.top{display:flex;gap:22px;align-items:flex-start;padding:16px 22px 0}
+.logo{display:flex;align-items:flex-end;width:84px;height:84px;background:#000;color:var(--bg);padding:8px;font-weight:900;font-size:30px;line-height:.85;letter-spacing:-.04em;flex:none}
+.nav{display:flex;gap:8px;padding-top:2px}
+.pill{display:inline-block;font-weight:800;font-size:13px;line-height:1;padding:8px 13px 9px;border-radius:99px;background:var(--c)}
+.pill:hover{box-shadow:0 0 0 1px #000}.pill.on{box-shadow:0 0 0 2px #000}
+.k1{--c:var(--lime)}.k2{--c:var(--lemon)}
+main{max-width:760px;margin:44px 22px 0 22px}
+h2{font-size:10px;font-weight:500;color:var(--mute);padding:26px 0 6px;border-bottom:1px solid #000}
+h2:first-child{padding-top:0}
+.r{display:grid;grid-template-columns:64px 1fr 190px 24px;gap:12px;align-items:baseline;padding:9px 6px 8px;border-bottom:1px solid var(--line)}
+.r:hover{background:var(--lime)}
+.r b{font-weight:800;font-size:13px;letter-spacing:0}
+.r .d{color:#000}.r .n{color:var(--mute)}.r .o{text-align:right}
+.r:hover .n{color:#000}
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;z-index:9}
+#gate[hidden]{display:none}
+#gate input{font:inherit;font-size:13px;text-transform:uppercase;letter-spacing:.12em;text-align:center;border:0;border-bottom:1px solid #000;width:240px;padding:6px 0;outline:0;background:none;color:#000;border-radius:0}
+#gate .err{height:12px;font-size:10px}
+footer{margin:60px 22px 0;padding:8px 0 20px;border-top:1px solid #000;color:var(--mute)}
+@media(max-width:600px){.r{grid-template-columns:48px 1fr 24px}.r .d{display:none}main{margin-top:30px}}
+</style>
+</head>
+<body>
+<form id="gate" autocomplete="off"><a class="logo" href="./">IN</a><input id="pw" type="password" placeholder="password" autocomplete="current-password" spellcheck="false"><div class="err" id="err"></div></form>
+<div class="top">
+  <a class="logo" href="./" title="back to everything">IN</a>
+  <div class="nav"><a class="pill k1" href="./">Songs</a><a class="pill k2 on" href="playlists.html">Playlists</a></div>
+</div>
+<main id="list"></main>
+<footer>every link opens in spotify · newest first</footer>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const b64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
+async function decrypt(enc,pw){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(enc.s),iterations:enc.i,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(enc.v)},key,b64(enc.c))));
+}
+const url=id=>'https://open.spotify.com/playlist/'+id;
+const row=(n,name,d,id)=>`<a class="r" href="${url(id)}" target="_blank" rel="noopener"><b>${esc(n)}</b><span>${esc(name)}</span><span class="${d?'d':'n'}">${esc(d||'')}</span><span class="o">↗</span></a>`;
+function show(d){
+  const spl=(d.spl||[]).slice().sort((a,b)=>b.n-a.n);
+  let h='<h2>collections</h2>'+(d.extra||[]).map(e=>row('★',e.name,e.note,e.id)).join('');
+  let cur=null;
+  for(const p of spl){
+    const dt=new Date(p.date+'T12:00:00'),m=dt.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    if(m!==cur){cur=m;h+=`<h2>${esc(m)}</h2>`}
+    h+=row('#'+p.n,'superplaylist',dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}),p.id);
+  }
+  $('#list').innerHTML=h;
+}
+async function go(pw){
+  const d=await decrypt(await fetch('data.enc.json?'+Date.now()).then(r=>r.json()),pw);
+  try{localStorage.setItem('instinct_pw',pw)}catch(e){}
+  $('#gate').hidden=true;show(d);
+}
+$('#gate').addEventListener('submit',async e=>{e.preventDefault();$('#err').textContent='';try{await go($('#pw').value)}catch(x){$('#err').textContent='wrong password';$('#pw').select()}});
+(async()=>{let pw=null;try{pw=localStorage.getItem('instinct_pw')}catch(e){}
+  if(pw){try{await go(pw);return}catch(e){}}
+  $('#pw').focus();})();
+</script>
+</body>
+</html>

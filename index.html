@@ -163,7 +163,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
     <button class="pill k2" data-act="src" data-v="MP">MP</button>
     <button class="pill k3" data-act="flagged">Flagged</button>
     <a class="pill k4" id="mega" href="#" target="_blank" rel="noopener">Mega playlist ↗</a>
-    <a class="pill k5" id="latest" hidden target="_blank" rel="noopener"></a>
+    <a class="pill k5" href="playlists.html">Playlists</a>
   </div>
   <span class="sp"></span>
   <div class="meta"><span id="upd"></span></div>
@@ -386,8 +386,6 @@ function init(data){
   $('#cap-l').textContent=dstr(DAYS[0]);$('#cap-r').textContent=dstr(DAYS[DAYS.length-1]);
   const u=new Date(data.updated);
   $('#upd').textContent='updated '+u.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+u.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-  const best=SPL.slice().sort((a,b)=>b.n-a.n)[0];
-  if(best){const a=$('#latest');a.href='https://open.spotify.com/playlist/'+best.id;a.textContent='open '+best.name+' ↗';a.hidden=false}
   render();
 }
 const b64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));

@@ -116,8 +116,10 @@ spl = []
 if os.path.exists(os.path.join(here, "superplaylists.json")):
     spl = json.load(open(os.path.join(here, "superplaylists.json")))
 MEGA = "0OVY358Cwc384gprqTiuNB"  # Superplaylist Recap
+EXTRA = [{"name": "superplaylist recap", "id": MEGA, "note": "all songs, jul 20 – oct 19"},
+         {"name": "too big", "id": "7wc5ryf4gemNhXFZCVCRgv", "note": "cut at 100k, private"}]
 payload = {"updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-           "songs": songs, "spl": spl, "mega": MEGA}
+           "songs": songs, "spl": spl, "mega": MEGA, "extra": EXTRA}
 json.dump(payload, open(out, "w"), ensure_ascii=False, separators=(",", ":"))
 enc = os.path.join(here, "data.enc.json")
 subprocess.run(["node", os.path.join(here, "encrypt.js"), out, enc, os.path.join(here, ".password")], check=True)
