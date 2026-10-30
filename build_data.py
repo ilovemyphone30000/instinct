@@ -93,6 +93,24 @@ for sh in d["sheets"]:
         songs.append({k: v for k, v in s.items() if v not in (None, "", [], False)})
 
 import os, subprocess
+
+# growth: history.json (git-ignored) holds daily monthly-listener readings for tracked artists.
+# Each tracked artist's series = those readings + the listeners value stored on its own sheet rows.
+def prim(a):
+    return re.split(r",| & | feat\.? | x ", a, 1)[0].strip().lower()
+hpath = os.path.join(os.path.dirname(os.path.abspath(out)), "history.json")
+if os.path.exists(hpath):
+    H = json.load(open(hpath))["artists"]
+    for k, e in H.items():
+        pts = {d: n for d, n in e["pts"]}
+        for s in songs:
+            if prim(s["artist"]) == k and s.get("listeners") is not None:
+                pts.setdefault(s["date"], s["listeners"])
+        series = sorted(pts.items())
+        if len(series) >= 2:
+            for s in songs:
+                if prim(s["artist"]) == k:
+                    s["hist"] = [list(p) for p in series]
 here = os.path.dirname(os.path.abspath(out))
 spl = []
 if os.path.exists(os.path.join(here, "superplaylists.json")):

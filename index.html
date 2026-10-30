@@ -78,7 +78,7 @@ main{min-width:0;padding:0 22px}
 .active .clr{background:none;color:var(--ink);text-decoration:underline;padding:2px 6px}
 .active .clr::after{content:""}
 
-.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 84px 70px minmax(120px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
+.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 84px 96px 70px minmax(120px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
 .head{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid #000;padding:7px 8px 6px;font-size:10px;color:var(--mute)}
 .head button{text-align:left;color:inherit;padding:0}
 .head button.s{color:var(--ink)}
@@ -100,6 +100,13 @@ main{min-width:0;padding:0 22px}
 a.num:hover span{text-decoration:underline}
 .n1{--c:#1DB954}.n2{--c:#E1306C}
 .row .none{color:var(--mute);text-align:left;display:block}
+.GR{display:flex;align-items:center;gap:6px;height:22px;font-variant-numeric:tabular-nums}
+.GR svg{flex:none;overflow:visible}
+.GR .gp{font-weight:700}
+.GR .up{color:#0b6b2f}.GR .dn{color:#b3261e}
+.GR .none{display:block}
+.fl{padding:0 5px 0 0;font-size:12px;line-height:1;opacity:.45;vertical-align:-1px}
+.fl:hover{opacity:1}.fl.on{opacity:1}.fl.lock{cursor:default}
 .chips{display:flex;flex-wrap:wrap;gap:3px}
 .chip{display:inline-block;color:var(--dark);padding:1px 7px 2px;border-radius:99px;font-size:10px;line-height:1.35;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 a.chip:hover{box-shadow:0 0 0 1px var(--dark)}
@@ -128,11 +135,11 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   .top{gap:14px;padding:16px 14px 0}.kp{gap:14px}.meta{align-items:flex-start;text-align:left;width:100%}
   .strip,.strip-cap{margin-left:14px;margin-right:14px}
   .head{display:none}
-  .row{grid-template-columns:1fr auto;grid-template-areas:"a l" "s g" "p p" "pl pl";gap:1px 10px}
+  .row{grid-template-columns:1fr auto;grid-template-areas:"a l" "s g" "gr gr" "p p" "pl pl";gap:1px 10px}
   .row .d{display:none}
   .row .A{grid-area:a}.row .s{grid-area:s}
   .row .L{grid-area:l;width:84px}.row .G{grid-area:g;width:84px}
-  .row .P{grid-area:p;margin-top:4px}.row .PL{grid-area:pl;margin-top:3px}
+  .row .GRC{grid-area:gr;margin-top:3px}.row .P{grid-area:p;margin-top:4px}.row .PL{grid-area:pl;margin-top:3px}
   .row .P:empty,.row .PL:empty{display:none}
 }
 #gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
@@ -187,7 +194,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   <div class="active" id="active"></div>
   <div class="head" id="head">
     <button data-sort="date">date</button><button data-sort="artist">artist</button><button data-sort="song">song</button>
-    <button class="r" data-sort="listeners">listeners</button><button class="r" data-sort="ig">instagram</button>
+    <button class="r" data-sort="listeners">listeners</button><button data-sort="gr">growth</button><button class="r" data-sort="ig">instagram</button>
     <button data-sort="press">press</button><button data-sort="pls">playlists</button>
   </div>
   <div id="rows"></div>
@@ -195,7 +202,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
 </main>
 </div>
 <footer>
-  <span>instinct · artists under 100k monthly listeners · everything is a link or a filter</span>
+  <span>instinct · under 100k monthly listeners when added · everything is a link or a filter</span>
   <span><kbd>/</kbd> search · <kbd>j</kbd><kbd>k</kbd> move · <kbd>↵</kbd> open song · <kbd>esc</kbd> clear</span>
 </footer>
 
@@ -209,13 +216,30 @@ const BK=[[0,1e3,'<1k'],[1e3,5e3,'1–5k'],[5e3,1e4,'5–10k'],[1e4,25e3,'10–2
 const isSP=n=>/^superplaylist #/i.test(n);
 const spN=n=>+(n.match(/#(\d+)/)||[0,0])[1];
 
+let LF=new Set();try{LF=new Set(JSON.parse(localStorage.getItem('instinct_flags')||'[]'))}catch(e){}
+const skey=s=>s.track||s.artist+'|'+s.song;
+const isFlag=s=>!!s.flag||LF.has(skey(s));
+const gr=s=>{if(s._g!==undefined)return s._g;const h=s.hist;if(!h||h.length<2)return s._g=null;const f=h[0][1],l=h[h.length-1][1];return s._g={f,l,abs:l-f,pct:f?(l-f)/f:null,d0:h[0][0],d1:h[h.length-1][0]}};
+function spark(h){
+  const t=h.map(p=>new Date(p[0]+'T12:00:00').getTime()),v=h.map(p=>p[1]);
+  const t0=t[0],t1=t[t.length-1]||1,lo=Math.min(...v),hi=Math.max(...v),W=60,H=16;
+  const X=x=>t1===t0?W/2:(x-t0)/(t1-t0)*(W-4)+2,Y=y=>hi===lo?H/2:H-2-(y-lo)/(hi-lo)*(H-4);
+  const pts=h.map((p,i)=>X(t[i]).toFixed(1)+','+Y(v[i]).toFixed(1)).join(' ');
+  const c=v[v.length-1]>v[0]?'#1DB954':v[v.length-1]<v[0]?'#d9342b':'#000';
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="#000" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(t[t.length-1]).toFixed(1)}" cy="${Y(v[v.length-1]).toFixed(1)}" r="2.6" fill="${c}"/></svg>`;
+}
+function growHtml(s){
+  const g=gr(s);if(!g)return '<span class="none">–</span>';
+  const up=g.abs>0,dn=g.abs<0,p=g.pct==null?'':Math.abs(Math.round(g.pct*100))+'%';
+  return `<div class="GR" title="${esc(dstr(g.d0))}: ${g.f.toLocaleString()} → ${esc(dstr(g.d1))}: ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})">${spark(s.hist)}<span class="gp ${up?'up':dn?'dn':''}">${up?'▲':dn?'▼':'–'}${p}</span></div>`;
+}
 let OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false},VIEW=[],lastDay=null;
 
 const plain=s=>(s.playlists||[]).filter(p=>!isSP(p.t));
 const sps=s=>(s.playlists||[]).filter(p=>isSP(p.t));
 function match(s,skip){
   if(S.src&&s.src!==S.src)return false;
-  if(S.flag&&!s.flag)return false;
+  if(S.flag&&!isFlag(s))return false;
   const q=S.q.trim().toLowerCase();
   if(q&&!(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')).toLowerCase().includes(q))return false;
   if(skip!=='view'){
@@ -223,6 +247,9 @@ function match(s,skip){
     if(S.view==='press'&&!(s.press||[]).length)return false;
     if(S.view==='shows'&&!s.plays)return false;
     if(S.view==='noig'&&s.ig)return false;
+    if(S.view==='tracked'&&!gr(s))return false;
+    if(S.view==='grow'&&!(gr(s)&&gr(s).pct>=0.1))return false;
+    if(S.view==='fall'&&!(gr(s)&&gr(s).abs<0))return false;
   }
   if(skip!=='days'&&S.days.size&&!S.days.has(s.date))return false;
   if(skip!=='pls'&&S.pls.size&&!plain(s).some(p=>S.pls.has(p.t)))return false;
@@ -231,7 +258,7 @@ function match(s,skip){
   if(skip!=='bk'&&S.bk.size&&![...S.bk].some(i=>s.listeners>=BK[i][0]&&s.listeners<BK[i][1]))return false;
   return true;
 }
-const KEY={date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>s.listeners??-1,ig:s=>s.ig??-1,press:s=>(s.press||[]).length,pls:s=>(s.playlists||[]).length};
+const KEY={gr:s=>{const g=gr(s);return g&&g.pct!=null?g.pct:-9},date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>s.listeners??-1,ig:s=>s.ig??-1,press:s=>(s.press||[]).length,pls:s=>(s.playlists||[]).length};
 function compute(){
   VIEW=ALL.filter(s=>match(s));
   const k=KEY[S.sort],d=S.dir;
@@ -246,13 +273,15 @@ function showsHtml(s){
   return `<div><button class="shw" data-act="shows" data-v="${esc(k)}">${l.length} show${l.length>1?'s':''} ${o?'▴':'▾'}</button></div>${o?`<div class="shwl">${l.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}`;
 }
 function rowHtml(s,i){
-  const w=s.listeners?Math.max(2,Math.min(100,s.listeners/1e3)):0, wi=s.ig?Math.max(2,Math.min(100,Math.sqrt(s.ig/1e5)*100)):0;
+  const g0=gr(s),cur=g0?g0.l:s.listeners;
+  const w=cur?Math.max(2,Math.min(100,cur/1e3)):0, wi=s.ig?Math.max(2,Math.min(100,Math.sqrt(s.ig/1e5)*100)):0;
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}${s.src==='MP'?'<span class="tg">MP</span>':''}</button>
-    <div class="A"><button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}${s.flag?' ★':''}</button>${showsHtml(s)}</div>
+    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(skey(s))}" title="${s.flag?'flagged in the sheet':isFlag(s)?'unflag (saved in this browser)':'flag (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button><button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}</button>${showsHtml(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
-    <div class="L">${s.listeners!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${s.listeners.toLocaleString()} monthly listeners"><span>${fmt(s.listeners)}</span></a>`:'<span class="none">–</span>'}</div>
+    <div class="L">${cur!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>`:'<span class="none">–</span>'}</div>
+    <div class="GRC">${growHtml(s)}</div>
     <div class="G">${s.ig?`<a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${s.ig.toLocaleString()} instagram followers"><span>${fmt(s.ig)}</span></a>`:'<span class="none">–</span>'}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
     <div class="PL chips">${chipsHtml(pls)}</div>
@@ -294,7 +323,7 @@ function renderTop(){
   const c={};ALL.filter(s=>match(s,'days')).forEach(s=>c[s.date]=(c[s.date]||0)+1);
   const m=Math.max(1,...Object.values(c));
   $('#strip').innerHTML=DAYS.map(d=>`<button data-act="strip" data-v="${d}" class="${S.days.has(d)?'on':''}" style="height:${Math.max(3,Math.round((c[d]||0)/m*46))}px" title="${esc(dlong(d))} · ${c[d]||0}"></button>`).join('');
-  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['noig','no instagram']];
+  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['tracked','tracked'],['grow','growing 10%+'],['fall','falling'],['noig','no instagram']];
   const cur=S.view;
   $('#tabs').innerHTML=tabs.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cur===k?'on':''}">${l}<span class="n">${n}</span></button>`}).join('');
   S.view=cur;
@@ -328,6 +357,7 @@ document.addEventListener('click',e=>{
   else if(a==='rm'){const k=b.dataset.k;({days:S.days,pls:S.pls,pr:S.pr,sp:S.sp,bk:S.bk})[k].delete(k==='bk'?+v:v)}
   else if(a==='clear')clearAll();
   else if(a==='home'){clearAll();S.sort='date';S.dir=-1;S.sel=-1;window.scrollTo(0,0)}
+  else if(a==='flag'){if(b.classList.contains('lock'))return;LF.has(v)?LF.delete(v):LF.add(v);try{localStorage.setItem('instinct_flags',JSON.stringify([...LF]))}catch(e){}}
   else if(a==='shows'){OPEN.has(v)?OPEN.delete(v):OPEN.add(v);renderRows();return}
   else if(a==='csv'){csv();return}
   else if(a==='facets'){document.querySelector('.layout').classList.toggle('fx');return}
