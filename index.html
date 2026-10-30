@@ -94,10 +94,10 @@ main{min-width:0;padding:0 22px}
 .row .a:hover{text-decoration:underline}
 .row .s a{overflow-wrap:anywhere}
 .row .s a:hover{text-decoration:underline}
-.num{position:relative;text-align:right;font-variant-numeric:tabular-nums;color:var(--dark);height:20px;line-height:20px;padding:0 6px;display:block}
-.num::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--w);background:var(--c);z-index:0;border-radius:2px;min-width:2px}
-.num span{position:relative;z-index:1}
-a.num:hover::before{box-shadow:0 0 0 1px var(--dark)}
+.num{position:relative;display:block;text-align:right;font-variant-numeric:tabular-nums;color:#000;height:22px;line-height:16px;padding:0}
+.num::before{content:"";position:absolute;right:0;bottom:0;height:4px;width:var(--w);min-width:3px;background:var(--c);border-radius:2px}
+.num span{position:relative}
+a.num:hover span{text-decoration:underline}
 .n1{--c:#1DB954}.n2{--c:#E1306C}
 .row .none{color:var(--mute);text-align:right;display:block;padding:0 6px}
 .chips{display:flex;flex-wrap:wrap;gap:3px}
