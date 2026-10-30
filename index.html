@@ -162,8 +162,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
     <button class="pill k1" data-act="src" data-v="SP">SP</button>
     <button class="pill k2" data-act="src" data-v="MP">MP</button>
     <button class="pill k3" data-act="flagged">Flagged</button>
-    <a class="pill k4" id="mega" href="#" target="_blank" rel="noopener">Mega playlist ↗</a>
-    <a class="pill k5" href="playlists.html">Playlists</a>
+        <a class="pill k4" href="playlists.html">Playlists</a>
   </div>
   <span class="sp"></span>
   <div class="meta"><span id="upd"></span></div>
@@ -400,7 +399,6 @@ let PW=null;
 async function unlock(pw){
   const d=await decrypt(await getEnc(),pw);
   PW=pw;window.__u=d.updated;SPL=d.spl||[];
-  if(d.mega){$('#mega').href='https://open.spotify.com/playlist/'+d.mega}
   $('#gate').hidden=true;init(d);
   try{localStorage.setItem('instinct_pw',pw)}catch(e){}
 }
