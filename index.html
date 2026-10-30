@@ -84,7 +84,7 @@ main{min-width:0;padding:0 22px}
 .head button.s{color:var(--ink)}
 .head button.s::after{content:" ↓"}
 .head button.s.asc::after{content:" ↑"}
-.head .r{text-align:right}
+.head .r{text-align:left}
 .row{padding:6px 8px;border-bottom:1px solid var(--line);min-height:34px}
 .row:hover,.row.sel{background:var(--hover)}
 .row.sel{box-shadow:inset 3px 0 0 #000}
@@ -94,12 +94,12 @@ main{min-width:0;padding:0 22px}
 .row .a:hover{text-decoration:underline}
 .row .s a{overflow-wrap:anywhere}
 .row .s a:hover{text-decoration:underline}
-.num{position:relative;display:block;text-align:right;font-variant-numeric:tabular-nums;color:#000;height:22px;line-height:16px;padding:0}
+.num{position:relative;display:block;text-align:left;font-variant-numeric:tabular-nums;color:#000;height:22px;line-height:16px;padding:0}
 .num::before{content:"";position:absolute;left:0;bottom:0;height:4px;width:var(--w);min-width:3px;background:var(--c);border-radius:2px}
 .num span{position:relative}
 a.num:hover span{text-decoration:underline}
 .n1{--c:#1DB954}.n2{--c:#E1306C}
-.row .none{color:var(--mute);text-align:right;display:block;padding:0 6px}
+.row .none{color:var(--mute);text-align:left;display:block}
 .chips{display:flex;flex-wrap:wrap;gap:3px}
 .chip{display:inline-block;color:var(--dark);padding:1px 7px 2px;border-radius:99px;font-size:10px;line-height:1.35;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 a.chip:hover{box-shadow:0 0 0 1px var(--dark)}
