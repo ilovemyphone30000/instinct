@@ -20,7 +20,7 @@ button{cursor:pointer}
 ::selection{background:var(--lime);color:var(--dark)}
 
 .top{display:flex;align-items:flex-start;gap:22px;padding:16px 22px 0;flex-wrap:wrap}
-.logo{width:84px;height:84px;background:#000;color:var(--bg);display:flex;align-items:flex-end;padding:8px;font-weight:900;font-size:30px;line-height:.85;letter-spacing:-.04em;flex:none}
+.logo{cursor:pointer;border:0;text-align:left;width:84px;height:84px;background:#000;color:var(--bg);display:flex;align-items:flex-end;padding:8px;font-weight:900;font-size:30px;line-height:.85;letter-spacing:-.04em;flex:none}
 .kp{display:flex;gap:8px;flex-wrap:wrap;padding-top:2px;align-items:flex-start}
 .pill{display:inline-block;font-weight:800;font-size:13px;line-height:1;letter-spacing:.03em;padding:8px 13px 9px;border-radius:99px;background:var(--c);color:#000;text-transform:uppercase}
 .pill:hover{box-shadow:0 0 0 1px #000}
@@ -150,7 +150,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   <div class="err" id="err"></div>
 </form>
 <div class="top">
-  <div class="logo" aria-hidden="true">IN</div>
+  <button class="logo" data-act="home" title="everything (SP + MP combined)" aria-label="Show everything">IN</button>
   <div class="kp">
     <button class="pill k1" data-act="src" data-v="SP">SP</button>
     <button class="pill k2" data-act="src" data-v="MP">MP</button>
@@ -327,6 +327,7 @@ document.addEventListener('click',e=>{
   else if(a==='clr-bk')S.bk.clear();
   else if(a==='rm'){const k=b.dataset.k;({days:S.days,pls:S.pls,pr:S.pr,sp:S.sp,bk:S.bk})[k].delete(k==='bk'?+v:v)}
   else if(a==='clear')clearAll();
+  else if(a==='home'){clearAll();S.sort='date';S.dir=-1;S.sel=-1;window.scrollTo(0,0)}
   else if(a==='shows'){OPEN.has(v)?OPEN.delete(v):OPEN.add(v);renderRows();return}
   else if(a==='csv'){csv();return}
   else if(a==='facets'){document.querySelector('.layout').classList.toggle('fx');return}
