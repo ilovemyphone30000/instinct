@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>instinct</title>
+<style>
+:root{
+  --bg:#bfbfbf; --ink:#000; --dark:#000; --mute:rgba(0,0,0,.55); --line:rgba(0,0,0,.18); --hover:rgba(255,255,255,.35);
+  --lime:#d7ff5c; --lemon:#fff38a; --pink:#ffb3d9; --sky:#a8d8ff;
+  --sans:-apple-system,system-ui,Inter,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--ink);font:500 10.5px/1.35 var(--sans);text-transform:uppercase;letter-spacing:.04em;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit;color:inherit;background:none;border:0;text-transform:inherit}
+button{cursor:pointer}
+::selection{background:var(--lime);color:var(--dark)}
+
+.top{display:flex;align-items:flex-start;gap:22px;padding:16px 22px 0;flex-wrap:wrap}
+.logo{width:84px;height:84px;background:#000;color:var(--bg);display:flex;align-items:flex-end;padding:8px;font-weight:900;font-size:30px;line-height:.85;letter-spacing:-.04em;flex:none}
+.kp{display:flex;gap:8px;flex-wrap:wrap;padding-top:2px;align-items:flex-start}
+.pill{display:inline-block;font-weight:800;font-size:13px;line-height:1;letter-spacing:.03em;padding:8px 13px 9px;border-radius:99px;background:var(--c);color:#000;text-transform:uppercase}
+.pill:hover{box-shadow:0 0 0 1px #000}
+.pill.on{box-shadow:0 0 0 2px #000}
+.k1{--c:var(--lime)}.k2{--c:var(--lemon)}.k3{--c:var(--pink)}.k4{--c:var(--sky)}.k5{--c:#fff}
+.top .sp{flex:1}
+.meta{color:var(--mute);text-align:right;padding-top:4px}
+.tg{display:inline-block;background:#000;color:var(--bg);font-size:8px;font-weight:800;padding:0 4px 1px;border-radius:2px;margin-left:4px;vertical-align:1px}
+
+.strip{display:flex;align-items:flex-end;gap:2px;height:46px;margin:6px 22px 0}
+.strip button{flex:1 1 0;min-width:0;background:#000;opacity:.28;min-height:3px}
+.strip button:hover{opacity:.8}
+.strip button.on{opacity:1;background:var(--lemon)}
+.strip-cap{display:flex;justify-content:space-between;margin:3px 22px 0;color:var(--mute);font-size:10px}
+
+.layout{display:grid;grid-template-columns:1fr;gap:0;margin-top:14px;align-items:start}
+
+aside{display:none;position:sticky;top:0;max-height:100vh;overflow:auto;padding:0 14px 40px 22px;scrollbar-width:thin}
+aside h4{font-weight:500;font-size:10px;color:var(--mute);margin:18px 0 6px;display:flex;justify-content:space-between}
+aside h4 button{color:var(--mute)}
+.f{display:flex;align-items:center;gap:6px;width:100%;text-align:left;padding:3px 0;border-radius:4px;line-height:1.2}
+.f .l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;padding:0}
+.f .c{color:var(--mute);font-variant-numeric:tabular-nums;font-size:11px}
+.f .o{opacity:0;color:var(--mute);padding:0 2px;width:14px}
+.f:hover .o,.f:focus-within .o{opacity:1}
+.f:hover{background:var(--hover)}
+.f.on .l{color:var(--dark);background:var(--lemon);padding:0 5px;border-radius:3px;flex:0 1 auto}
+.f.on.pk .l{background:var(--pink)}.f.on.sk .l{background:var(--sky)}
+.f.on .c{margin-right:auto}
+.bk{display:flex;gap:2px;align-items:flex-end;height:44px;margin-bottom:4px}
+.bk button{flex:1;background:#000;opacity:.28;min-height:2px}
+.bk button:hover{opacity:.85}.bk button.on{opacity:1;background:var(--lime)}
+.bkl{display:flex;gap:2px;color:var(--mute);font-size:10px}
+.bkl span{flex:1;text-align:center}
+.scroll{max-height:240px;overflow:auto;scrollbar-width:thin}
+
+main{min-width:0;padding:0 22px}
+.layout.fx{grid-template-columns:250px 1fr}
+.layout.fx aside{display:block}
+.layout.fx main{padding-left:0}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.tabs button{padding:3px 8px;border-radius:99px;text-decoration:underline;text-underline-offset:2px;opacity:.6}
+.tabs button:hover{opacity:1}
+.tabs button.on{background:var(--lime);text-decoration:none;opacity:1}
+.tabs button .n{color:var(--mute);margin-left:5px;font-size:11px}
+.tabs button.on .n{color:rgba(0,0,0,.6)}
+.q{flex:1;min-width:140px;border-bottom:1px solid #000;padding:4px 2px;outline:0;margin-left:8px}
+.q::placeholder{color:var(--mute)}
+.act{padding:3px 8px;border-radius:99px;text-decoration:underline;text-underline-offset:2px}
+.act:hover{background:var(--hover)}
+.active{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.active:empty{display:none}
+.active button{background:var(--lemon);color:var(--dark);padding:2px 5px 2px 8px;border-radius:99px}
+.active button::after{content:" ×";opacity:.55}
+.active .clr{background:none;color:var(--ink);text-decoration:underline;padding:2px 6px}
+.active .clr::after{content:""}
+
+.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 84px 70px minmax(120px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
+.head{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid #000;padding:7px 8px 6px;font-size:10px;color:var(--mute)}
+.head button{text-align:left;color:inherit;padding:0}
+.head button.s{color:var(--ink)}
+.head button.s::after{content:" ↓"}
+.head button.s.asc::after{content:" ↑"}
+.head .r{text-align:right}
+.row{padding:6px 8px;border-bottom:1px solid var(--line);min-height:34px}
+.row:hover,.row.sel{background:var(--hover)}
+.row.sel{box-shadow:inset 3px 0 0 #000}
+.row .d{color:var(--mute);font-variant-numeric:tabular-nums;text-align:left;padding:0;font-size:10px}
+.row .d:hover{color:var(--ink);text-decoration:underline}
+.row .a{font-weight:700;text-align:left;padding:0;overflow-wrap:anywhere}
+.row .a:hover{text-decoration:underline}
+.row .s a{overflow-wrap:anywhere}
+.row .s a:hover{text-decoration:underline}
+.num{position:relative;text-align:right;font-variant-numeric:tabular-nums;color:var(--dark);height:20px;line-height:20px;padding:0 6px;display:block}
+.num::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--w);background:var(--c);z-index:0;border-radius:2px;min-width:2px}
+.num span{position:relative;z-index:1}
+a.num:hover::before{box-shadow:0 0 0 1px var(--dark)}
+.n1{--c:var(--lime)}.n2{--c:var(--sky)}
+.row .none{color:var(--mute);text-align:right;display:block;padding:0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:3px}
+.chip{display:inline-block;color:var(--dark);padding:1px 7px 2px;border-radius:99px;font-size:10px;line-height:1.35;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+a.chip:hover{box-shadow:0 0 0 1px var(--dark)}
+.chip.pr{background:var(--pink)}
+.chip.pl{background:var(--lemon)}
+.chip.sp{background:#fff}
+.chip.sh{background:var(--lime)}
+a.chip::after{content:" ↗";opacity:.45}
+.shw{display:inline-block;margin-top:4px;background:var(--lime);padding:0 8px 1px;border-radius:99px;font-size:10px;font-weight:700}
+.shw:hover{box-shadow:0 0 0 1px #000}
+.shwl{display:flex;flex-direction:column;gap:2px;margin-top:5px;align-items:flex-start}
+.shwl span{background:var(--lime);padding:1px 8px 2px;border-radius:3px;font-size:10px}
+.daycap{display:flex;gap:10px;align-items:baseline;padding:16px 8px 5px;border-bottom:1px solid #000;font-size:11px}
+.daycap button{font-weight:700;padding:0}
+.daycap button:hover{text-decoration:underline}
+.daycap span{color:var(--mute)}
+.daycap a{margin-left:auto;background:var(--lime);color:#000;padding:0 8px 1px;border-radius:99px;font-weight:700}
+.empty{padding:50px 8px;color:var(--mute)}
+footer{margin:50px 22px 0;padding:8px 0 20px;border-top:1px solid #000;color:var(--mute);font-size:10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px;margin:0 1px}
+
+@media (max-width:900px){
+  .layout.fx aside{position:fixed;inset:0;z-index:10;background:var(--bg);max-height:none;padding:18px 22px 80px}
+  .layout.fx{grid-template-columns:1fr}
+  main{padding:0 14px}
+  .top{gap:14px;padding:16px 14px 0}.kp{gap:14px}.meta{align-items:flex-start;text-align:left;width:100%}
+  .strip,.strip-cap{margin-left:14px;margin-right:14px}
+  .head{display:none}
+  .row{grid-template-columns:1fr auto;grid-template-areas:"a l" "s g" "p p" "pl pl";gap:1px 10px}
+  .row .d{display:none}
+  .row .a{grid-area:a}.row .s{grid-area:s}
+  .row .L{grid-area:l;width:84px}.row .G{grid-area:g;width:84px}
+  .row .P{grid-area:p;margin-top:4px}.row .PL{grid-area:pl;margin-top:3px}
+  .row .P:empty,.row .PL:empty{display:none}
+}
+#gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
+#gate[hidden]{display:none}
+#gate .logo{width:84px;height:84px}
+#gate input{font:inherit;font-size:13px;text-transform:uppercase;letter-spacing:.12em;text-align:center;border-bottom:1px solid #000;width:240px;padding:6px 0;outline:0;background:none;color:#000;border-radius:0}
+#gate input::placeholder{color:var(--mute)}
+#gate .err{height:12px;color:#000;font-size:10px}
+</style>
+</head>
+<body>
+<form id="gate" autocomplete="off">
+  <div class="logo" aria-hidden="true">IN</div>
+  <input id="pw" type="password" placeholder="password" autofocus autocomplete="current-password" spellcheck="false">
+  <div class="err" id="err"></div>
+</form>
+<div class="top">
+  <div class="logo" aria-hidden="true">IN</div>
+  <div class="kp">
+    <button class="pill k1" data-act="src" data-v="SP">SP</button>
+    <button class="pill k2" data-act="src" data-v="MP">MP</button>
+    <button class="pill k3" data-act="flagged">Flagged</button>
+    <a class="pill k4" id="mega" href="#" target="_blank" rel="noopener">Mega playlist ↗</a>
+    <a class="pill k5" id="latest" hidden target="_blank" rel="noopener"></a>
+  </div>
+  <span class="sp"></span>
+  <div class="meta"><span id="upd"></span></div>
+</div>
+<div class="strip" id="strip" aria-label="songs per day"></div>
+<div class="strip-cap"><span id="cap-l"></span><span>click a day · shift-click a range</span><span id="cap-r"></span></div>
+
+<div class="layout">
+<aside id="aside">
+  <h4>listeners <button data-act="clr-bk">clear</button></h4>
+  <div class="bk" id="bk"></div><div class="bkl" id="bkl"></div>
+  <h4>found on <span style="font-size:10px">label filters · ↗ opens</span></h4>
+  <div class="scroll" id="f-pl" style="max-height:300px"></div>
+  <h4>press outlets</h4>
+  <div class="scroll" id="f-pr"></div>
+  <h4>superplaylists</h4>
+  <div class="scroll" id="f-sp"></div>
+  <button class="act" data-act="facets" style="margin-top:18px">done</button>
+</aside>
+
+<main>
+  <div class="tabs" id="tabs"></div>
+  <div class="tabs">
+    <button class="act" data-act="facets">filters</button>
+    <input class="q" id="q" type="search" placeholder="search artist, song, outlet, playlist  ( / )" autocomplete="off" spellcheck="false">
+    <button class="act" data-act="csv">csv</button>
+  </div>
+  <div class="active" id="active"></div>
+  <div class="head" id="head">
+    <button data-sort="date">date</button><button data-sort="artist">artist</button><button data-sort="song">song</button>
+    <button class="r" data-sort="listeners">listeners</button><button class="r" data-sort="ig">instagram</button>
+    <button data-sort="press">press</button><button data-sort="pls">playlists</button>
+  </div>
+  <div id="rows"></div>
+  <div class="empty" id="empty" hidden>nothing matches. <button class="act" data-act="clear">clear filters</button></div>
+</main>
+</div>
+<footer>
+  <span>instinct · artists under 100k monthly listeners · everything is a link or a filter</span>
+  <span><kbd>/</kbd> search · <kbd>j</kbd><kbd>k</kbd> move · <kbd>↵</kbd> open song · <kbd>esc</kbd> clear</span>
+</footer>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>n==null?'':n>=1e6?(n/1e6).toFixed(1)+'m':n>=1e4?Math.round(n/1e3)+'k':n>=1e3?(n/1e3).toFixed(1)+'k':String(n);
+const dstr=iso=>new Date(iso+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+const dlong=iso=>new Date(iso+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+const BK=[[0,1e3,'<1k'],[1e3,5e3,'1–5k'],[5e3,1e4,'5–10k'],[1e4,25e3,'10–25k'],[25e3,5e4,'25–50k'],[5e4,1e9,'50k+']];
+const isSP=n=>/^superplaylist #/i.test(n);
+const spN=n=>+(n.match(/#(\d+)/)||[0,0])[1];
+
+let OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false},VIEW=[],lastDay=null;
+
+const plain=s=>(s.playlists||[]).filter(p=>!isSP(p.t));
+const sps=s=>(s.playlists||[]).filter(p=>isSP(p.t));
+function match(s,skip){
+  if(S.src&&s.src!==S.src)return false;
+  if(S.flag&&!s.flag)return false;
+  const q=S.q.trim().toLowerCase();
+  if(q&&!(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')).toLowerCase().includes(q))return false;
+  if(skip!=='view'){
+    if(S.view==='week'){const c=new Date();c.setDate(c.getDate()-7);if(s.date<c.toISOString().slice(0,10))return false}
+    if(S.view==='press'&&!(s.press||[]).length)return false;
+    if(S.view==='shows'&&!s.plays)return false;
+    if(S.view==='noig'&&s.ig)return false;
+  }
+  if(skip!=='days'&&S.days.size&&!S.days.has(s.date))return false;
+  if(skip!=='pls'&&S.pls.size&&!plain(s).some(p=>S.pls.has(p.t)))return false;
+  if(skip!=='pr'&&S.pr.size&&!(s.press||[]).some(p=>S.pr.has(p.t)))return false;
+  if(skip!=='sp'&&S.sp.size&&!sps(s).some(p=>S.sp.has(p.t)))return false;
+  if(skip!=='bk'&&S.bk.size&&![...S.bk].some(i=>s.listeners>=BK[i][0]&&s.listeners<BK[i][1]))return false;
+  return true;
+}
+const KEY={date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>s.listeners??-1,ig:s=>s.ig??-1,press:s=>(s.press||[]).length,pls:s=>(s.playlists||[]).length};
+function compute(){
+  VIEW=ALL.filter(s=>match(s));
+  const k=KEY[S.sort],d=S.dir;
+  VIEW.sort((a,b)=>{const x=k(a),y=k(b);return (x<y?-1:x>y?1:0)*d||(ALL.indexOf(a)-ALL.indexOf(b))});
+}
+
+const chipsHtml=(arr,cls)=>(arr||[]).map(p=>p.u?`<a class="chip ${cls||p.c}" href="${esc(p.u)}" target="_blank" rel="noopener" title="${esc(p.t)}">${esc(p.t)}</a>`:`<span class="chip ${cls||p.c}">${esc(p.t)}</span>`).join('');
+const shList=s=>(s.plays||'').split(/;|\n/).map(x=>x.trim().replace(/^upcoming:\s*/i,'')).filter(Boolean);
+function showsHtml(s){
+  const l=shList(s);if(!l.length)return '';
+  const k=s.track||s.artist+s.song,o=OPEN.has(k);
+  return `<div><button class="shw" data-act="shows" data-v="${esc(k)}">${l.length} show${l.length>1?'s':''} ${o?'▴':'▾'}</button></div>${o?`<div class="shwl">${l.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}`;
+}
+function rowHtml(s,i){
+  const w=s.listeners?Math.max(2,Math.min(100,s.listeners/1e3)):0, wi=s.ig?Math.max(2,Math.min(100,Math.sqrt(s.ig/1e5)*100)):0;
+  const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
+  return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
+    <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}${s.src==='MP'?'<span class="tg">MP</span>':''}</button>
+    <button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}${s.flag?' ★':''}</button>
+    <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}${showsHtml(s)}</div>
+    <div class="L">${s.listeners!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${s.listeners.toLocaleString()} monthly listeners"><span>${fmt(s.listeners)}</span></a>`:'<span class="none">–</span>'}</div>
+    <div class="G">${s.ig?`<a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${s.ig.toLocaleString()} instagram followers"><span>${fmt(s.ig)}</span></a>`:'<span class="none">–</span>'}</div>
+    <div class="P chips">${chipsHtml(s.press,'pr')}</div>
+    <div class="PL chips">${chipsHtml(pls)}</div>
+  </div>`;
+}
+function renderRows(){
+  let h='',last=null;
+  VIEW.forEach((s,i)=>{
+    if(S.sort==='date'&&s.date!==last){
+      last=s.date;const n=VIEW.filter(x=>x.date===s.date).length;
+      const sp=SPL.find(x=>x.date===s.date);const spu=sp&&'https://open.spotify.com/playlist/'+sp.id;
+      h+=`<div class="daycap"><button data-act="day" data-v="${s.date}">${esc(dlong(s.date))}</button><span>${n} song${n>1?'s':''}</span>${sp?`<a href="${spu}" target="_blank" rel="noopener">${esc(sp.name)} ↗</a>`:''}</div>`;
+    }
+    h+=rowHtml(s,i);
+  });
+  $('#rows').innerHTML=h;
+  $('#empty').hidden=VIEW.length>0;
+}
+function facet(el,items,set,cls){
+  el.innerHTML=items.map(([t,c,u])=>`<div class="f ${set.has(t)?'on ':''}${cls}"><button class="l" data-act="f" data-k="${el.id}" data-v="${esc(t)}">${esc(t)}</button><span class="c">${c}</span>${u?`<a class="o" href="${esc(u)}" target="_blank" rel="noopener" title="open on spotify">↗</a>`:'<span class="o"></span>'}</div>`).join('');
+}
+function counts(skip,get){
+  const m=new Map();
+  ALL.filter(s=>match(s,skip)).forEach(s=>get(s).forEach(p=>{const e=m.get(p.t)||[p.t,0,p.u];e[1]++;if(!e[2])e[2]=p.u;m.set(p.t,e)}));
+  S[skip]&&[...S[skip]].forEach(t=>{if(!m.has(t))m.set(t,[t,0,null])});
+  return [...m.values()];
+}
+function renderSide(){
+  const by=(a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]);
+  facet($('#f-pl'),counts('pls',plain).sort(by),S.pls,'');
+  facet($('#f-pr'),counts('pr',s=>s.press||[]).sort(by),S.pr,'pk');
+  facet($('#f-sp'),counts('sp',sps).sort((a,b)=>spN(b[0])-spN(a[0])),S.sp,'sk');
+  const bc=BK.map(b=>ALL.filter(s=>match(s,'bk')&&s.listeners>=b[0]&&s.listeners<b[1]).length),mx=Math.max(1,...bc);
+  $('#bk').innerHTML=bc.map((c,i)=>`<button data-act="bk" data-v="${i}" class="${S.bk.has(i)?'on':''}" style="height:${Math.max(2,Math.round(c/mx*44))}px" title="${c} songs"></button>`).join('');
+  $('#bkl').innerHTML=BK.map(b=>`<span>${b[2]}</span>`).join('');
+}
+function renderTop(){
+  document.querySelectorAll('.pill[data-act]').forEach(b=>b.classList.toggle('on',b.dataset.act==='flagged'?S.flag:S.src===b.dataset.v));
+  const c={};ALL.filter(s=>match(s,'days')).forEach(s=>c[s.date]=(c[s.date]||0)+1);
+  const m=Math.max(1,...Object.values(c));
+  $('#strip').innerHTML=DAYS.map(d=>`<button data-act="strip" data-v="${d}" class="${S.days.has(d)?'on':''}" style="height:${Math.max(3,Math.round((c[d]||0)/m*46))}px" title="${esc(dlong(d))} · ${c[d]||0}"></button>`).join('');
+  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['noig','no instagram']];
+  const cur=S.view;
+  $('#tabs').innerHTML=tabs.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cur===k?'on':''}">${l}<span class="n">${n}</span></button>`}).join('');
+  S.view=cur;
+  const act=[];
+  S.days.forEach(v=>act.push(['days',v,dstr(v)]));S.pls.forEach(v=>act.push(['pls',v,v]));S.pr.forEach(v=>act.push(['pr',v,v]));S.sp.forEach(v=>act.push(['sp',v,v]));S.bk.forEach(v=>act.push(['bk',v,BK[v][2]+' listeners']));
+  $('#active').innerHTML=act.map(([k,v,l])=>`<button data-act="rm" data-k="${k}" data-v="${esc(v)}">${esc(l)}</button>`).join('')+(act.length||S.q?'<button class="clr" data-act="clear">clear all</button>':'');
+  document.querySelectorAll('#head button').forEach(b=>{b.classList.toggle('s',b.dataset.sort===S.sort);b.classList.toggle('asc',b.dataset.sort===S.sort&&S.dir===1)});
+}
+function render(){compute();renderTop();renderSide();renderRows();save()}
+
+function save(){try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],o:S.sort,i:S.dir,x:S.src,f:S.flag})))}catch(e){}}
+function load(){try{const o=JSON.parse(decodeURIComponent(location.hash.slice(1)));S.view=o.v||'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.sort=o.o||'date';S.dir=o.i||-1;S.src=o.x||'';S.flag=!!o.f;$('#q').value=S.q}catch(e){}}
+const clearAll=()=>{S.src='';S.flag=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.q='';S.view='all';$('#q').value=''};
+const toggle=(set,v)=>set.has(v)?set.delete(v):set.add(v);
+
+document.addEventListener('click',e=>{
+  if(e.target.closest('a[href]:not([href="#"])'))return;
+  const b=e.target.closest('[data-act],[data-sort]');
+  if(!b)return;
+  if(b.dataset.sort){const k=b.dataset.sort;if(S.sort===k)S.dir*=-1;else{S.sort=k;S.dir=k==='artist'||k==='song'?1:-1}render();return}
+  const a=b.dataset.act,v=b.dataset.v;
+  if(a==='view')S.view=v;
+  else if(a==='day'||a==='strip'){
+    if(e.shiftKey&&lastDay&&a==='strip'){const i=DAYS.indexOf(lastDay),j=DAYS.indexOf(v);DAYS.slice(Math.min(i,j),Math.max(i,j)+1).forEach(d=>S.days.add(d))}
+    else{if(a==='day')S.days=new Set(S.days.has(v)&&S.days.size===1?[]:[v]);else toggle(S.days,v);lastDay=v}
+  }
+  else if(a==='artist'){S.q=v;$('#q').value=v}
+  else if(a==='f')toggle({'f-pl':S.pls,'f-pr':S.pr,'f-sp':S.sp}[b.dataset.k],v);
+  else if(a==='bk')toggle(S.bk,+v);
+  else if(a==='clr-bk')S.bk.clear();
+  else if(a==='rm'){const k=b.dataset.k;({days:S.days,pls:S.pls,pr:S.pr,sp:S.sp,bk:S.bk})[k].delete(k==='bk'?+v:v)}
+  else if(a==='clear')clearAll();
+  else if(a==='shows'){OPEN.has(v)?OPEN.delete(v):OPEN.add(v);renderRows();return}
+  else if(a==='csv'){csv();return}
+  else if(a==='facets'){document.querySelector('.layout').classList.toggle('fx');return}
+  else if(a==='src')S.src=S.src===v?'':v;
+  else if(a==='flagged')S.flag=!S.flag;
+  render();
+});
+$('#q').addEventListener('input',e=>{S.q=e.target.value;render()});
+document.addEventListener('keydown',e=>{
+  const t=e.target.tagName==='INPUT';
+  if(e.key==='Escape'){if(t)e.target.blur();clearAll();S.sel=-1;render();return}
+  if(t||e.metaKey||e.ctrlKey)return;
+  if(e.key==='/'){e.preventDefault();$('#q').focus();return}
+  if(e.key==='j'||e.key==='k'){S.sel=Math.max(0,Math.min(VIEW.length-1,S.sel+(e.key==='j'?1:-1)));renderRows();const el=document.querySelector('.row.sel');el&&el.scrollIntoView({block:'center'});return}
+  if(e.key==='Enter'&&S.sel>=0&&VIEW[S.sel]&&VIEW[S.sel].track)window.open(VIEW[S.sel].track,'_blank','noopener');
+});
+function csv(){
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=[['date','artist','song','listeners','instagram','press','playlists','track url'],...VIEW.map(s=>[s.date,s.artist,s.song,s.listeners,s.ig,(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),s.track])];
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='instinct.csv';a.click();
+}
+
+function init(data){
+  ALL=data.songs.slice().sort((a,b)=>(a.src==='MP')-(b.src==='MP'));
+  DAYS=[...new Set(ALL.map(s=>s.date))].sort();
+  $('#cap-l').textContent=dstr(DAYS[0]);$('#cap-r').textContent=dstr(DAYS[DAYS.length-1]);
+  const u=new Date(data.updated);
+  $('#upd').textContent='updated '+u.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+u.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const best=SPL.slice().sort((a,b)=>b.n-a.n)[0];
+  if(best){const a=$('#latest');a.href='https://open.spotify.com/playlist/'+best.id;a.textContent='open '+best.name+' ↗';a.hidden=false}
+  render();
+}
+const b64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
+async function decrypt(enc,pw){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(enc.s),iterations:enc.i,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(enc.v)},key,b64(enc.c));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+const getEnc=()=>fetch('data.enc.json?'+Date.now()).then(r=>r.json());
+let PW=null;
+async function unlock(pw){
+  const d=await decrypt(await getEnc(),pw);
+  PW=pw;window.__u=d.updated;SPL=d.spl||[];
+  if(d.mega){$('#mega').href='https://open.spotify.com/playlist/'+d.mega}
+  $('#gate').hidden=true;init(d);
+  try{localStorage.setItem('instinct_pw',pw)}catch(e){}
+}
+$('#gate').addEventListener('submit',async e=>{
+  e.preventDefault();$('#err').textContent='';
+  try{await unlock($('#pw').value)}catch(x){$('#err').textContent='wrong password';$('#pw').select()}
+});
+(async()=>{
+  load();
+  let pw=null;try{pw=localStorage.getItem('instinct_pw')}catch(e){}
+  if(pw){try{await unlock(pw)}catch(e){try{localStorage.removeItem('instinct_pw')}catch(_){}}}
+  if(!PW)$('#pw').focus();
+})();
+setInterval(async()=>{if(!PW)return;try{const d=await decrypt(await getEnc(),PW);if(d.updated!==window.__u){window.__u=d.updated;SPL=d.spl||[];init(d)}}catch(e){}},9e5);
+</script>
+</body>
+</html>
