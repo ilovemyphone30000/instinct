@@ -241,7 +241,6 @@ function match(s,skip){
     if(S.view==='noig'&&s.ig)return false;
     if(S.view==='grow'&&!(gr(s)&&gr(s).pct>=0.1))return false;
     if(S.view==='igrow'&&!(gr(s,'igh')&&gr(s,'igh').pct>=0.1))return false;
-    if(S.view==='fall'&&!(gr(s)&&gr(s).abs<0))return false;
   }
   if(skip!=='days'&&S.days.size&&!S.days.has(s.date))return false;
   if(skip!=='pls'&&S.pls.size&&!plain(s).some(p=>S.pls.has(p.t)))return false;
@@ -314,7 +313,7 @@ function renderSide(){
 function renderTop(){
   document.body.classList.toggle('nosong',!S.flag);
   document.querySelectorAll('.pill[data-act]').forEach(b=>b.classList.toggle('on',b.dataset.act==='flagged'?S.flag:S.src===b.dataset.v));
-  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','listeners 10%+'],['igrow','instagram 10%+'],['fall','falling'],['noig','no instagram']];
+  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','listeners 10%+'],['igrow','instagram 10%+'],['noig','no instagram']];
   const cur=S.view;
   $('#tabs').innerHTML=tabs.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cur===k?'on':''}">${l}<span class="n">${n}</span></button>`}).join('');
   S.view=cur;
@@ -326,7 +325,7 @@ function renderTop(){
 function render(){compute();renderTop();renderSide();renderRows();save()}
 
 function save(){try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],o:S.sort,i:S.dir,x:S.src,f:S.flag})))}catch(e){}}
-function load(){try{const o=JSON.parse(decodeURIComponent(location.hash.slice(1)));S.view=o.v&&o.v!=='tracked'?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.sort=o.o||'date';S.dir=o.i||-1;S.src=o.x||'';S.flag=!!o.f;$('#q').value=S.q}catch(e){}}
+function load(){try{const o=JSON.parse(decodeURIComponent(location.hash.slice(1)));S.view=o.v&&o.v!=='tracked'&&o.v!=='fall'?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.sort=o.o||'date';S.dir=o.i||-1;S.src=o.x||'';S.flag=!!o.f;$('#q').value=S.q}catch(e){}}
 const clearAll=()=>{S.src='';S.flag=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.q='';S.view='all';$('#q').value=''};
 const toggle=(set,v)=>set.has(v)?set.delete(v):set.add(v);
 
