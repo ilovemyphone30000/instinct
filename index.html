@@ -28,7 +28,9 @@ button{cursor:pointer}
 .k1{--c:var(--lime)}.k2{--c:var(--lemon)}.k3{--c:var(--pink)}.k4{--c:var(--sky)}.k5{--c:#fff}
 .top .sp{flex:1}
 .meta{color:var(--mute);text-align:right;padding-top:4px}
-.tg{display:inline-block;background:#000;color:var(--bg);font-size:8px;font-weight:800;padding:0 4px 1px;border-radius:2px;margin-left:4px;vertical-align:1px}
+.tg{display:inline-block;font-size:8px;font-weight:800;padding:0 4px 1px;border-radius:2px;margin-left:6px;vertical-align:1px;border:1px solid #000;color:#000;background:none;opacity:.55}
+.tg.mp{background:#000;color:var(--bg)}
+.tg:hover,.tg.on{opacity:1}
 
 .strip{display:flex;align-items:flex-end;gap:2px;height:46px;margin:6px 22px 0}
 .strip button{flex:1 1 0;min-width:0;background:#000;opacity:.28;min-height:3px}
@@ -164,8 +166,6 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
 <div class="top">
   <button class="logo" data-act="home" title="everything (SP + MP combined)" aria-label="Show everything">IN</button>
   <div class="kp">
-    <button class="pill k1" data-act="src" data-v="SP">SP (SCAN)</button>
-    <button class="pill k2" data-act="src" data-v="MP">MP (RECS)</button>
     <button class="pill k3" data-act="flagged">Flagged</button>
         <a class="pill k4" href="playlists.html">Playlists</a>
   </div>
@@ -247,7 +247,6 @@ function match(s,skip){
     if(S.view==='press'&&!(s.press||[]).length)return false;
     if(S.view==='shows'&&!s.plays)return false;
     if(S.view==='noig'&&s.ig)return false;
-    if(S.view==='tracked'&&!gr(s))return false;
     if(S.view==='grow'&&!(gr(s)&&gr(s).pct>=0.1))return false;
     if(S.view==='igrow'&&!(gr(s,'igh')&&gr(s,'igh').pct>=0.1))return false;
     if(S.view==='fall'&&!(gr(s)&&gr(s).abs<0))return false;
@@ -279,8 +278,8 @@ function rowHtml(s,i){
   const w=cur?Math.max(2,Math.min(100,cur/1e3)):0, wi=ig?Math.max(2,Math.min(100,Math.sqrt(ig/1e5)*100)):0;
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
-    <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}${s.src==='MP'?'<span class="tg">MP</span>':''}</button>
-    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?'unflag artist (saved in this browser)':'flag artist (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button><button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}</button>${showsHtml(s)}</div>
+    <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
+    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?'unflag artist (saved in this browser)':'flag artist (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button><button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}</button><button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'MP (recs)':'SP (scan)'} - click to show only these">${s.src}</button>${showsHtml(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
     <div class="L">${cur!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>`:'<span class="none">–</span>'}</div>
     <div class="GRC">${growHtml(s)}</div>
@@ -326,7 +325,7 @@ function renderTop(){
   const c={};ALL.filter(s=>match(s,'days')).forEach(s=>c[s.date]=(c[s.date]||0)+1);
   const m=Math.max(1,...Object.values(c));
   $('#strip').innerHTML=DAYS.map(d=>`<button data-act="strip" data-v="${d}" class="${S.days.has(d)?'on':''}" style="height:${Math.max(3,Math.round((c[d]||0)/m*46))}px" title="${esc(dlong(d))} · ${c[d]||0}"></button>`).join('');
-  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['tracked','tracked'],['grow','listeners 10%+'],['igrow','instagram 10%+'],['fall','falling'],['noig','no instagram']];
+  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','listeners 10%+'],['igrow','instagram 10%+'],['fall','falling'],['noig','no instagram']];
   const cur=S.view;
   $('#tabs').innerHTML=tabs.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cur===k?'on':''}">${l}<span class="n">${n}</span></button>`}).join('');
   S.view=cur;
@@ -338,7 +337,7 @@ function renderTop(){
 function render(){compute();renderTop();renderSide();renderRows();save()}
 
 function save(){try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],o:S.sort,i:S.dir,x:S.src,f:S.flag})))}catch(e){}}
-function load(){try{const o=JSON.parse(decodeURIComponent(location.hash.slice(1)));S.view=o.v||'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.sort=o.o||'date';S.dir=o.i||-1;S.src=o.x||'';S.flag=!!o.f;$('#q').value=S.q}catch(e){}}
+function load(){try{const o=JSON.parse(decodeURIComponent(location.hash.slice(1)));S.view=o.v&&o.v!=='tracked'?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.sort=o.o||'date';S.dir=o.i||-1;S.src=o.x||'';S.flag=!!o.f;$('#q').value=S.q}catch(e){}}
 const clearAll=()=>{S.src='';S.flag=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.q='';S.view='all';$('#q').value=''};
 const toggle=(set,v)=>set.has(v)?set.delete(v):set.add(v);
 
