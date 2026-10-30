@@ -79,6 +79,8 @@ main{min-width:0;padding:0 22px}
 .active .clr::after{content:""}
 
 .head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 84px 96px 100px minmax(120px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
+@media (min-width:901px){.nosong .head,.nosong .row{grid-template-columns:80px minmax(110px,.9fr) 84px 96px 100px minmax(120px,1fr) minmax(150px,1.6fr)}}
+.nosong .head [data-sort=song],.nosong .row>.s{display:none}
 .head{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid #000;padding:7px 8px 6px;font-size:10px;color:var(--mute)}
 .head button{text-align:left;color:inherit;padding:0}
 .head button.s{color:var(--ink)}
@@ -119,6 +121,7 @@ a.chip::after{content:" ↗";opacity:.45}
 .shw{display:inline-block;margin-top:4px;background:var(--lime);padding:0 8px 1px;border-radius:99px;font-size:10px;font-weight:700}
 .shw:hover{box-shadow:0 0 0 1px #000}
 .shwl{display:flex;flex-direction:column;gap:2px;margin-top:5px;align-items:flex-start}
+.shwl span b{display:block;font-weight:400;opacity:.65}
 .shwl span{background:var(--lime);padding:1px 8px 2px;border-radius:3px;font-size:10px}
 .daycap{display:flex;gap:10px;align-items:baseline;padding:16px 8px 5px;border-bottom:1px solid #000;font-size:11px}
 .daycap button{font-weight:700;padding:0}
@@ -230,7 +233,7 @@ function growHtml(s,k='hist'){
   const up=g.abs>0,dn=g.abs<0,p=g.pct==null?'':Math.abs(Math.round(g.pct*100))+'%';
   return `<div class="GR" title="${esc(dstr(g.d0))}: ${g.f.toLocaleString()} → ${esc(dstr(g.d1))}: ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})">${spark(s[k],k==='igh'?44:60)}<span class="gp ${up?'up':dn?'dn':''}">${up?'▲':dn?'▼':'–'}${p}</span></div>`;
 }
-let OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false},VIEW=[],lastDay=null;
+let CAPS={},OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false},VIEW=[],lastDay=null;
 
 const plain=s=>(s.playlists||[]).filter(p=>!isSP(p.t));
 const sps=s=>(s.playlists||[]).filter(p=>isSP(p.t));
@@ -265,10 +268,11 @@ function compute(){
 
 const chipsHtml=(arr,cls)=>(arr||[]).map(p=>p.u?`<a class="chip ${cls||p.c}" href="${esc(p.u)}" target="_blank" rel="noopener" title="${esc(p.t)}">${esc(p.t)}</a>`:`<span class="chip ${cls||p.c}">${esc(p.t)}</span>`).join('');
 const shList=s=>(s.plays||'').split(/;|\n/).map(x=>x.trim().replace(/^upcoming:\s*/i,'')).filter(Boolean);
+const capHtml=x=>{const m=x.match(/^(.+?),\s*([^,]+?)\s+\d+\/\d+\/\d+/);const c=m&&CAPS[(m[1]+'|'+m[2]).toLowerCase()];return c?`<b title="approximate venue capacity">cap ~${c.toLocaleString()}</b>`:''};
 function showsHtml(s){
   const l=shList(s);if(!l.length)return '';
   const k=s.track||s.artist+s.song,o=OPEN.has(k);
-  return `<div><button class="shw" data-act="shows" data-v="${esc(k)}">${l.length} show${l.length>1?'s':''} ${o?'▴':'▾'}</button></div>${o?`<div class="shwl">${l.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}`;
+  return `<div><button class="shw" data-act="shows" data-v="${esc(k)}">${l.length} show${l.length>1?'s':''} ${o?'▴':'▾'}</button></div>${o?`<div class="shwl">${l.map(x=>`<span>${esc(x)}${capHtml(x)}</span>`).join('')}</div>`:''}`;
 }
 function rowHtml(s,i){
   const g0=gr(s),cur=g0?g0.l:s.listeners,gi=gr(s,'igh'),ig=gi?gi.l:s.ig;
@@ -317,6 +321,7 @@ function renderSide(){
   $('#bkl').innerHTML=BK.map(b=>`<span>${b[2]}</span>`).join('');
 }
 function renderTop(){
+  document.body.classList.toggle('nosong',!S.flag);
   document.querySelectorAll('.pill[data-act]').forEach(b=>b.classList.toggle('on',b.dataset.act==='flagged'?S.flag:S.src===b.dataset.v));
   const c={};ALL.filter(s=>match(s,'days')).forEach(s=>c[s.date]=(c[s.date]||0)+1);
   const m=Math.max(1,...Object.values(c));
@@ -400,7 +405,7 @@ const getEnc=()=>fetch('data.enc.json?'+Date.now()).then(r=>r.json());
 let PW=null;
 async function unlock(pw){
   const d=await decrypt(await getEnc(),pw);
-  PW=pw;window.__u=d.updated;SPL=d.spl||[];
+  PW=pw;window.__u=d.updated;SPL=d.spl||[];CAPS=d.caps||{};
   $('#gate').hidden=true;init(d);
   try{localStorage.setItem('instinct_pw',pw)}catch(e){}
 }
@@ -414,7 +419,7 @@ $('#gate').addEventListener('submit',async e=>{
   if(pw){try{await unlock(pw)}catch(e){try{localStorage.removeItem('instinct_pw')}catch(_){}}}
   if(!PW)$('#pw').focus();
 })();
-setInterval(async()=>{if(!PW)return;try{const d=await decrypt(await getEnc(),PW);if(d.updated!==window.__u){window.__u=d.updated;SPL=d.spl||[];init(d)}}catch(e){}},9e5);
+setInterval(async()=>{if(!PW)return;try{const d=await decrypt(await getEnc(),PW);if(d.updated!==window.__u){window.__u=d.updated;SPL=d.spl||[];CAPS=d.caps||{};init(d)}}catch(e){}},9e5);
 </script>
 </body>
 </html>

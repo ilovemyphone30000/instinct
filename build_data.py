@@ -136,8 +136,13 @@ if os.path.exists(os.path.join(here, "superplaylists.json")):
 MEGA = "0OVY358Cwc384gprqTiuNB"  # Superplaylist Recap
 EXTRA = [{"name": "superplaylist recap", "id": MEGA, "note": "all songs, jul 20 – oct 19"},
          {"name": "too big", "id": "7wc5ryf4gemNhXFZCVCRgv", "note": "cut at 100k, private"}]
+# venue_caps.json: {"venue|city" (lowercase): {"cap": int|null, "src": url, "note": str}} - only the numbers ship
+caps = {}
+cp = os.path.join(here, "venue_caps.json")
+if os.path.exists(cp):
+    caps = {k: v["cap"] for k, v in json.load(open(cp)).items() if v.get("cap")}
 payload = {"updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-           "songs": songs, "spl": spl, "mega": MEGA, "extra": EXTRA}
+           "songs": songs, "spl": spl, "caps": caps, "mega": MEGA, "extra": EXTRA}
 json.dump(payload, open(out, "w"), ensure_ascii=False, separators=(",", ":"))
 enc = os.path.join(here, "data.enc.json")
 subprocess.run(["node", os.path.join(here, "encrypt.js"), out, enc, os.path.join(here, ".password")], check=True)

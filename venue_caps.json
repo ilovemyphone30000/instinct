@@ -1,0 +1,357 @@
+{
+ "29th street ballroom|austin": {
+  "cap": 400,
+  "src": "https://www.tagvenue.com/us/venues/austin/67471/29th-street-ballroom",
+  "note": "Tagvenue lists 400 standing; JamBase lists 250 (https://www.jambase.com/venue/29th-st-ballroom) - sources conflict"
+ },
+ "blue shell|cologne": {
+  "cap": 200,
+  "src": "https://thevendry.com/venue/229181/blue-shell-koln-germany",
+  "note": "Max standing 200, single room; Songkick's 1,500 looks wrong"
+ },
+ "c2c|turin": {
+  "cap": null,
+  "src": null,
+  "note": "C2C is a multi-venue festival (Club To Club), not a single venue"
+ },
+ "central machine works|austin": {
+  "cap": 600,
+  "src": "https://thevendry.com/venue/149362/central-machine-works-austin-tx",
+  "note": "Beer Hall/Beer Garden max standing 600 each (Taproom 125); Cvent lists 1,000 standing overall"
+ },
+ "de oosterpoort|groningen": {
+  "cap": 2000,
+  "src": "https://cms.bastionhotels.com/en-gb/groningen/spot",
+  "note": "Grote Zaal up to 2,000 standing, ~1,150 seated; a municipal doc cites ~1,800 standing"
+ },
+ "empty bottle|chicago": {
+  "cap": 400,
+  "src": "https://en.wikipedia.org/wiki/Empty_Bottle",
+  "note": "Wikipedia lists 400; reportedly ~350 effective on busy nights"
+ },
+ "full of lava|bern": {
+  "cap": null,
+  "src": null,
+  "note": "Multi-day festival held at Dampfzentrale Bern, not a venue"
+ },
+ "hopscotch music festival|raleigh": {
+  "cap": null,
+  "src": null,
+  "note": "Multi-venue multi-day festival, not a venue"
+ },
+ "kalamashoegazer 17|kalamazoo": {
+  "cap": null,
+  "src": null,
+  "note": "Festival (held at Bell's Eccentric Cafe), not a venue"
+ },
+ "la dynamo de banlieues bleues|pantin": {
+  "cap": 250,
+  "src": "https://www.banlieuesbleues.org/content/uploads/sites/2/2025/09/Presentation_laDynamo_Pantin.pdf",
+  "note": "Official presentation: standing jauge 250 standard; 350 centre stage, 430 frontal stage"
+ },
+ "le botanique|brussels": {
+  "cap": 650,
+  "src": "https://en.wikipedia.org/wiki/Le_Botanique",
+  "note": "Orangerie room, 650 standing (~300-340 seated); Rotunda 300, Witloof Bar 200"
+ },
+ "les étoiles|paris": {
+  "cap": 300,
+  "src": "https://www.offi.fr/concerts/les-etoiles-2298.html",
+  "note": "Main room 300 standing / 170 seated; agendaculturel lists 550"
+ },
+ "meow|wellington": {
+  "cap": 400,
+  "src": "https://www.ticketfairy.com/events-in-wellington/meow?c=au",
+  "note": "Original Meow at 9 Edward St, listed 400-capacity; larger Meow Nui is ~1,000 (muzic.net.nz)"
+ },
+ "nci sports & social club|cambridge": {
+  "cap": 100,
+  "src": "https://www.ncicambridge.co.uk",
+  "note": "Main Hall licensed for up to 100 people (with chairs/tables and stage); standing figure not stated"
+ },
+ "next door records two|london": {
+  "cap": 200,
+  "src": "https://eventslist.co.uk/london/venues/next-door-records-two-london",
+  "note": "Single aggregator source (EventsList); no official figure found"
+ },
+ "phono|aarhus": {
+  "cap": null,
+  "src": null,
+  "note": "No capacity found in any source"
+ },
+ "quarry|liverpool": {
+  "cap": 250,
+  "src": "https://en.wikipedia.org/wiki/Quarry,_Liverpool",
+  "note": "Current Hardman St site (reopened Sept 2025) 250; Skiddle lists 200"
+ },
+ "salle de la cité|rennes": {
+  "cap": 999,
+  "src": "https://unidivers.fr/salle-de-la-cite-rennes/",
+  "note": "999 in the fosse (standing) plus balcony seats; Billetreduc says 890 standing, Fnac max 1,015"
+ },
+ "sony hall|nyc": {
+  "cap": 1000,
+  "src": "https://wikiwand.com/en/articles/Sony_Hall",
+  "note": "Main ballroom 1,000 standing / 500 seated"
+ },
+ "strongroom bar|london": {
+  "cap": 150,
+  "src": "https://www.designmynight.com/london/bars/shoreditch/strongroom-bar-and-kitchen",
+  "note": "Main Bar 150 standing (80 seated); other listings say ~300 whole venue incl. courtyard"
+ },
+ "the folklore rooms|brighton": {
+  "cap": 70,
+  "src": "https://www.countrymusic.co.uk/locations/the-folklore-rooms-brighton/",
+  "note": "Listed 60/70; Koobit says approx 70, varies by setup"
+ },
+ "treefort music fest 2027|boise": {
+  "cap": null,
+  "src": null,
+  "note": "Multi-venue multi-day festival, not a venue"
+ },
+ "villa antonelli|maggiora": {
+  "cap": null,
+  "src": null,
+  "note": "Private villa/occasional event site; no capacity found"
+ },
+ "white schoolhouse|lawrence ks": {
+  "cap": null,
+  "src": null,
+  "note": "DIY all-ages venue; no capacity stated in any source found"
+ },
+ "aalhaus|hamburg": {
+  "cap": null,
+  "src": "https://www.viberate.com/venue/aalhaus/",
+  "note": "No stated figure found; only Viberate range 0-500, not usable"
+ },
+ "boggs social & supply|atlanta": {
+  "cap": 250,
+  "src": "https://feverup.com/en/atlanta/venue/boggs-social-supply",
+  "note": "Fever: up to 250 people, communal/bar seating; single aggregator source"
+ },
+ "casa do capitão|lisbon": {
+  "cap": 400,
+  "src": "https://www.timeout.pt/lisboa/pt/coisas-para-fazer/casa-do-capitao",
+  "note": "Ground floor (Res do Chao) 400; attic (Sotao) 120 per Liveurope; now Casa Capitao"
+ },
+ "cine lab|athens ga": {
+  "cap": 100,
+  "src": "https://www.thevendry.co/venue/230403/cine-athens-ga",
+  "note": "Cine Lab room, max standing 100 (Vendry); Visit Athens says reception 110, Cvent overview 125"
+ },
+ "dissent cafe and bar|canberra": {
+  "cap": null,
+  "src": null,
+  "note": "No capacity figure found"
+ },
+ "first baptist church|slc": {
+  "cap": null,
+  "src": "https://www.ksl.com/article/51630276/first-baptist-church-of-salt-lake-city-finds-creative-uses-for-historic-building",
+  "note": "Church, not a venue; only sanctuary worship figure (~1,000), no concert/standing capacity"
+ },
+ "garage saarbrücken|saarbrücken": {
+  "cap": 1000,
+  "src": "https://songkick.com/de/venues/129716-garage",
+  "note": "Songkick states 1,000; not confirmed on venue site"
+ },
+ "ivy room|albany ca": {
+  "cap": 250,
+  "src": "https://www.bandsintown.com/v/10006044",
+  "note": "Bandsintown 250; venue's own news page says just under 200 (no exact number)"
+ },
+ "kamera|manchester": {
+  "cap": 100,
+  "src": "https://gotobeat.com/venue/kamera-ballroom",
+  "note": "Kamera Ballroom above Lloyd & Platt; approx 100-110 per Gotobeat"
+ },
+ "la sirene|la rochelle": {
+  "cap": 1200,
+  "src": "https://basitours.com/venue/la-sirene",
+  "note": "Main hall 1,200; club room 450; Bandsintown lists 1,500 total"
+ },
+ "le klub|paris": {
+  "cap": 250,
+  "src": "https://bandsintown.com/v/10002493-le-klub",
+  "note": "Bandsintown/ReverbNation 250; ABC Salles lists 300 standing for rental"
+ },
+ "loppen (release party)|copenhagen": {
+  "cap": 300,
+  "src": "https://aroundus.com/p/163844461-loppen",
+  "note": "Single listing source (AroundUs) says 300"
+ },
+ "motion club|aberdeen": {
+  "cap": 1000,
+  "src": "https://eventslist.co.uk/aberdeen/venues/motion-club-aberdeen",
+  "note": "Single aggregator source (EventsList); unverified"
+ },
+ "neue zukunft|berlin": {
+  "cap": 300,
+  "src": "https://www.songkick.com/de/venues/4545766-neue-zukunft",
+  "note": "Songkick states 300"
+ },
+ "nighthawks|collingwood": {
+  "cap": null,
+  "src": null,
+  "note": "Small bar; no capacity figure found"
+ },
+ "patronaat|haarlem": {
+  "cap": 350,
+  "src": "https://www.iamsterdam.com/en/see-and-do/whats-on/music/venues/patronaat",
+  "note": "Zaal 2 (350) assumed for mid-size band shows; Zaal 1 is 1,000; Zaal 3 ~120"
+ },
+ "rough trade|nottingham": {
+  "cap": 180,
+  "src": "https://www.roughtrade.com/en-gb/about/hire-rough-trade-event-space",
+  "note": "Official Rough Trade page: venue capacity 180 (first-floor live room); LeftLion says 150"
+ },
+ "shacklewell arms|london": {
+  "cap": 200,
+  "src": "https://en.wikipedia.org/wiki/Shacklewell_Arms",
+  "note": "Wikipedia infobox and Guardian venue guide: 200 (back music room)"
+ },
+ "st pancras old church|london": {
+  "cap": 150,
+  "src": "https://www.laurelcanyonuk.com/music-venues-blog/tag/St+Pancras+Old+Church",
+  "note": "150 mixed seating/standing (Laurel Canyon UK, Songkick); 100 fully seated; Stereoboard says 120"
+ },
+ "tv eye|ridgewood": {
+  "cap": 250,
+  "src": "https://bandsintown.com/v/10154168-tv-eye",
+  "note": "Live music room standing 250 (Bandsintown, Tagvenue, NYS Music); 500 whole venue incl. outdoor per Tagvenue"
+ },
+ "the holloway|norwich": {
+  "cap": 60,
+  "src": "https://www.outlineonline.co.uk/venue/50372/The-Holloway/",
+  "note": "60 per Outline/Vivid Seats; Songkick says 50"
+ },
+ "valhalla|wellington": {
+  "cap": 150,
+  "src": "https://www.ticketfairy.com/events-in-wellington/valhalla",
+  "note": "Ticketfairy 150; Twisted Frequency says 200"
+ },
+ "vinyl|atlanta": {
+  "cap": 300,
+  "src": "https://www.centerstage-atlanta.com/venue-rental/",
+  "note": "Vinyl at Center Stage, 300 per venue rental page/Songkick; Center Stage Theater ~1,050 and Loft ~650 are other rooms"
+ },
+ "zakk|düsseldorf": {
+  "cap": 800,
+  "src": "https://www.visitduesseldorf.de/storys/2026/07/09/zakk-duesseldorf-miguel-passarge-lieblingsplatte/",
+  "note": "Halle up to 800 (Club 250, Kneipe ~100) per booker interview; use Club for smaller shows"
+ },
+ "bi nuu|berlin": {
+  "cap": 500,
+  "src": "https://binuu.de/en/location",
+  "note": "Official site: 500 standing in concert hall (221 m2); eventlocations.com says 400"
+ },
+ "bootleg social|blackpool": {
+  "cap": 350,
+  "src": "https://skiddle.com/whats-on/Blackpool/Bootleg-Social-",
+  "note": "Skiddle 350; ComedySeekr 330, JamBase 400"
+ },
+ "cassette|queens ny": {
+  "cap": null,
+  "src": null,
+  "note": "No capacity stated by any source found (basement room, Ridgewood)"
+ },
+ "drkmttr|nashville": {
+  "cap": 200,
+  "src": "https://extensionembed.wanderlog.com/place/details/4712604",
+  "note": "Weak source (Wanderlog listing); DIY venue"
+ },
+ "el cid|los angeles": {
+  "cap": 250,
+  "src": "https://www.tagvenue.com/us/rooms/los-angeles/103646/el-cid-venue-and-patio/indoor-venue-and-restaurant",
+  "note": "Tagvenue indoor standing 250 (80 seated); a 2012 fire dept report said 125 total incl patio"
+ },
+ "flowers loft|setagaya": {
+  "cap": 250,
+  "src": "https://eplus.jp/sf/venue/1550810",
+  "note": "eplus venue page lists 250; Shimokitazawa; single source"
+ },
+ "handlebar|toronto": {
+  "cap": 150,
+  "src": "https://www.bandsintown.com/v/10005150-handlebar",
+  "note": "Bandsintown venue page only"
+ },
+ "kr studio|surry hills": {
+  "cap": null,
+  "src": null,
+  "note": "No capacity found; 342 Elizabeth St, Surry Hills"
+ },
+ "koneksi gallery|clinton": {
+  "cap": null,
+  "src": null,
+  "note": "Small gallery/vendor shop on Whidbey Island WA, not a live-music venue; no capacity found"
+ },
+ "landmark|bergen": {
+  "cap": null,
+  "src": null,
+  "note": "Bergen Kunsthall's concert/club space; no capacity figure found"
+ },
+ "le pub|newport": {
+  "cap": 100,
+  "src": "https://lepublicspace.co.uk/info-for-promoters",
+  "note": "Venue's promoter page says 100 (Gigantic/eventslist say 200)"
+ },
+ "maus hábitos|porto": {
+  "cap": null,
+  "src": null,
+  "note": "Official site gives no capacity; none found"
+ },
+ "musikbunker|aachen": {
+  "cap": 400,
+  "src": "https://ratsinfo.aachen.de/bi/wicket/resource/org.apache.wicket.Application/doc342969.pdf",
+  "note": "Musikbunker e.V. 2019 presentation to city says 400; Songkick lists 2,000 (implausible)"
+ },
+ "newtown community centre|wellington": {
+  "cap": null,
+  "src": null,
+  "note": "Community centre with theatre and dance hall; no standing capacity found in sources"
+ },
+ "ojai deer lodge|ojai": {
+  "cap": 200,
+  "src": "https://www.thevendry.co/venue/175858/ojai-deer-lodge-ojai-ca",
+  "note": "Vendry: 200 standing / 75 seated; Cvent pages show 160-162 standing in places"
+ },
+ "prachtwerk|berlin": {
+  "cap": 250,
+  "src": "https://www.eventlocations.com/de/venues/prachtwerk",
+  "note": "Eventlocations: max 250 standing, 130 seated (Venuu says 220 standing)"
+ },
+ "royal festival hall|london": {
+  "cap": 2500,
+  "src": "https://bynder.southbankcentre.co.uk/m/436ed9dcc5fd812a/original/Royal_Festival_Hall_Fact_Sheet_21_22.pdf",
+  "note": "Seated concert hall, not standing; Southbank fact sheet 2,500 (Wikipedia 2,700)"
+ },
+ "sid the cat auditorium|south pasadena": {
+  "cap": 500,
+  "src": "https://www.timeout.com/los-angeles/news/l-a-s-most-charming-suburb-is-welcoming-a-new-music-venue-080525",
+  "note": "Described as 500-capacity all-ages venue; opened late 2025"
+ },
+ "static age records|asheville": {
+  "cap": null,
+  "src": null,
+  "note": "Record store with shows; no capacity stated (JamBase shows unlabeled 65)"
+ },
+ "the earl|atlanta": {
+  "cap": 300,
+  "src": "https://www.ajc.com/atlanta-music/5-of-the-best-atlanta-venues-for-the-bona-fide-rock-fan/CVBJ7TZKXRA47BRVDQSCRVQGAQ/",
+  "note": "AJC says maxes out around 300; ticketing sites list 300"
+ },
+ "the louisiana|bristol": {
+  "cap": 140,
+  "src": "https://blog.ents24.com/thelouisiana/",
+  "note": "Venue manager quoted '140 cap' (Ents24 interview)"
+ },
+ "valley bar|phoenix": {
+  "cap": 250,
+  "src": "https://www.bandsintown.com/v/10000514",
+  "note": "Bandsintown/Indie on the Move say 250; Phoenix New Times said 275"
+ },
+ "white oak music hall|houston": {
+  "cap": 800,
+  "src": "https://whiteoakmusichall.com/rentals/",
+  "note": "Downstairs room, 800 reception per venue's rentals page (Upstairs 150, Lawn 3,000)"
+ }
+}
