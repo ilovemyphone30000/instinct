@@ -96,6 +96,15 @@ import os, subprocess
 
 # growth: history.json (git-ignored) holds daily monthly-listener readings for tracked artists.
 # Each tracked artist's series = those readings + the listeners value stored on its own sheet rows.
+def _pk(a):
+    return re.split(r",| & | feat\.? | x ", a, 1)[0].strip().lower()
+# a flag belongs to the artist: ticking FLAG on any one row flags all of that artist's rows
+_fl = {_pk(s["artist"]) for s in songs if s.get("flag")}
+for s in songs:
+    if _pk(s["artist"]) in _fl:
+        s["flag"] = True
+
+
 def prim(a):
     return re.split(r",| & | feat\.? | x ", a, 1)[0].strip().lower()
 hpath = os.path.join(os.path.dirname(os.path.abspath(out)), "history.json")

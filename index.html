@@ -214,8 +214,8 @@ const isSP=n=>/^superplaylist #/i.test(n);
 const spN=n=>+(n.match(/#(\d+)/)||[0,0])[1];
 
 let LF=new Set();try{LF=new Set(JSON.parse(localStorage.getItem('instinct_flags')||'[]'))}catch(e){}
-const skey=s=>s.track||s.artist+'|'+s.song;
-const isFlag=s=>!!s.flag||LF.has(skey(s));
+const akey=s=>s.artist.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase();
+const isFlag=s=>!!s.flag||LF.has(akey(s));
 const gr=(s,k='hist')=>{const c='_g'+k;if(s[c]!==undefined)return s[c];const h=s[k];if(!h||h.length<2)return s[c]=null;const f=h[0][1],l=h[h.length-1][1];return s[c]={f,l,abs:l-f,pct:f?(l-f)/f:null,d0:h[0][0],d1:h[h.length-1][0]}};
 function spark(h,W=60){
   const t=h.map(p=>new Date(p[0]+'T12:00:00').getTime()),v=h.map(p=>p[1]);
@@ -276,7 +276,7 @@ function rowHtml(s,i){
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}${s.src==='MP'?'<span class="tg">MP</span>':''}</button>
-    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(skey(s))}" title="${s.flag?'flagged in the sheet':isFlag(s)?'unflag (saved in this browser)':'flag (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button><button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}</button>${showsHtml(s)}</div>
+    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?'unflag artist (saved in this browser)':'flag artist (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button><button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}</button>${showsHtml(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
     <div class="L">${cur!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>`:'<span class="none">–</span>'}</div>
     <div class="GRC">${growHtml(s)}</div>
@@ -379,6 +379,9 @@ function csv(){
 }
 
 function init(data){
+  {const tk={};data.songs.forEach(s=>{if(s.track)tk[s.track]=akey(s)});let ch=false;
+   [...LF].forEach(k=>{if(/^https?:/.test(k)){LF.delete(k);if(tk[k])LF.add(tk[k]);ch=true}else if(k.includes('|')){LF.delete(k);LF.add(k.split('|')[0].split(/,| & | feat\.? | x /i)[0].trim().toLowerCase());ch=true}});
+   if(ch)try{localStorage.setItem('instinct_flags',JSON.stringify([...LF]))}catch(e){}}
   ALL=data.songs.slice().sort((a,b)=>(a.src==='MP')-(b.src==='MP'));
   DAYS=[...new Set(ALL.map(s=>s.date))].sort();
   $('#cap-l').textContent=dstr(DAYS[0]);$('#cap-r').textContent=dstr(DAYS[DAYS.length-1]);
