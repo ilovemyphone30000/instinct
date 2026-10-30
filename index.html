@@ -130,7 +130,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   .head{display:none}
   .row{grid-template-columns:1fr auto;grid-template-areas:"a l" "s g" "p p" "pl pl";gap:1px 10px}
   .row .d{display:none}
-  .row .a{grid-area:a}.row .s{grid-area:s}
+  .row .A{grid-area:a}.row .s{grid-area:s}
   .row .L{grid-area:l;width:84px}.row .G{grid-area:g;width:84px}
   .row .P{grid-area:p;margin-top:4px}.row .PL{grid-area:pl;margin-top:3px}
   .row .P:empty,.row .PL:empty{display:none}
@@ -250,8 +250,8 @@ function rowHtml(s,i){
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}${s.src==='MP'?'<span class="tg">MP</span>':''}</button>
-    <button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}${s.flag?' ★':''}</button>
-    <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}${showsHtml(s)}</div>
+    <div class="A"><button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}${s.flag?' ★':''}</button>${showsHtml(s)}</div>
+    <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
     <div class="L">${s.listeners!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${s.listeners.toLocaleString()} monthly listeners"><span>${fmt(s.listeners)}</span></a>`:'<span class="none">–</span>'}</div>
     <div class="G">${s.ig?`<a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${s.ig.toLocaleString()} instagram followers"><span>${fmt(s.ig)}</span></a>`:'<span class="none">–</span>'}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
