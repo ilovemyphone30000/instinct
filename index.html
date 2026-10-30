@@ -32,11 +32,6 @@ button{cursor:pointer}
 .tg.mp{background:#000;color:var(--bg)}
 .tg:hover,.tg.on{opacity:1}
 
-.strip{display:flex;align-items:flex-end;gap:2px;height:46px;margin:6px 22px 0}
-.strip button{flex:1 1 0;min-width:0;background:#000;opacity:.28;min-height:3px}
-.strip button:hover{opacity:.8}
-.strip button.on{opacity:1;background:var(--lemon)}
-.strip-cap{display:flex;justify-content:space-between;margin:3px 22px 0;color:var(--mute);font-size:10px}
 
 .layout{display:grid;grid-template-columns:1fr;gap:0;margin-top:14px;align-items:start}
 
@@ -139,7 +134,6 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   .layout.fx{grid-template-columns:1fr}
   main{padding:0 14px}
   .top{gap:14px;padding:16px 14px 0}.kp{gap:14px}.meta{align-items:flex-start;text-align:left;width:100%}
-  .strip,.strip-cap{margin-left:14px;margin-right:14px}
   .head{display:none}
   .row{grid-template-columns:1fr auto;grid-template-areas:"a l" "s g" "gr gr" "p p" "pl pl";gap:1px 10px}
   .row .d{display:none}
@@ -172,8 +166,6 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   <span class="sp"></span>
   <div class="meta"><span id="upd"></span></div>
 </div>
-<div class="strip" id="strip" aria-label="songs per day"></div>
-<div class="strip-cap"><span id="cap-l"></span><span>click a day · shift-click a range</span><span id="cap-r"></span></div>
 
 <div class="layout">
 <aside id="aside">
@@ -322,9 +314,6 @@ function renderSide(){
 function renderTop(){
   document.body.classList.toggle('nosong',!S.flag);
   document.querySelectorAll('.pill[data-act]').forEach(b=>b.classList.toggle('on',b.dataset.act==='flagged'?S.flag:S.src===b.dataset.v));
-  const c={};ALL.filter(s=>match(s,'days')).forEach(s=>c[s.date]=(c[s.date]||0)+1);
-  const m=Math.max(1,...Object.values(c));
-  $('#strip').innerHTML=DAYS.map(d=>`<button data-act="strip" data-v="${d}" class="${S.days.has(d)?'on':''}" style="height:${Math.max(3,Math.round((c[d]||0)/m*46))}px" title="${esc(dlong(d))} · ${c[d]||0}"></button>`).join('');
   const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','listeners 10%+'],['igrow','instagram 10%+'],['fall','falling'],['noig','no instagram']];
   const cur=S.view;
   $('#tabs').innerHTML=tabs.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cur===k?'on':''}">${l}<span class="n">${n}</span></button>`}).join('');
@@ -388,7 +377,6 @@ function init(data){
    if(ch)try{localStorage.setItem('instinct_flags',JSON.stringify([...LF]))}catch(e){}}
   ALL=data.songs.slice().sort((a,b)=>(a.src==='MP')-(b.src==='MP'));
   DAYS=[...new Set(ALL.map(s=>s.date))].sort();
-  $('#cap-l').textContent=dstr(DAYS[0]);$('#cap-r').textContent=dstr(DAYS[DAYS.length-1]);
   const u=new Date(data.updated);
   $('#upd').textContent='updated '+u.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+u.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   render();
