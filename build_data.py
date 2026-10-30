@@ -106,6 +106,15 @@ if os.path.exists(hpath):
         for s in songs:
             if prim(s["artist"]) == k and s.get("listeners") is not None:
                 pts.setdefault(s["date"], s["listeners"])
+        ipts = {d: n for d, n in e.get("ig", [])}
+        for s in songs:
+            if prim(s["artist"]) == k and s.get("ig") is not None:
+                ipts.setdefault(s["date"], s["ig"])
+        iseries = sorted(ipts.items())
+        if len(iseries) >= 2:
+            for s in songs:
+                if prim(s["artist"]) == k:
+                    s["igh"] = [list(p) for p in iseries]
         series = sorted(pts.items())
         if len(series) >= 2:
             for s in songs:

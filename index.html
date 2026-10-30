@@ -78,7 +78,7 @@ main{min-width:0;padding:0 22px}
 .active .clr{background:none;color:var(--ink);text-decoration:underline;padding:2px 6px}
 .active .clr::after{content:""}
 
-.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 84px 96px 70px minmax(120px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
+.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 84px 96px 100px minmax(120px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
 .head{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid #000;padding:7px 8px 6px;font-size:10px;color:var(--mute)}
 .head button{text-align:left;color:inherit;padding:0}
 .head button.s{color:var(--ink)}
@@ -105,6 +105,7 @@ a.num:hover span{text-decoration:underline}
 .GR .gp{font-weight:700}
 .GR .up{color:#0b6b2f}.GR .dn{color:#b3261e}
 .GR .none{display:block}
+.G .GR{height:18px;margin-top:2px;font-size:10px}
 .fl{padding:0 5px 0 0;font-size:12px;line-height:1;opacity:.45;vertical-align:-1px}
 .fl:hover{opacity:1}.fl.on{opacity:1}.fl.lock{cursor:default}
 .chips{display:flex;flex-wrap:wrap;gap:3px}
@@ -188,7 +189,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   <div class="tabs">
     <button class="act" data-act="facets">filters</button>
     <input class="q" id="q" type="search" placeholder="search artist, song, outlet, playlist  ( / )" autocomplete="off" spellcheck="false">
-    <button class="act" data-act="csv">csv</button>
+    <button class="act" data-sort="gr">sort: listener growth</button><button class="act" data-sort="iggr">sort: instagram growth</button><button class="act" data-act="csv">csv</button>
   </div>
   <div class="active" id="active"></div>
   <div class="head" id="head">
@@ -218,7 +219,7 @@ const spN=n=>+(n.match(/#(\d+)/)||[0,0])[1];
 let LF=new Set();try{LF=new Set(JSON.parse(localStorage.getItem('instinct_flags')||'[]'))}catch(e){}
 const skey=s=>s.track||s.artist+'|'+s.song;
 const isFlag=s=>!!s.flag||LF.has(skey(s));
-const gr=s=>{if(s._g!==undefined)return s._g;const h=s.hist;if(!h||h.length<2)return s._g=null;const f=h[0][1],l=h[h.length-1][1];return s._g={f,l,abs:l-f,pct:f?(l-f)/f:null,d0:h[0][0],d1:h[h.length-1][0]}};
+const gr=(s,k='hist')=>{const c='_g'+k;if(s[c]!==undefined)return s[c];const h=s[k];if(!h||h.length<2)return s[c]=null;const f=h[0][1],l=h[h.length-1][1];return s[c]={f,l,abs:l-f,pct:f?(l-f)/f:null,d0:h[0][0],d1:h[h.length-1][0]}};
 function spark(h){
   const t=h.map(p=>new Date(p[0]+'T12:00:00').getTime()),v=h.map(p=>p[1]);
   const t0=t[0],t1=t[t.length-1]||1,lo=Math.min(...v),hi=Math.max(...v),W=60,H=16;
@@ -227,10 +228,10 @@ function spark(h){
   const c=v[v.length-1]>v[0]?'#1DB954':v[v.length-1]<v[0]?'#d9342b':'#000';
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="#000" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(t[t.length-1]).toFixed(1)}" cy="${Y(v[v.length-1]).toFixed(1)}" r="2.6" fill="${c}"/></svg>`;
 }
-function growHtml(s){
-  const g=gr(s);if(!g)return '<span class="none">–</span>';
+function growHtml(s,k='hist'){
+  const g=gr(s,k);if(!g)return k==='hist'?'<span class="none">–</span>':'';
   const up=g.abs>0,dn=g.abs<0,p=g.pct==null?'':Math.abs(Math.round(g.pct*100))+'%';
-  return `<div class="GR" title="${esc(dstr(g.d0))}: ${g.f.toLocaleString()} → ${esc(dstr(g.d1))}: ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})">${spark(s.hist)}<span class="gp ${up?'up':dn?'dn':''}">${up?'▲':dn?'▼':'–'}${p}</span></div>`;
+  return `<div class="GR" title="${esc(dstr(g.d0))}: ${g.f.toLocaleString()} → ${esc(dstr(g.d1))}: ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})">${spark(s[k])}<span class="gp ${up?'up':dn?'dn':''}">${up?'▲':dn?'▼':'–'}${p}</span></div>`;
 }
 let OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false},VIEW=[],lastDay=null;
 
@@ -248,6 +249,7 @@ function match(s,skip){
     if(S.view==='noig'&&s.ig)return false;
     if(S.view==='tracked'&&!gr(s))return false;
     if(S.view==='grow'&&!(gr(s)&&gr(s).pct>=0.1))return false;
+    if(S.view==='igrow'&&!(gr(s,'igh')&&gr(s,'igh').pct>=0.1))return false;
     if(S.view==='fall'&&!(gr(s)&&gr(s).abs<0))return false;
   }
   if(skip!=='days'&&S.days.size&&!S.days.has(s.date))return false;
@@ -257,7 +259,7 @@ function match(s,skip){
   if(skip!=='bk'&&S.bk.size&&![...S.bk].some(i=>s.listeners>=BK[i][0]&&s.listeners<BK[i][1]))return false;
   return true;
 }
-const KEY={gr:s=>{const g=gr(s);return g&&g.pct!=null?g.pct:-9},date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>s.listeners??-1,ig:s=>s.ig??-1,press:s=>(s.press||[]).length,pls:s=>(s.playlists||[]).length};
+const KEY={iggr:s=>{const g=gr(s,'igh');return g&&g.pct!=null?g.pct:-9},gr:s=>{const g=gr(s);return g&&g.pct!=null?g.pct:-9},date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>s.listeners??-1,ig:s=>s.ig??-1,press:s=>(s.press||[]).length,pls:s=>(s.playlists||[]).length};
 function compute(){
   VIEW=ALL.filter(s=>match(s));
   const k=KEY[S.sort],d=S.dir;
@@ -272,8 +274,8 @@ function showsHtml(s){
   return `<div><button class="shw" data-act="shows" data-v="${esc(k)}">${l.length} show${l.length>1?'s':''} ${o?'▴':'▾'}</button></div>${o?`<div class="shwl">${l.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}`;
 }
 function rowHtml(s,i){
-  const g0=gr(s),cur=g0?g0.l:s.listeners;
-  const w=cur?Math.max(2,Math.min(100,cur/1e3)):0, wi=s.ig?Math.max(2,Math.min(100,Math.sqrt(s.ig/1e5)*100)):0;
+  const g0=gr(s),cur=g0?g0.l:s.listeners,gi=gr(s,'igh'),ig=gi?gi.l:s.ig;
+  const w=cur?Math.max(2,Math.min(100,cur/1e3)):0, wi=ig?Math.max(2,Math.min(100,Math.sqrt(ig/1e5)*100)):0;
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}${s.src==='MP'?'<span class="tg">MP</span>':''}</button>
@@ -281,7 +283,7 @@ function rowHtml(s,i){
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
     <div class="L">${cur!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>`:'<span class="none">–</span>'}</div>
     <div class="GRC">${growHtml(s)}</div>
-    <div class="G">${s.ig?`<a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${s.ig.toLocaleString()} instagram followers"><span>${fmt(s.ig)}</span></a>`:'<span class="none">–</span>'}</div>
+    <div class="G">${ig?`<a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${ig.toLocaleString()} instagram followers${gi?' (latest) · '+s.ig.toLocaleString()+' when added':''}"><span>${fmt(ig)}</span></a>${growHtml(s,'igh')}`:'<span class="none">–</span>'}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
     <div class="PL chips">${chipsHtml(pls)}</div>
   </div>`;
@@ -322,7 +324,7 @@ function renderTop(){
   const c={};ALL.filter(s=>match(s,'days')).forEach(s=>c[s.date]=(c[s.date]||0)+1);
   const m=Math.max(1,...Object.values(c));
   $('#strip').innerHTML=DAYS.map(d=>`<button data-act="strip" data-v="${d}" class="${S.days.has(d)?'on':''}" style="height:${Math.max(3,Math.round((c[d]||0)/m*46))}px" title="${esc(dlong(d))} · ${c[d]||0}"></button>`).join('');
-  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['tracked','tracked'],['grow','growing 10%+'],['fall','falling'],['noig','no instagram']];
+  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['tracked','tracked'],['grow','listeners 10%+'],['igrow','instagram 10%+'],['fall','falling'],['noig','no instagram']];
   const cur=S.view;
   $('#tabs').innerHTML=tabs.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cur===k?'on':''}">${l}<span class="n">${n}</span></button>`}).join('');
   S.view=cur;
