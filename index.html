@@ -173,9 +173,16 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   .row .P:empty,.row .PL:empty{display:none}
   .row .PL{display:none}
 }
-#gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
-#gate[hidden]{display:none}
-#gate .logo{width:84px;height:84px}
+#gate,#who{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
+#gate[hidden],#who[hidden]{display:none}
+#gate .logo,#who .logo{width:84px;height:84px}
+#who p{color:var(--mute);font-size:10px;text-align:center}
+#who input{font:inherit;font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;text-align:center;border-bottom:1px solid #000;width:120px;padding:6px 0;outline:0;background:none;color:#000;border-radius:0}
+#who .row2{display:flex;gap:14px;align-items:center}
+#who button[type=submit]{font-weight:800;font-size:12px;padding:6px 16px 7px;border-radius:99px;background:var(--lime);color:#000}
+#who #whox{text-decoration:underline}
+.me{font-weight:800;font-size:10px;padding:2px 8px 3px;border:1px solid #000;border-radius:99px;margin-right:12px;vertical-align:1px}
+.me:hover{background:#000;color:var(--bg)}
 #gate input{font:inherit;font-size:13px;text-transform:uppercase;letter-spacing:.12em;text-align:center;border-bottom:1px solid #000;width:240px;padding:6px 0;outline:0;background:none;color:#000;border-radius:0}
 #gate input::placeholder{color:var(--mute)}
 #gate .err{height:12px;color:#000;font-size:10px}
@@ -194,7 +201,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
         <a class="pill k4" href="playlists.html">Playlists</a>
   </div>
   <span class="sp"></span>
-  <div class="meta"><span id="upd"></span></div>
+  <div class="meta"><button class="me" id="me" data-act="me" title="your initials - click to change"></button><span id="upd"></span></div>
 </div>
 
 <div class="layout">
@@ -225,6 +232,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   </div>
   <div id="rows"></div>
   <div id="hist" hidden></div>
+  <div id="who" hidden><div class="logo">IN</div><p>enter your initials - they go on your flags and notes</p><form id="whof" autocomplete="off"><div class="row2"><input id="whoi" maxlength="4" placeholder="KB" aria-label="initials"><button type="submit">enter</button><button type="button" id="whox" hidden>cancel</button></div></form></div>
   <div class="empty" id="empty" hidden>nothing matches. <button class="act" data-act="clear">clear filters</button></div>
 </main>
 </div>
@@ -407,6 +415,10 @@ async function teamAct(o){ // optimistic: apply to local state, post, then re-pu
   render();if(PO)$('#hist').innerHTML=panelHtml(PO);
   await postTeam(o);await pullTeam();
 }
+const paintMe=()=>{const b=$('#me');if(b)b.textContent=INI?INI+' ▾':'set initials'};
+function askIni(first){const w=$('#who');$('#whoi').value=INI;$('#whox').hidden=!!first&&!INI;w.hidden=false;setTimeout(()=>$('#whoi').focus(),30)}
+$('#whof').addEventListener('submit',e=>{e.preventDefault();const v=$('#whoi').value.trim().toUpperCase().slice(0,4);if(!v){$('#whoi').focus();return}INI=v;try{localStorage.setItem('instinct_ini',v)}catch(er){}$('#who').hidden=true;paintMe()});
+$('#whox').addEventListener('click',()=>{$('#who').hidden=true});
 function needIni(k){if(INI)return false;openHist(k);const i=document.querySelector('#hist .ni');i&&i.focus();return true}
 const toggle=(set,v)=>set.has(v)?set.delete(v):set.add(v);
 
@@ -419,6 +431,7 @@ document.addEventListener('click',e=>{
   const a=b.dataset.act,v=b.dataset.v;
   if(a==='hist'){openHist(v);return}
   if(a==='histx'){closeHist();return}
+  if(a==='me'){askIni(false);return}
   if(a==='pflag'){if(needIni(v))return;const o=TEAM[v];teamAct({type:o&&o.flag?'unflag':'flag',a:v,n:nameOf(v),i:INI});return}
   if(a==='ndel'){if(PO&&confirm('Delete this note?'))teamAct({type:'del',a:PO,n:nameOf(PO),x:v});return}
   if(a==='view')S.view=v;
@@ -448,6 +461,7 @@ document.addEventListener('submit',e=>{const f=e.target.closest('.nf');if(!f)ret
 $('#q').addEventListener('input',e=>{S.q=e.target.value;render()});
 document.addEventListener('keydown',e=>{
   const t=e.target.tagName==='INPUT';
+  if(e.key==='Escape'&&!$('#who').hidden&&INI){$('#who').hidden=true;return}
   if(e.key==='Escape'&&HO){closeHist();return}
   if(e.key==='Escape'){if(t)e.target.blur();clearAll();S.sel=-1;render();return}
   if(t||e.metaKey||e.ctrlKey)return;
@@ -485,7 +499,7 @@ let PW=null;
 async function unlock(pw){
   const d=await decrypt(await getEnc(),pw);
   PW=pw;window.__u=d.updated;SPL=d.spl||[];CAPS=d.caps||{};API=d.api||null;
-  $('#gate').hidden=true;init(d);pullTeam();
+  $('#gate').hidden=true;init(d);pullTeam();paintMe();if(API&&!INI)askIni(true);
   try{localStorage.setItem('instinct_pw',pw)}catch(e){}
 }
 $('#gate').addEventListener('submit',async e=>{
