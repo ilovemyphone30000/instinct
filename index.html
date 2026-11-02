@@ -75,8 +75,8 @@ main{min-width:0;padding:0 22px}
 .active .clr{background:none;color:var(--ink);text-decoration:underline;padding:2px 6px}
 .active .clr::after{content:""}
 
-.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 84px 96px 100px minmax(120px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
-@media (min-width:901px){.nosong .head,.nosong .row{grid-template-columns:80px minmax(110px,.9fr) 84px 96px 100px minmax(120px,1fr) minmax(150px,1.6fr)}}
+.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 158px 158px minmax(120px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
+@media (min-width:901px){.nosong .head,.nosong .row{grid-template-columns:80px minmax(110px,.9fr) 158px 158px minmax(120px,1fr) minmax(150px,1.6fr)}}
 .nosong .head [data-sort=song],.nosong .row>.s{display:none}
 .head{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid #000;padding:7px 8px 6px;font-size:10px;color:var(--mute)}
 .head button{text-align:left;color:inherit;padding:0}
@@ -104,7 +104,8 @@ a.num:hover span{text-decoration:underline}
 .GR .gp{font-weight:700;display:inline-block;min-width:38px;white-space:nowrap}
 .GR .up{color:#0b6b2f}.GR .dn{color:#b3261e}
 .GR .none{display:block}
-.G .GR{height:18px;margin-top:3px;font-size:10px;gap:5px}
+.NG{display:flex;align-items:center;gap:8px}
+.NG .num{width:66px;flex:none}
 .fl{padding:0 5px 0 0;font-size:12px;line-height:1;opacity:.45;vertical-align:-1px}
 .fl:hover{opacity:1}.fl.on{opacity:1}.fl.lock{cursor:default}
 .rp{font-size:9px;font-weight:800;padding:0 5px 1px;margin-left:4px;border-radius:2px;background:var(--lemon);color:#000;vertical-align:1px}
@@ -148,11 +149,12 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   main{padding:0 14px}
   .top{gap:14px;padding:16px 14px 0}.kp{gap:14px}.meta{align-items:flex-start;text-align:left;width:100%}
   .head{display:none}
-  .row{grid-template-columns:1fr auto;grid-template-areas:"a l" "s g" "gr gr" "p p" "pl pl";gap:1px 10px}
+  .row{grid-template-columns:1fr auto;grid-template-areas:"a l" "s g" "p p" "pl pl";gap:1px 10px}
   .row .d{display:none}
   .row .A{grid-area:a}.row .s{grid-area:s}
-  .row .L{grid-area:l;width:84px}.row .G{grid-area:g;width:84px}
-  .row .GRC{grid-area:gr;margin-top:3px}.row .P{grid-area:p;margin-top:4px}.row .PL{grid-area:pl;margin-top:3px}
+  .row .L{grid-area:l;width:104px}.row .G{grid-area:g;width:104px}
+  .NG svg{display:none}.NG .num{width:50px}
+  .row .P{grid-area:p;margin-top:4px}.row .PL{grid-area:pl;margin-top:3px}
   .row .P:empty,.row .PL:empty{display:none}
   .row .PL{display:none}
 }
@@ -203,7 +205,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   <div class="active" id="active"></div>
   <div class="head" id="head">
     <button data-sort="date">date</button><button data-sort="artist">artist</button><button data-sort="song">song</button>
-    <button class="r" data-sort="listeners">listeners</button><button data-sort="gr">growth</button><button class="r" data-sort="ig">instagram</button>
+    <button class="r" data-sort="listeners">listeners</button><button class="r" data-sort="ig">instagram</button>
     <button data-sort="press">press</button><button data-sort="pls">playlists</button>
   </div>
   <div id="rows"></div>
@@ -243,7 +245,7 @@ function spark(h,W=44){
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${poly}" fill="none" stroke="#000" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(last[0]).toFixed(1)}" cy="${Y(last[1]).toFixed(1)}" r="2.6" fill="${c}"/></svg>`;
 }
 function growHtml(s,k='hist'){
-  const g=gr(s,k);if(!g)return k==='hist'?'<span class="none">–</span>':'';
+  const g=gr(s,k);if(!g)return '';
   const up=g.abs>0,dn=g.abs<0,p=g.pct==null?'':Math.abs(Math.round(g.pct*100))+'%';
   return `<div class="GR" title="${esc(dstr(g.d0))}: ${g.f.toLocaleString()} → ${esc(dstr(g.d1))}: ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})">${spark(s[k])}<span class="gp ${up?'up':dn?'dn':''}">${up?'▲':dn?'▼':'–'}${p}</span></div>`;
 }
@@ -295,9 +297,8 @@ function rowHtml(s,i){
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
     <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?'unflag artist (saved in this browser)':'flag artist (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'MP (recs)':'SP (scan)'} - click to show only these">${s.src}</button>${REP[akey(s)]>1?`<button class="rp" data-act="hist" data-v="${esc(akey(s))}" title="seen before - show history">↻ ${REP[akey(s)]}</button>`:''}${showsHtml(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
-    <div class="L">${cur!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>`:'<span class="none">–</span>'}</div>
-    <div class="GRC">${growHtml(s)}</div>
-    <div class="G">${ig?`<a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${ig.toLocaleString()} instagram followers${gi?' (latest) · '+s.ig.toLocaleString()+' when added':''}"><span>${fmt(ig)}</span></a>${growHtml(s,'igh')}`:'<span class="none">–</span>'}</div>
+    <div class="L">${cur!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
+    <div class="G">${ig?`<div class="NG"><a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${ig.toLocaleString()} instagram followers${gi?' (latest) · '+s.ig.toLocaleString()+' when added':''}"><span>${fmt(ig)}</span></a>${growHtml(s,'igh')}</div>`:'<span class="none">–</span>'}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
     <div class="PL chips">${chipsHtml(pls)}</div>
   </div>`;
