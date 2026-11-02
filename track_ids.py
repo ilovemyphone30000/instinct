@@ -13,7 +13,7 @@ import auth, superplaylist as sp
 
 WINDOW = 14
 IG_CAP = 30
-ROSTR_CAP = 25
+ROSTR_CAP = 100
 ROSTR_TTL = 60  # days before an agency entry is looked up again
 here = os.path.dirname(os.path.abspath(__file__))
 hp = os.path.join(here, "history.json")
