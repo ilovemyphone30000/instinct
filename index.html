@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>instinct</title>
-<script>if(/[?&]look=rr/.test(location.search))document.documentElement.classList.add('rr')</script>
+<script>if(!/[?&]look=old/.test(location.search))document.documentElement.classList.add('rr')</script>
 <style>
 :root{
   --bg:#bfbfbf; --ink:#000; --dark:#000; --mute:rgba(0,0,0,.55); --line:rgba(0,0,0,.18); --hover:rgba(255,255,255,.35);
@@ -21,7 +21,7 @@ button{cursor:pointer}
 ::selection{background:var(--lime);color:var(--dark)}
 
 .top{display:flex;align-items:flex-start;gap:22px;padding:16px 22px 0;flex-wrap:wrap}
-.logo{cursor:pointer;border:0;text-align:left;width:84px;height:84px;background:#000;color:var(--bg);display:flex;align-items:flex-end;padding:8px;font-weight:900;font-size:30px;line-height:.85;letter-spacing:-.04em;flex:none}
+.logo{cursor:pointer;border:0;text-align:left;background:#000;color:#fff;display:inline-flex;align-items:center;padding:8px 14px 9px;font-weight:800;font-size:20px;line-height:1;letter-spacing:-.02em;text-transform:none;flex:none}
 .kp{display:flex;gap:8px;flex-wrap:wrap;padding-top:2px;align-items:flex-start}
 .pill{display:inline-block;font-weight:800;font-size:13px;line-height:1;letter-spacing:.03em;padding:8px 13px 9px;border-radius:99px;background:var(--c);color:#000;text-transform:uppercase}
 .pill:hover{box-shadow:0 0 0 1px #000}
@@ -176,7 +176,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
 }
 #gate,#who{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
 #gate[hidden],#who[hidden]{display:none}
-#gate .logo,#who .logo{width:84px;height:84px}
+#gate .logo,#who .logo{width:auto;height:auto;font-size:26px;padding:10px 18px 11px}
 #who p{color:var(--mute);font-size:10px;text-align:center}
 #who input{font:inherit;font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;text-align:center;border-bottom:1px solid #000;width:120px;padding:6px 0;outline:0;background:none;color:#000;border-radius:0}
 #who .row2{display:flex;gap:14px;align-items:center}
@@ -188,7 +188,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
 #gate input::placeholder{color:var(--mute)}
 #gate .err{height:12px;color:#000;font-size:10px}
 
-/* ?look=rr - pure R&R: white, black only, one heavy block, tiny uppercase type, everything else underlined text */
+/* R&R is the default; ?look=old restores the grey/pastel look. pure R&R: white, black only, one heavy block, tiny uppercase type, everything else underlined text */
 html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hover:rgba(0,0,0,.035);background:#fff}
 .rr .pill{background:none;padding:0 0 1px;border-radius:0;font-size:10.5px;font-weight:500;letter-spacing:.04em;text-decoration:underline;text-underline-offset:2px;box-shadow:none!important}
 .rr .pill.on{font-weight:800}
@@ -204,7 +204,6 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
 .rr .daycap a{background:none;padding:0;border-radius:0;text-decoration:underline;font-weight:500}
 .rr .daycap{border-bottom:1px solid #000}
 .rr .num::before{background:#000;height:2px}
-.rr .GR .up,.rr .GR .dn{color:#000}.rr .GR svg circle{fill:#000}
 .rr .jp{background:#000;border-radius:0}
 .rr .rp{background:none;border:1px solid #000;border-radius:0;color:#000}
 .rr .tg,.rr .tg.mp{border-radius:0}
@@ -216,12 +215,12 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
 </head>
 <body>
 <form id="gate" autocomplete="off">
-  <div class="logo" aria-hidden="true">IN</div>
+  <div class="logo" aria-hidden="true">instinct</div>
   <input id="pw" type="password" placeholder="password" autofocus autocomplete="current-password" spellcheck="false">
   <div class="err" id="err"></div>
 </form>
 <div class="top">
-  <button class="logo" data-act="home" title="everything (SP + MP combined)" aria-label="Show everything">IN</button>
+  <button class="logo" data-act="home" title="everything (SP + MP combined)" aria-label="Show everything">instinct</button>
   <div class="kp">
     <button class="pill k3" data-act="flagged">Flagged</button>
         <a class="pill k4" href="playlists.html">Playlists</a>
@@ -258,7 +257,7 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
   </div>
   <div id="rows"></div>
   <div id="hist" hidden></div>
-  <div id="who" hidden><div class="logo">IN</div><p>enter your initials - they go on your flags and notes</p><form id="whof" autocomplete="off"><div class="row2"><input id="whoi" maxlength="4" placeholder="KB" aria-label="initials"><button type="submit">enter</button><button type="button" id="whox" hidden>cancel</button></div></form></div>
+  <div id="who" hidden><div class="logo">instinct</div><p>enter your initials - they go on your flags and notes</p><form id="whof" autocomplete="off"><div class="row2"><input id="whoi" maxlength="4" placeholder="KB" aria-label="initials"><button type="submit">enter</button><button type="button" id="whox" hidden>cancel</button></div></form></div>
   <div class="empty" id="empty" hidden>nothing matches. <button class="act" data-act="clear">clear filters</button></div>
 </main>
 </div>
