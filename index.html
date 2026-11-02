@@ -17,15 +17,12 @@
 <div id="stale" role="alert" hidden></div>
 <div class="top">
   <div class="kp">
-    <button class="pill k3" data-act="flagged" aria-pressed="false">Flagged</button>
-    <button class="pill k5 hs" data-act="hs" aria-pressed="false" title="hide artists that already have an agency on ROSTR">hide signed artists</button>
-    <button class="pill k1 tm" data-act="feed" hidden title="what the team has done">activity<span id="fb"></span></button>
-    <button class="pill k2" data-act="digest" title="this week at a glance">this week</button>
-    <button class="pill k5 tm" data-act="watch" hidden title="track an artist that is not on the sheet">+ watch an artist</button>
-    <a class="pill k4" href="playlists.html">Playlists</a>
+    <div class="kg"><button class="pill k3 hs" data-act="flagged" aria-pressed="false" title="only flagged artists">Flagged</button><button class="pill k5 hs" data-act="hs" aria-pressed="false" title="hide artists that already have an agency on ROSTR">hide signed artists</button></div>
+    <div class="kg"><button class="pill tm" data-act="feed" hidden title="what the team has done">activity<span id="fb"></span></button><button class="pill" data-act="digest" title="this week at a glance">this week</button></div>
+    <div class="kg"><button class="pill btn tm" data-act="watch" hidden title="track an artist that is not on the sheet">+ watch artist</button><a class="pill" href="playlists.html" title="all superplaylists">playlists →</a></div>
   </div>
   <span class="sp"></span>
-  <div class="meta"><button class="me" id="me" data-act="me" title="your name - click to change"></button><span id="upd"></span></div>
+  <div class="meta"><button class="act" id="kb" data-act="help" title="keyboard shortcuts">keys ?</button><button class="me" id="me" data-act="me" title="your name - click to change"></button> <span id="upd"></span></div>
 </div>
 
 <div class="layout">
@@ -45,14 +42,13 @@
 
 <main>
   <div class="tabs" id="tabs" role="group" aria-label="views"></div>
-  <div class="tabs">
+  <div class="tabs tools">
     <button class="act" data-act="facets">filters</button>
     <input class="q" id="q" type="search" placeholder="search artist, song, outlet, playlist, agency, notes  ( / )" aria-label="search" autocomplete="off" spellcheck="false">
-    <button class="act" data-tog="grp" aria-pressed="false" title="one row per artist">group by artist</button>
-    <button class="act tm" data-tog="mine" aria-pressed="false" hidden title="only artists you flagged">my flags</button>
-    <span class="vwrap"><button class="act tm" data-act="views" hidden title="saved filter sets, shared with the team">views ▾</button><div id="vws" hidden></div></span>
-    <button class="act" data-sort="gr">sort: listener growth</button><button class="act" data-sort="iggr">sort: instagram growth</button>
-    <button class="act" id="dens" data-act="dens">compact rows</button><button class="act" data-act="copylink" title="copy a link that keeps these filters">copy link</button><button class="act" data-act="csv">csv</button>
+    <button class="act" data-act="menu" data-v="view" aria-haspopup="menu">view ▾</button>
+    <button class="act" data-act="menu" data-v="sort" aria-haspopup="menu">sort ▾</button>
+    <button class="act tm" data-act="menu" data-v="views" aria-haspopup="menu" hidden>saved views ▾</button>
+    <button class="act" data-act="menu" data-v="share" aria-haspopup="menu">share ▾</button>
   </div>
   <div class="cntrow"><span id="cnt" role="status" aria-live="polite"></span><div class="active" id="active"></div></div>
   <div class="head" id="head">
@@ -67,6 +63,7 @@
 </main>
 </div>
 <footer><span id="foot"></span></footer>
+<div id="pop" hidden></div>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>document.write('<script src="app.js?'+Date.now()+'"><\/script>')</script>

@@ -62,7 +62,7 @@ function sparkBig(h,label){
   const W=240,H=56,P=4,t0=tms(h[0][0]),t1=tms(h[h.length-1][0]),v=h.map(p=>p[1]),lo=Math.min(...v),hi=Math.max(...v),sp=Math.max(hi-lo,1);
   const X=t=>P+(t-t0)/Math.max(t1-t0,1)*(W-2*P),Y=y=>H-P-(y-lo)/sp*(H-2*P);
   const poly=h.map(p=>X(tms(p[0])).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ');
-  const dots=h.map(p=>`<circle cx="${X(tms(p[0])).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="2" fill="currentColor"/>`).join('');
+  const dots=h.map(p=>`<circle cx="${X(tms(p[0])).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="2.2" fill="currentColor"/><circle cx="${X(tms(p[0])).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="8" fill="transparent"><title>${esc(dstr(p[0]))}: ${p[1].toLocaleString()}</title></circle>`).join('');
   return `<div class="xc"><div class="hn">${label}</div><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)} trend"><polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="1.4"/>${dots}</svg><div class="hn">${esc(dstr(h[0][0]))} ${h[0][1].toLocaleString()} → ${esc(dstr(h[h.length-1][0]))} ${h[h.length-1][1].toLocaleString()}</div></div>`;
 }
 function growHtml(s,k='hist'){
@@ -145,8 +145,8 @@ function showsHtml(s){
 function rostrHtml(s){const a=agInfo(s);
   if(a.ag){return `<a href="${s.rs&&!a.man?'https://www.rostr.cc/artist/'+esc(s.rs):'#'}" target="_blank" rel="noopener" title="${a.man?'set by '+esc(a.by):'open on ROSTR'}">${esc(a.ag)}</a>${a.man?'<span class="hn">set by '+esc(a.by)+'</span>':s.agt?`<span class="hn">${esc(s.agt)}</span>`:''}`}
   if(a.man)return `<span class="hn">${a.wrong?'wrong rostr match':'unsigned'} · ${esc(a.by)}</span>`;
-  if(s.rp)return `<a class="soft" href="https://www.rostr.cc/artist/${esc(s.rp)}" target="_blank" rel="noopener" title="profile found, no agency listed">no agency listed</a>`;
-  if(s.rn)return '<span class="hn" title="no exact name match on ROSTR - check by hand">no rostr match</span>';
+  if(s.rp)return `<a class="soft" href="https://www.rostr.cc/artist/${esc(s.rp)}" target="_blank" rel="noopener" title="profile on ROSTR, no agency listed">–</a>`;
+  if(s.rn)return '<span class="hn" title="no exact name match on ROSTR - check by hand">–</span>';
   return ''}
 function rowHtml(s,i){
   const g0=gr(s),now=cur(s),k=akey(s),fl=isFlag(s),t=TEAM[k]||{notes:[]};
@@ -155,7 +155,7 @@ function rowHtml(s,i){
   const star=s.src==='WL'?'':`<button class="fl${fl?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(k)}" aria-pressed="${fl}" aria-label="${fl?'unflag':'flag'} ${esc(s.artist)}" title="${s.flag?'artist flagged in the sheet':fl?(API&&t.flag?'flagged by '+esc(t.flag.i)+' - click to unflag':'unflag artist'):'flag artist'}">${fl?'★':'☆'}</button>`;
   return `<div class="row${i===S.sel?' sel':''}${fl?' fg':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
-    <div class="A"><div class="al"><span class="alw">${star}${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song||s.artist)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':s.src==='WL'?'wl':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':s.src==='WL'?'WATCHLIST':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${s._n>1?`<button class="rp" data-act="artist" data-v="${esc(s.artist)}" title="${s._n} songs - click to list them">×${s._n}</button>`:''}${REP[k]>1&&!S.grp?`<button class="rp" data-act="hist" data-v="${esc(k)}" title="seen before - show history">↻ ${REP[k]}</button>`:''}</span><button class="xb" data-act="hist" data-v="${esc(k)}" aria-label="open details for ${esc(s.artist)}" title="open details: graphs, playlists, press, shows, notes"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div>${showsHtml(s)}${noteLine(s)}</div>
+    <div class="A"><div class="al"><span class="alw">${star}${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song||s.artist)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':s.src==='WL'?'wl':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':s.src==='WL'?'WATCHLIST':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${t.flag&&!s.flag?`<span class="fby" title="flagged by ${esc(t.flag.i)}">${esc(t.flag.i)}</span>`:''}${s._n>1?`<button class="rp" data-act="artist" data-v="${esc(s.artist)}" title="${s._n} songs - click to list them">×${s._n}</button>`:''}${REP[k]>1&&!S.grp?`<button class="rp" data-act="hist" data-v="${esc(k)}" title="seen before - show history">↻ ${REP[k]}</button>`:''}</span><button class="xb" data-act="hist" data-v="${esc(k)}" aria-label="open details for ${esc(s.artist)}" title="open details: graphs, playlists, press, shows, notes"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div>${showsHtml(s)}${noteLine(s)}</div>
     <div class="s">${s.track&&s.src!=='WL'?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}${s._n>1?` <span class="hn">+${s._n-1} more</span>`:''}</div>
     <div class="L">${now!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${now.toLocaleString()} monthly listeners${g0?' (latest) · '+g0.f.toLocaleString()+' on '+esc(dstr(g0.d0)):''}"><span>${fmt(now)}</span></a>${ageTag(s.hist)}${s.jp?`<span class="jp" title="listeners ${s.jp.f.toLocaleString()} → ${s.jp.t.toLocaleString()} (${esc(dstr(s.jp.d0))} → ${esc(dstr(s.jp.d1))})">▲ JUMP</span>`:''}${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
     <div class="G">${igHtml(s)}</div>
@@ -190,7 +190,7 @@ function watchMore(){const m=$('#more');if(!m)return;if(!IO)IO=new IntersectionO
 function moreRows(n){const m=$('#more');if(!m)return;const a=RN;LIM=RN=Math.min(VIEW.length,n||RN+120);m.insertAdjacentHTML('beforebegin',rowsHtml(a,RN));fitArtist();if(RN>=VIEW.length)m.remove();else watchMore()}
 const FSETS=()=>({'f-pl':S.pls,'f-pr':S.pr,'f-sp':S.sp,'f-ag':S.ag});
 function facet(el,items,set,cls){
-  el.innerHTML=items.map(([t,c,u])=>`<div class="f ${set.has(t)?'on ':''}${cls}"><button class="l" data-act="f" data-k="${el.id}" data-v="${esc(t)}" aria-pressed="${set.has(t)}">${esc(t)}</button><span class="c">${c}</span>${u?`<a class="o" href="${esc(u)}" target="_blank" rel="noopener" title="open on spotify">↗</a>`:'<span class="o"></span>'}</div>`).join('');
+  el.innerHTML=items.map(([t,c,u])=>`<div class="f ${set.has(t)?'on ':''}${cls}"><button class="l" data-act="f" data-k="${el.id}" data-v="${esc(t)}" aria-pressed="${set.has(t)}">${esc(t==='(none)'?'no agency':t)}</button><span class="c">${c}</span>${u?`<a class="o" href="${esc(u)}" target="_blank" rel="noopener" title="open on spotify">↗</a>`:'<span class="o"></span>'}</div>`).join('');
 }
 function counts(skip,get){
   const m=new Map();
@@ -212,17 +212,17 @@ const TABS=[['all','all'],['week','last 7 days'],['press','has press'],['grow','
 function renderTop(){
   document.body.classList.toggle('nosong',!S.flag);
   document.querySelectorAll('.pill[data-act]').forEach(b=>{const on=b.dataset.act==='flagged'?S.flag:b.dataset.act==='hs'?S.hs:false;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
-  document.querySelectorAll('[data-tog]').forEach(b=>{const on={mine:S.mine,grp:S.grp}[b.dataset.tog];b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',!!on)});
   const cv=S.view;
-  $('#tabs').innerHTML=TABS.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cv===k?'on':''}" aria-pressed="${cv===k}">${l}<span class="n">${n}</span></button>`}).join('');
+  const tl=TABS.map(([k,l])=>{S.view=k;return [k,l,ALL.filter(s=>match(s)).length]});
   S.view=cv;
+  $('#tabs').innerHTML=tl.filter(([k,l,n])=>!(k==='igrow'&&n<20&&cv!=='igrow')).map(([k,l,n])=>`<button data-act="view" data-v="${k}" class="${cv===k?'on':''}" aria-pressed="${cv===k}">${l}<span class="n">${n}</span></button>`).join('');
   const act=[];
   if(S.src)act.push(['src',S.src,TAGN[S.src]||S.src]);if(S.flag)act.push(['flag','','flagged']);if(S.mine)act.push(['mine','','my flags']);if(S.hs)act.push(['hs','','hide signed']);if(S.q)act.push(['q','','"'+S.q+'"']);
-  S.days.forEach(v=>act.push(['days',v,dstr(v)]));S.pls.forEach(v=>act.push(['pls',v,v]));S.pr.forEach(v=>act.push(['pr',v,v]));S.sp.forEach(v=>act.push(['sp',v,v]));S.ag.forEach(v=>act.push(['ag',v,'agency: '+v]));S.bk.forEach(v=>act.push(['bk',v,BK[v][2]+' listeners']));
+  S.days.forEach(v=>act.push(['days',v,dstr(v)]));S.pls.forEach(v=>act.push(['pls',v,v]));S.pr.forEach(v=>act.push(['pr',v,v]));S.sp.forEach(v=>act.push(['sp',v,v]));S.ag.forEach(v=>act.push(['ag',v,'agency: '+(v==='(none)'?'none':v)]));S.bk.forEach(v=>act.push(['bk',v,BK[v][2]+' listeners']));
   $('#active').innerHTML=act.map(([k,v,l])=>`<button data-act="rm" data-k="${k}" data-v="${esc(v)}" aria-label="remove filter ${esc(l)}">${esc(l)}</button>`).join('')+(act.length?'<button class="clr" data-act="clear">clear all</button>':'');
   $('#cnt').textContent=S.grp?VIEW.length+' artists':VIEW.length+' of '+ALL.length+' songs';
   document.querySelectorAll('#head button').forEach(b=>{const d=b.dataset.sort;b.classList.toggle('s',d===S.sort);b.classList.toggle('asc',d===S.sort&&S.dir===1);b.classList.toggle('s2',d===S.sort2);b.classList.toggle('asc2',d===S.sort2&&S.dir2===1);b.setAttribute('aria-sort',d===S.sort?(S.dir===1?'ascending':'descending'):'none')});
-  $('#dens').textContent=document.body.classList.contains('compact')?'comfortable rows':'compact rows';
+  document.body.classList.toggle('bydate',S.sort==='date');
 }
 function render(){compute();renderTop();renderSide();renderRows();save()}
 const stateObj=()=>({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],a:[...S.ag],o:S.sort,i:S.dir,o2:S.sort2,i2:S.dir2,x:S.src,f:S.flag,h:S.hs,m:S.mine,g:S.grp});
@@ -251,7 +251,7 @@ function panelHtml(k){
   const detail=(pls.length||(rep.press||[]).length||shows.length)?`<div class="ns pdet">${pls.length?`<div class="hn">found on</div><div class="chips">${chipsHtml(pls)}</div>`:''}${(rep.press||[]).length?`<div class="hn" style="margin-top:8px">press</div><div class="chips">${chipsHtml(rep.press,'pr')}</div>`:''}${shows.length?`<div class="hn" style="margin-top:8px">shows</div><div class="shwl">${shows.map(x=>`<span>${esc(x)}${capHtml(x)}</span>`).join('')}</div>`:''}</div>`:'';
   const hist=l.length>1?`<p class="hs">seen ${l.length} times · first ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>`:'';
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="${esc(rep.artist)}"><button class="hx" data-act="histx" aria-label="close">✕</button>
-    <h3>${esc(rep.artist)}</h3>${agLine}<div class="pcharts">${sparkBig(rep.hist,'monthly listeners')}${sparkBig(rep.igh,'instagram followers')}</div>${detail}${signForm}<div class="hf">${flagBtn}</div>${igSec}${notes}${hist}
+    <h3>${esc(rep.artist)}</h3>${agLine}<div class="pcharts">${sparkBig(rep.hist,'monthly listeners')}${sparkBig(rep.igh,'instagram followers')}</div><div class="hf">${flagBtn}</div>${notes}${detail}${igSec}${signForm?`<details class="fix"><summary>fix rostr data</summary>${signForm}</details>`:''}${hist}
     ${l.length>1?l.map((s,i)=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${TAGN[s.src]||s.src}</span></div>
       <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
       ${i?`<div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div>`:''}</div></div>`).join(''):''}</div>`;
@@ -323,7 +323,7 @@ async function teamAct(o){ // optimistic: apply to local state, post, then re-pu
 function syncWatch(){ALL=ALL.filter(s=>!s._opt);const have=new Set(ALL.map(akey));
   Object.entries(TEAM).forEach(([k,o])=>{if(o.watch&&!have.has(k))ALL.push({src:'WL',date:UPD||new Date().toISOString().slice(0,10),artist:o.watch.name||k,song:'',track:'https://open.spotify.com/artist/'+o.watch.id,wid:o.watch.id,_opt:true})});
   DAYS=[...new Set(ALL.map(s=>s.date))].sort()}
-const paintMe=()=>{const b=$('#me');if(b)b.textContent=INI?INI+' ▾':'set your name'};
+const paintMe=()=>{const b=$('#me');if(b)b.textContent=INI?'you: '+INI+' ▾':'set your name'};
 function askIni(first){const w=$('#who');$('#whoi').value=INI;$('#whox').hidden=!!first&&!INI;w.hidden=false;setTimeout(()=>$('#whoi').focus(),30)}
 $('#whof').addEventListener('submit',e=>{e.preventDefault();const v=$('#whoi').value.trim().slice(0,24);if(!v){$('#whoi').focus();return}INI=v;ls.set('instinct_ini',v);$('#who').hidden=true;paintMe();render()});
 $('#whox').addEventListener('click',()=>{$('#who').hidden=true});
@@ -332,6 +332,15 @@ const toggle=(set,v)=>set.has(v)?set.delete(v):set.add(v);
 const copy=async t=>{try{await navigator.clipboard.writeText(t);return true}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}a.remove();return ok}};
 
 // ---- saved views (shared with the team through the log)
+const SORTS=[['date',-1,'newest first'],['date',1,'oldest first'],['artist',1,'artist A–Z'],['listeners',-1,'monthly listeners'],['gr',-1,'listener growth'],['ig',-1,'instagram followers'],['iggr',-1,'instagram growth'],['pls',-1,'most playlists'],['press',-1,'most press'],['ag',1,'agency A–Z']];
+let MENU='';
+function closeMenu(){$('#pop').hidden=true;MENU=''}
+function menuHtml(v){
+  if(v==='views')return viewsHtml();
+  const it=(on,act,val,txt)=>`<button class="mi${on?' on':''}" data-act="${act}" data-v="${val}" role="menuitem">${on?'✓ ':''}${txt}</button>`;
+  if(v==='view')return `<div class="vw">${it(S.grp,'tog','grp','group by artist')}${API?it(S.mine,'tog','mine','my flags only'):''}${it(document.body.classList.contains('compact'),'dens','','compact rows')}</div>`;
+  if(v==='sort')return `<div class="vw">${SORTS.map(([k,d,t])=>it(S.sort===k&&S.dir===d,'setsort',k+'|'+d,t)).join('')}</div>`;
+  return `<div class="vw">${it(0,'copylink','','copy link to this view')}${it(0,'csv','','download csv')}</div>`}
 function viewsHtml(){return `<div class="vw" role="menu">${VIEWS.map(v=>`<div class="vr"><button data-act="applyview" data-v="${esc(v.id)}" role="menuitem">${esc(v.name)}</button><span class="hn">${esc(v.i)}</span>${v.i===INI?`<button class="nx" data-act="delview" data-v="${esc(v.id)}" aria-label="delete view">✕</button>`:''}</div>`).join('')||'<div class="hn" style="padding:4px 0">no saved views yet</div>'}
   <form class="vf"><input name="n" maxlength="40" placeholder="name this view" aria-label="view name" autocomplete="off"><button type="submit">save current</button></form></div>`}
 
@@ -352,13 +361,15 @@ const ACT={
   watch:()=>{if(needIni(''))return 1;openPanel('watch');return 1},
   help:()=>{openPanel('help');return 1},
   copydigest:async b=>{b.textContent=(await copy(digestText()))?'copied':'copy failed';return 1},
-  copylink:async()=>{save();const ok=await copy(location.href);toast(ok?'link copied - it keeps your filters':'could not copy the link');return 1},
-  dens:()=>{document.body.classList.toggle('compact');ls.set('instinct_dens',document.body.classList.contains('compact')?'1':'');renderTop();return 1},
-  views:()=>{const v=$('#vws');v.hidden=!v.hidden;if(!v.hidden)v.innerHTML=viewsHtml();return 1},
-  applyview:(b,v)=>{const w=VIEWS.find(x=>x.id===v);if(w){try{applyState(JSON.parse(w.state));$('#vws').hidden=true}catch(e){toast('that view could not be read')}}},
-  delview:(b,v)=>{teamAct({type:'delview',a:'_views',n:'',i:INI,x:v});$('#vws').hidden=true;return 1},
+  copylink:async()=>{closeMenu();save();const ok=await copy(location.href);toast(ok?'link copied - it keeps your filters':'could not copy the link');return 1},
+  dens:()=>{document.body.classList.toggle('compact');ls.set('instinct_dens',document.body.classList.contains('compact')?'1':'');closeMenu();renderTop();return 1},
+  menu:(b,v)=>{const p=$('#pop');if(!p.hidden&&MENU===v){closeMenu();return 1}MENU=v;p.innerHTML=menuHtml(v);const r=b.getBoundingClientRect();p.style.left=Math.max(8,Math.min(r.left,innerWidth-250))+'px';p.style.top=(r.bottom+window.scrollY+4)+'px';p.hidden=false;return 1},
+  tog:(b,v)=>{closeMenu();if(v==='mine'){if(!INI){askIni(false);return 1}S.mine=!S.mine}else S.grp=!S.grp;LIM=120},
+  setsort:(b,v)=>{const [k,d]=v.split('|');S.sort=k;S.dir=+d;if(S.sort2===k)S.sort2='';LIM=120;closeMenu()},
+  applyview:(b,v)=>{const w=VIEWS.find(x=>x.id===v);if(w){try{applyState(JSON.parse(w.state));closeMenu()}catch(e){toast('that view could not be read')}}},
+  delview:(b,v)=>{teamAct({type:'delview',a:'_views',n:'',i:INI,x:v});closeMenu();return 1},
   shows:(b,v)=>{OPEN.has(v)?OPEN.delete(v):OPEN.add(v);renderRows();return 1},
-  csv:()=>{csv();return 1},
+  csv:()=>{closeMenu();csv();return 1},
   facets:()=>{document.querySelector('.layout').classList.toggle('fx');return 1},
   view:(b,v)=>{S.view=v;LIM=120},
   day:(b,v)=>{S.days=new Set(S.days.has(v)&&S.days.size===1?[]:[v]);lastDay=v;LIM=120},
@@ -380,11 +391,10 @@ const ACT={
 };
 document.addEventListener('click',async e=>{
   if(HO&&e.target.id==='hist'){closeHist();return}
-  if(!e.target.closest('#vws,[data-act=views]'))$('#vws').hidden=true;
+  if(!e.target.closest('#pop,[data-act=menu]'))closeMenu();
   if(e.target.closest('a[href]:not([href="#"])'))return;
-  const b=e.target.closest('[data-act],[data-sort],[data-tog]');
+  const b=e.target.closest('[data-act],[data-sort]');
   if(!b)return;
-  if(b.dataset.tog){const f=ACT[b.dataset.tog];if(f){const r=f(b);if(r!==1)render()}return}
   if(b.dataset.sort){e.preventDefault();const k=b.dataset.sort;
     if(e.shiftKey&&k!==S.sort){if(S.sort2===k)S.dir2*=-1;else{S.sort2=k;S.dir2=k==='artist'||k==='song'?1:-1}}
     else if(S.sort===k)S.dir*=-1;else{S.sort=k;S.dir=k==='artist'||k==='song'?1:-1;if(S.sort2===k)S.sort2=''}
@@ -406,7 +416,7 @@ document.addEventListener('submit',e=>{const t=e.target;
   if(t.matches('.wf')){e.preventDefault();const id=spotArtistId(t.u.value),n=t.n.value.trim();
     if(!id){t.u.focus();t.u.style.borderBottomColor='#d9342b';return}if(!n){t.n.focus();return}
     teamAct({type:'watch',a:n.toLowerCase(),n,i:INI,x:id+'|'+n});t.reset();return}
-  if(t.matches('.vf')){e.preventDefault();if(needIni(''))return;const n=t.n.value.trim();if(!n)return;teamAct({type:'view',a:'_views',n,i:INI,x:JSON.stringify(stateObj())}).then(()=>{$('#vws').innerHTML=viewsHtml()});return}
+  if(t.matches('.vf')){e.preventDefault();if(needIni(''))return;const n=t.n.value.trim();if(!n)return;teamAct({type:'view',a:'_views',n,i:INI,x:JSON.stringify(stateObj())}).then(()=>{$('#pop').innerHTML=viewsHtml()});return}
   if(!t.matches('.nf'))return;e.preventDefault();
   const i=t.i.value.trim().slice(0,24),x=t.x.value.trim();if(!i||!x){(i?t.x:t.i).focus();return}
   INI=i;ls.set('instinct_ini',i);t.x.value='';teamAct({type:'note',a:t.dataset.v,n:nameOf(t.dataset.v),i,x})});
