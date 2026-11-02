@@ -87,6 +87,8 @@ main{min-width:0;padding:0 22px}
 .head .r{text-align:left}
 .row{padding:6px 8px;border-bottom:1px solid var(--line);min-height:34px}
 .row:hover,.row.sel{background:var(--hover)}
+.row.fg{background:rgba(255,226,102,.30)}
+.row.fg:hover{background:rgba(255,226,102,.45)}
 .row.sel{box-shadow:inset 3px 0 0 #000}
 .row .d{color:var(--mute);font-variant-numeric:tabular-nums;text-align:left;padding:0;font-size:10px}
 .row .d:hover{color:var(--ink);text-decoration:underline}
@@ -118,6 +120,13 @@ a.num:hover span{text-decoration:underline}
 .row:hover .nb,.nb.has{opacity:.6}.nb:hover{opacity:1!important}
 .nt{font-size:10px;color:var(--mute);margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nt b{color:#000}
 #hist .hf{margin:6px 0 4px}
+#hist .igf{display:flex;gap:8px;align-items:baseline;margin:10px 0 4px;flex-wrap:wrap}
+#hist .igf input{background:none;border:0;border-bottom:1px solid #000;padding:3px 0;font:inherit;color:#000;min-width:0}
+#hist .igf .igi{width:150px}#hist .igf .igc{width:120px}
+#hist .igf button{font-weight:800;font-size:11px;padding:3px 12px 4px;border-radius:99px;background:var(--lime);color:#000}
+.iga{font-size:10px;text-decoration:underline;text-underline-offset:2px;opacity:.45;padding:0}
+.row:hover .iga,.iga:hover{opacity:1}
+.igp{font-size:10px;opacity:0;margin-left:4px}.row:hover .igp{opacity:.6}.igp:hover{opacity:1!important}
 #hist .fb{font-weight:800;font-size:11px;padding:3px 10px 4px;border-radius:99px;background:var(--pink);color:#000}
 #hist .fb.on{background:#000;color:var(--bg)}
 #hist .ns{margin:10px 0 4px}
@@ -264,7 +273,7 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
   <div class="active" id="active"></div>
   <div class="head" id="head">
     <button data-sort="date">date</button><button data-sort="artist">artist</button><button data-sort="song">song</button>
-    <button class="r" data-sort="listeners">listeners</button><button class="r" data-sort="ig">instagram</button>
+    <button class="r" data-sort="listeners">monthly listeners</button><button class="r" data-sort="ig">instagram</button>
     <button data-sort="press">press</button><button data-sort="pls">playlists</button>
   </div>
   <div id="rows"></div>
@@ -292,6 +301,7 @@ const isFlag=s=>!!s.flag||(API?!!(TEAM[akey(s)]&&TEAM[akey(s)].flag):LF.has(akey
 function foldLog(log){const T={};log.forEach(e=>{const k=e.a,o=T[k]||(T[k]={flag:null,notes:[]});
   if(e.y==='flag')o.flag={i:e.i,t:e.t};else if(e.y==='unflag')o.flag=null;
   else if(e.y==='note')o.notes.push({id:e.id,t:e.t,i:e.i,x:e.x});
+  else if(e.y==='ig'){const [u,c]=String(e.x||'').split('|');o.ig={u,c:c?+c:null,i:e.i,t:e.t}}
   else if(e.y==='del')for(const q of Object.values(T))q.notes=q.notes.filter(n=>n.id!==e.x)});
   Object.values(T).forEach(o=>o.notes.sort((a,b)=>String(b.t).localeCompare(String(a.t))));return T}
 async function pullTeam(){if(!API)return;try{const r=await fetch(API.url+'?k='+encodeURIComponent(API.key));const j=await r.json();if(j.log){TEAM=foldLog(j.log);render();if(PO)redrawPanel()}}catch(e){}}
@@ -357,6 +367,10 @@ const pd=p=>p.d?`<i>${esc(dstr(p.d))}</i>`:'';
 const chipsHtml=(arr,cls)=>(arr||[]).map(p=>p.u?`<a class="chip ${cls||p.c}" href="${esc(p.u)}" target="_blank" rel="noopener" title="${esc(p.t)}${p.d?' · '+esc(dlong(p.d)):''}">${esc(p.t)}${pd(p)}</a>`:`<span class="chip ${cls||p.c}">${esc(p.t)}</span>`).join('');
 const shList=s=>(s.plays||'').split(/;|\n/).map(x=>x.trim().replace(/^upcoming:\s*/i,'')).filter(Boolean);
 const capHtml=x=>{const m=x.match(/^(.+?),\s*([^,]+?)\s+\d+\/\d+\/\d+/);const c=m&&CAPS[(m[1]+'|'+m[2]).toLowerCase()];return c?`<b title="approximate venue capacity">cap ~${c.toLocaleString()}</b>`:''};
+const igHandle=u=>String(u||'').replace(/^https?:\/\/(www\.)?instagram\.com\//i,'').replace(/[\/?].*$/,'');
+const igAdd=s=>{const k=akey(s),o=TEAM[k],g=o&&o.ig;
+  if(g&&g.u)return `<div class="NG"><a class="num n2" style="--w:${g.c?Math.max(2,Math.min(100,Math.sqrt(g.c/1e5)*100)):2}%" href="${esc(g.u)}" target="_blank" rel="noopener" title="added by ${esc(g.i)} - click to open Instagram"><span>${g.c?fmt(g.c):'@'+esc(igHandle(g.u))}</span></a><button class="igp" data-act="hist" data-v="${esc(k)}" title="edit Instagram">✎</button></div>`;
+  return `<button class="iga" data-act="igadd" data-v="${esc(k)}" title="add this artist's Instagram">+ add</button>`};
 const noteLine=s=>{const n=(TEAM[akey(s)]||{notes:[]}).notes[0];return n?`<div class="nt"><b>${esc(n.i)}</b> ${esc(n.x)}</div>`:''};
 function showsHtml(s){
   const l=shList(s);if(!l.length)return '';
@@ -367,12 +381,12 @@ function rowHtml(s,i){
   const g0=gr(s),cur=g0?g0.l:s.listeners,gi=gr(s,'igh'),ig=gi?gi.l:s.ig;
   const w=cur?Math.max(2,Math.min(100,cur/1e3)):0, wi=ig?Math.max(2,Math.min(100,Math.sqrt(ig/1e5)*100)):0;
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
-  return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
+  return `<div class="row${i===S.sel?' sel':''}${isFlag(s)?' fg':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
     <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?(API&&TEAM[akey(s)]&&TEAM[akey(s)].flag?'flagged by '+esc(TEAM[akey(s)].flag.i)+' - click to unflag':'unflag artist'):'flag artist'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${REP[akey(s)]>1?`<button class="rp" data-act="hist" data-v="${esc(akey(s))}" title="seen before - show history">↻ ${REP[akey(s)]}</button>`:''}${API?`<button class="nb${(TEAM[akey(s)]||{notes:[]}).notes.length?' has':''}" data-act="hist" data-v="${esc(akey(s))}" title="team notes">✎${(TEAM[akey(s)]||{notes:[]}).notes.length||''}</button>`:''}${showsHtml(s)}${noteLine(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
     <div class="L">${cur!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>${s.jp?`<span class="jp" title="listeners ${s.jp.f.toLocaleString()} → ${s.jp.t.toLocaleString()} (${esc(dstr(s.jp.d0))} → ${esc(dstr(s.jp.d1))})">▲ JUMP</span>`:''}${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
-    <div class="G">${ig?`<div class="NG"><a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${ig.toLocaleString()} instagram followers${gi?' (latest) · '+s.ig.toLocaleString()+' when added':''}"><span>${fmt(ig)}</span></a>${growHtml(s,'igh')}</div>`:'<span class="none">–</span>'}</div>
+    <div class="G">${!ig&&API?igAdd(s):''}${ig?`<div class="NG"><a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${ig.toLocaleString()} instagram followers${gi?' (latest) · '+s.ig.toLocaleString()+' when added':''}"><span>${fmt(ig)}</span></a>${growHtml(s,'igh')}</div>`:(API?'':'<span class="none">–</span>')}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
     <div class="PL chips">${chipsHtml(pls)}</div>
   </div>`;
@@ -411,7 +425,7 @@ function renderSide(){
 function renderTop(){
   document.body.classList.toggle('nosong',!S.flag);
   document.querySelectorAll('.pill[data-act]').forEach(b=>b.classList.toggle('on',b.dataset.act==='flagged'?S.flag:S.src===b.dataset.v));
-  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','listeners 10%+'],['jump','jumped'],['igrow','instagram 10%+'],['noig','no instagram']];
+  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','monthly listeners 10%+'],['jump','jumped'],['igrow','instagram 10%+'],['noig','no instagram']];
   const cur=S.view;
   $('#tabs').innerHTML=tabs.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cur===k?'on':''}">${l}<span class="n">${n}</span></button>`}).join('');
   S.view=cur;
@@ -431,12 +445,13 @@ function panelHtml(k){
   const l=ALL.filter(s=>akey(s)===k).sort((a,b)=>b.date.localeCompare(a.date));if(!l.length)return '';
   const g=gr(l[0]),first=l[l.length-1].date,o=TEAM[k]||{flag:null,notes:[]},sheet=l.some(s=>s.flag);
   const rs=l.find(s=>s.ag),agLine=rs?`<div class="hn ag">${rs.rs?`<a href="https://www.rostr.cc/artist/${esc(rs.rs)}" target="_blank" rel="noopener">${esc(rs.ag)} ↗</a>`:esc(rs.ag)}${rs.agt?' · '+esc(rs.agt):''} <span>(rostr)</span></div>`:'';
+  const igo=(TEAM[k]||{}).ig,igSec=API?`<form class="igf" data-v="${esc(k)}"><span class="hn">instagram${igo&&igo.u?' · '+esc(igHandle(igo.u)):''}</span><input class="igi" name="u" placeholder="handle or link" value="${esc(igo&&igo.u?igHandle(igo.u):'')}" autocomplete="off" aria-label="instagram handle or link"><input class="igc" name="c" placeholder="followers (optional)" value="${igo&&igo.c?igo.c:''}" autocomplete="off" aria-label="followers"><button type="submit">save</button></form>`:'';
   const flagBtn=sheet?'<span class="hn">flagged in the sheet</span>':API?`<button class="fb${o.flag?' on':''}" data-act="pflag" data-v="${esc(k)}">${o.flag?'★ flagged by '+esc(o.flag.i)+' · unflag':'☆ flag this artist'}</button>`:'';
   const notes=API?`<div class="ns">${o.notes.map(n=>`<div class="nr"><b>${esc(n.i)}</b><span class="hn"> ${esc(ago(n.t))}</span> <button class="nx" data-act="ndel" data-v="${esc(n.id)}" title="delete note">✕</button><div>${esc(n.x)}</div></div>`).join('')||'<div class="hn">no notes yet</div>'}
     <form class="nf" data-v="${esc(k)}"><input class="ni" name="i" maxlength="24" placeholder="your name" value="${esc(INI)}" aria-label="name"><input class="nx2" name="x" maxlength="500" placeholder="add a note for the team" autocomplete="off" aria-label="note"><button type="submit">add</button></form></div>`:'';
   const hist=l.length>1?`<p class="hs">seen ${l.length} times · first ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>`:'';
   return `<div class="hc" role="dialog" aria-label="artist"><button class="hx" data-act="histx" aria-label="close">✕</button>
-    <h3>${esc(l[0].artist)}</h3>${agLine}<div class="hf">${flagBtn}</div>${notes}${hist}
+    <h3>${esc(l[0].artist)}</h3>${agLine}<div class="hf">${flagBtn}</div>${igSec}${notes}${hist}
     ${l.length>1?l.map(s=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${TAGN[s.src]||s.src}</span></div>
       <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
       <div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div></div></div>`).join(''):''}</div>`;
@@ -450,6 +465,7 @@ async function teamAct(o){ // optimistic: apply to local state, post, then re-pu
   if(o.type==='flag')e.flag={i:o.i,t:new Date().toISOString()};else if(o.type==='unflag')e.flag=null;
   else if(o.type==='note')e.notes.unshift({id:'tmp'+Date.now(),t:new Date().toISOString(),i:o.i,x:o.x});
   else if(o.type==='del')e.notes=e.notes.filter(n=>n.id!==o.x);
+  else if(o.type==='ig'){const [u,c]=o.x.split('|');e.ig={u,c:c?+c:null,i:o.i,t:new Date().toISOString()}}
   render();if(PO)paintPanel();
   await postTeam(o);await pullTeam();
 }
@@ -470,6 +486,7 @@ document.addEventListener('click',e=>{
   if(a==='hist'){openHist(v);return}
   if(a==='histx'){closeHist();return}
   if(a==='me'){askIni(false);return}
+  if(a==='igadd'){if(needIni(v))return;openHist(v);setTimeout(()=>{const f=document.querySelector('#hist .igi');f&&f.focus()},40);return}
   if(a==='pflag'){if(needIni(v))return;const o=TEAM[v];teamAct({type:o&&o.flag?'unflag':'flag',a:v,n:nameOf(v),i:INI});return}
   if(a==='ndel'){if(PO&&confirm('Delete this note?'))teamAct({type:'del',a:PO,n:nameOf(PO),x:v});return}
   if(a==='view')S.view=v;
@@ -493,7 +510,11 @@ document.addEventListener('click',e=>{
   else if(a==='flagged')S.flag=!S.flag;
   render();
 });
-document.addEventListener('submit',e=>{const f=e.target.closest('.nf');if(!f)return;e.preventDefault();
+const parseCount=s=>{s=String(s||'').trim().toLowerCase().replace(/,/g,'');const m=s.match(/^([\d.]+)\s*([km])?$/);if(!m)return null;const n=parseFloat(m[1])*(m[2]==='k'?1e3:m[2]==='m'?1e6:1);return isFinite(n)&&n>0?Math.round(n):null};
+document.addEventListener('submit',e=>{const g=e.target.closest('.igf');if(g){e.preventDefault();
+  const h=igHandle(g.u.value.trim().replace(/^@/,'')),c=parseCount(g.c.value);
+  if(!/^[A-Za-z0-9._]{1,30}$/.test(h)){g.u.focus();g.u.style.borderBottomColor='#d9342b';return}
+  teamAct({type:'ig',a:g.dataset.v,n:nameOf(g.dataset.v),i:INI,x:'https://www.instagram.com/'+h+'/|'+(c||'')});return}const f=e.target.closest('.nf');if(!f)return;e.preventDefault();
   const i=f.i.value.trim().slice(0,24),x=f.x.value.trim();if(!i||!x){(i?f.x:f.i).focus();return}
   INI=i;try{localStorage.setItem('instinct_ini',i)}catch(er){}f.x.value='';teamAct({type:'note',a:f.dataset.v,n:nameOf(f.dataset.v),i,x})});
 $('#q').addEventListener('input',e=>{S.q=e.target.value;render()});
@@ -509,7 +530,7 @@ document.addEventListener('keydown',e=>{
 });
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const rows=[['date','artist','song','listeners','instagram','press','playlists','agency','agent','track url'],...VIEW.map(s=>[s.date,s.artist,s.song,s.listeners,s.ig,(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),s.ag||'',s.agt||'',s.track])];
+  const rows=[['date','artist','song','monthly listeners','instagram','press','playlists','agency','agent','track url'],...VIEW.map(s=>[s.date,s.artist,s.song,s.listeners,s.ig,(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),s.ag||'',s.agt||'',s.track])];
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='instinct.csv';a.click();
 }
 

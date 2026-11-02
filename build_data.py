@@ -164,9 +164,19 @@ if os.path.exists(tp):
             for e in log:
                 if e["y"] == "flag": on[e["a"]] = True
                 elif e["y"] == "unflag": on.pop(e["a"], None)
+            igs = {}
+            for e in log:
+                if e["y"] == "ig" and e.get("x"):
+                    u, _, c = str(e["x"]).partition("|")
+                    igs[e["a"]] = (u, int(c) if c.isdigit() else None)
             for s in songs:
-                if _pk(s["artist"]) in on:
+                k = _pk(s["artist"])
+                if k in on:
                     s["tf"] = True
+                if k in igs and not s.get("igUrl"):  # an Instagram a teammate added by hand
+                    s["igUrl"] = igs[k][0]
+                    if igs[k][1] and not s.get("ig"):
+                        s["ig"] = igs[k][1]
         except Exception as ex:
             print("team log not read:", ex)
     else:
