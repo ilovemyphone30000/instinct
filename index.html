@@ -101,12 +101,13 @@ a.num:hover span{text-decoration:underline}
 .row .none{color:var(--mute);text-align:left;display:block}
 .GR{display:flex;align-items:center;gap:6px;height:22px;font-variant-numeric:tabular-nums}
 .GR svg{flex:none;overflow:visible}
-.GR .gp{font-weight:700}
+.GR .gp{font-weight:700;display:inline-block;min-width:38px;white-space:nowrap}
 .GR .up{color:#0b6b2f}.GR .dn{color:#b3261e}
 .GR .none{display:block}
 .G .GR{height:18px;margin-top:3px;font-size:10px;gap:5px}
 .fl{padding:0 5px 0 0;font-size:12px;line-height:1;opacity:.45;vertical-align:-1px}
 .fl:hover{opacity:1}.fl.on{opacity:1}.fl.lock{cursor:default}
+.chip i{font-style:normal;opacity:.6;margin-left:6px;font-size:9px}
 .chips{display:flex;flex-wrap:wrap;gap:3px}
 .chip{display:inline-block;color:var(--dark);padding:1px 7px 2px;border-radius:99px;font-size:10px;line-height:1.35;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 a.chip:hover{box-shadow:0 0 0 1px var(--dark)}
@@ -212,18 +213,26 @@ let LF=new Set();try{LF=new Set(JSON.parse(localStorage.getItem('instinct_flags'
 const akey=s=>s.artist.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase();
 const isFlag=s=>!!s.flag||LF.has(akey(s));
 const gr=(s,k='hist')=>{const c='_g'+k;if(s[c]!==undefined)return s[c];const h=s[k];if(!h||h.length<2)return s[c]=null;const f=h[0][1],l=h[h.length-1][1];return s[c]={f,l,abs:l-f,pct:f?(l-f)/f:null,d0:h[0][0],d1:h[h.length-1][0]}};
-function spark(h,W=60){
-  const t=h.map(p=>new Date(p[0]+'T12:00:00').getTime()),v=h.map(p=>p[1]);
-  const t0=t[0],t1=t[t.length-1]||1,lo=Math.min(...v),hi=Math.max(...v),H=16,span=Math.max(hi-lo,hi*0.1,1),mid=(hi+lo)/2;
-  const X=x=>t1===t0?W/2:(x-t0)/(t1-t0)*(W-4)+2,Y=y=>H/2-(y-mid)/span*(H-4);
-  const pts=h.map((p,i)=>X(t[i]).toFixed(1)+','+Y(v[i]).toFixed(1)).join(' ');
-  const c=v[v.length-1]>v[0]?'#1DB954':v[v.length-1]<v[0]?'#d9342b':'#000';
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="#000" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(t[t.length-1]).toFixed(1)}" cy="${Y(v[v.length-1]).toFixed(1)}" r="2.6" fill="${c}"/></svg>`;
+let TW=null;
+const DAY=864e5,tms=d=>new Date(d+'T12:00:00').getTime();
+// every sparkline shares one date window (the last 28 days up to the newest reading), so lines line up row to row
+function tw(){if(TW)return TW;let m=0,e=1e15;ALL.forEach(s=>[s.hist,s.igh].forEach(h=>{if(h&&h.length){m=Math.max(m,tms(h[h.length-1][0]));if(h.length>1)e=Math.min(e,tms(h[0][0]))}}));return TW=[Math.max(m-28*DAY,Math.min(e,m-DAY)),m||1]}
+function spark(h,W=44){
+  const [T0,T1]=tw(),H=16;
+  let pts=h.map(p=>[tms(p[0]),p[1]]);
+  if(pts[0][0]<T0){const i=pts.findIndex(p=>p[0]>=T0);
+    if(i<0)pts=[[T0,pts[pts.length-1][1]],pts[pts.length-1]];
+    else if(i>0){const a=pts[i-1],c=pts[i],f=(T0-a[0])/(c[0]-a[0]);pts=[[T0,a[1]+(c[1]-a[1])*f],...pts.slice(i)]}}
+  const v=pts.map(p=>p[1]),lo=Math.min(...v),hi=Math.max(...v),span=Math.max(hi-lo,hi*0.1,1),mid=(hi+lo)/2;
+  const X=x=>(x-T0)/(T1-T0)*(W-4)+2,Y=y=>H/2-(y-mid)/span*(H-4);
+  const poly=pts.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ');
+  const last=pts[pts.length-1],c=v[v.length-1]>v[0]?'#1DB954':v[v.length-1]<v[0]?'#d9342b':'#000';
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${poly}" fill="none" stroke="#000" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(last[0]).toFixed(1)}" cy="${Y(last[1]).toFixed(1)}" r="2.6" fill="${c}"/></svg>`;
 }
 function growHtml(s,k='hist'){
   const g=gr(s,k);if(!g)return k==='hist'?'<span class="none">–</span>':'';
   const up=g.abs>0,dn=g.abs<0,p=g.pct==null?'':Math.abs(Math.round(g.pct*100))+'%';
-  return `<div class="GR" title="${esc(dstr(g.d0))}: ${g.f.toLocaleString()} → ${esc(dstr(g.d1))}: ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})">${spark(s[k],k==='igh'?44:60)}<span class="gp ${up?'up':dn?'dn':''}">${up?'▲':dn?'▼':'–'}${p}</span></div>`;
+  return `<div class="GR" title="${esc(dstr(g.d0))}: ${g.f.toLocaleString()} → ${esc(dstr(g.d1))}: ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})">${spark(s[k])}<span class="gp ${up?'up':dn?'dn':''}">${up?'▲':dn?'▼':'–'}${p}</span></div>`;
 }
 let CAPS={},OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false},VIEW=[],lastDay=null;
 
@@ -256,7 +265,8 @@ function compute(){
   VIEW.sort((a,b)=>{const x=k(a),y=k(b);return (x<y?-1:x>y?1:0)*d||(ALL.indexOf(a)-ALL.indexOf(b))});
 }
 
-const chipsHtml=(arr,cls)=>(arr||[]).map(p=>p.u?`<a class="chip ${cls||p.c}" href="${esc(p.u)}" target="_blank" rel="noopener" title="${esc(p.t)}">${esc(p.t)}</a>`:`<span class="chip ${cls||p.c}">${esc(p.t)}</span>`).join('');
+const pd=p=>p.d?`<i>${esc(dstr(p.d))}</i>`:'';
+const chipsHtml=(arr,cls)=>(arr||[]).map(p=>p.u?`<a class="chip ${cls||p.c}" href="${esc(p.u)}" target="_blank" rel="noopener" title="${esc(p.t)}${p.d?' · '+esc(dlong(p.d)):''}">${esc(p.t)}${pd(p)}</a>`:`<span class="chip ${cls||p.c}">${esc(p.t)}</span>`).join('');
 const shList=s=>(s.plays||'').split(/;|\n/).map(x=>x.trim().replace(/^upcoming:\s*/i,'')).filter(Boolean);
 const capHtml=x=>{const m=x.match(/^(.+?),\s*([^,]+?)\s+\d+\/\d+\/\d+/);const c=m&&CAPS[(m[1]+'|'+m[2]).toLowerCase()];return c?`<b title="approximate venue capacity">cap ~${c.toLocaleString()}</b>`:''};
 function showsHtml(s){
@@ -270,7 +280,7 @@ function rowHtml(s,i){
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
-    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?'unflag artist (saved in this browser)':'flag artist (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button><button class="a" data-act="artist" data-v="${esc(s.artist)}" title="filter to this artist">${esc(s.artist)}</button><button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'MP (recs)':'SP (scan)'} - click to show only these">${s.src}</button>${showsHtml(s)}</div>
+    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?'unflag artist (saved in this browser)':'flag artist (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'MP (recs)':'SP (scan)'} - click to show only these">${s.src}</button>${showsHtml(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
     <div class="L">${cur!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>`:'<span class="none">–</span>'}</div>
     <div class="GRC">${growHtml(s)}</div>
@@ -374,7 +384,8 @@ function init(data){
   {const tk={};data.songs.forEach(s=>{if(s.track)tk[s.track]=akey(s)});let ch=false;
    [...LF].forEach(k=>{if(/^https?:/.test(k)){LF.delete(k);if(tk[k])LF.add(tk[k]);ch=true}else if(k.includes('|')){LF.delete(k);LF.add(k.split('|')[0].split(/,| & | feat\.? | x /i)[0].trim().toLowerCase());ch=true}});
    if(ch)try{localStorage.setItem('instinct_flags',JSON.stringify([...LF]))}catch(e){}}
-  ALL=data.songs.slice().sort((a,b)=>(a.src==='MP')-(b.src==='MP'));
+  {const c=new Date();c.setMonth(c.getMonth()-6);const cut=c.toISOString().slice(0,10);data.songs.forEach(s=>{if(s.press)s.press=s.press.filter(p=>!p.d||p.d>=cut)})}
+  TW=null;ALL=data.songs.slice().sort((a,b)=>(a.src==='MP')-(b.src==='MP'));
   DAYS=[...new Set(ALL.map(s=>s.date))].sort();
   const u=new Date(data.updated);
   $('#upd').textContent='updated '+u.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+u.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});

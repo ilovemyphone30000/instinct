@@ -141,6 +141,15 @@ caps = {}
 cp = os.path.join(here, "venue_caps.json")
 if os.path.exists(cp):
     caps = {k: v["cap"] for k, v in json.load(open(cp)).items() if v.get("cap")}
+# press dates: press_dates.py fills press_dates.json (git-ignored) for any new link, then each press item gets d
+json.dump({"songs": songs}, open(os.path.join(here, "data.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+subprocess.run([sys.executable, os.path.join(here, "press_dates.py")], check=False)
+pdp = os.path.join(here, "press_dates.json")
+pdates = json.load(open(pdp)) if os.path.exists(pdp) else {}
+for s in songs:
+    for pr in s.get("press", []):
+        if pdates.get(pr.get("u")):
+            pr["d"] = pdates[pr["u"]]
 payload = {"updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "songs": songs, "spl": spl, "caps": caps, "mega": MEGA, "extra": EXTRA}
 json.dump(payload, open(out, "w"), ensure_ascii=False, separators=(",", ":"))
