@@ -124,8 +124,8 @@ a.num:hover span{text-decoration:underline}
 #hist .igf input{background:none;border:0;border-bottom:1px solid #000;padding:3px 0;font:inherit;color:#000;min-width:0}
 #hist .igf .igi{width:150px}#hist .igf .igc{width:120px}
 #hist .igf button{font-weight:800;font-size:11px;padding:3px 12px 4px;border-radius:99px;background:var(--lime);color:#000}
-.iga{font-size:10px;text-decoration:underline;text-underline-offset:2px;opacity:.45;padding:0}
-.row:hover .iga,.iga:hover{opacity:1}
+.iga{font-size:9px;letter-spacing:.06em;color:rgba(0,0,0,.42);border:1px solid rgba(0,0,0,.2);border-radius:2px;padding:2px 8px 3px;background:rgba(0,0,0,.025)}
+.row:hover .iga,.iga:hover{color:#000;border-color:#000;background:none}
 .igp{font-size:10px;opacity:0;margin-left:4px}.row:hover .igp{opacity:.6}.igp:hover{opacity:1!important}
 #hist .fb{font-weight:800;font-size:11px;padding:3px 10px 4px;border-radius:99px;background:var(--pink);color:#000}
 #hist .fb.on{background:#000;color:var(--bg)}
@@ -370,7 +370,7 @@ const capHtml=x=>{const m=x.match(/^(.+?),\s*([^,]+?)\s+\d+\/\d+\/\d+/);const c=
 const igHandle=u=>String(u||'').replace(/^https?:\/\/(www\.)?instagram\.com\//i,'').replace(/[\/?].*$/,'');
 const igAdd=s=>{const k=akey(s),o=TEAM[k],g=o&&o.ig;
   if(g&&g.u)return `<div class="NG"><a class="num n2" style="--w:${g.c?Math.max(2,Math.min(100,Math.sqrt(g.c/1e5)*100)):2}%" href="${esc(g.u)}" target="_blank" rel="noopener" title="added by ${esc(g.i)} - click to open Instagram"><span>${g.c?fmt(g.c):'@'+esc(igHandle(g.u))}</span></a><button class="igp" data-act="hist" data-v="${esc(k)}" title="edit Instagram">✎</button></div>`;
-  return `<button class="iga" data-act="igadd" data-v="${esc(k)}" title="add this artist's Instagram">+ add</button>`};
+  return `<button class="iga" data-act="igadd" data-v="${esc(k)}" title="add this artist's Instagram">add instagram</button>`};
 const noteLine=s=>{const n=(TEAM[akey(s)]||{notes:[]}).notes[0];return n?`<div class="nt"><b>${esc(n.i)}</b> ${esc(n.x)}</div>`:''};
 function showsHtml(s){
   const l=shList(s);if(!l.length)return '';
