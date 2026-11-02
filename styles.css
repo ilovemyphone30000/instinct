@@ -320,3 +320,21 @@ footer{line-height:1.7}
 @media (max-width:900px){.xb{font-size:38px!important}}
 #hist .pcharts{display:flex;gap:18px;flex-wrap:wrap;margin:8px 0 6px}
 #hist .pdet{margin:10px 0 4px;padding-top:6px;border-top:1px solid var(--line)}
+
+/* open-details button: a "maximize" icon in a small bordered square */
+.xb{font-size:0!important;line-height:0!important;padding:5px 6px!important;margin-left:8px!important;vertical-align:middle!important;opacity:.75!important;border:1px solid var(--line);border-radius:3px}
+.xb svg{display:block;width:22px;height:22px}
+.xb:hover{opacity:1!important;border-color:var(--ink);background:var(--hover)}
+@media (max-width:900px){.xb{padding:8px 9px!important}.xb svg{width:24px;height:24px}}
+
+/* open-details icon sits at the right edge of the artist column so every icon lines up */
+.row .al{display:flex;align-items:center;gap:6px;min-width:0}
+.row .alw{flex:0 1 auto;min-width:0}
+.xb{margin-left:auto!important;padding:4px 5px!important;flex:none}
+.xb svg{width:18px;height:18px}
+@media (max-width:900px){.row .alw{flex:1}.xb svg{width:22px;height:22px}.xb{padding:7px 8px!important}}
+@media (min-width:901px){.row .alw{flex:none!important}}
+/* smaller open icon */
+.xb{padding:3px 4px!important;border-radius:3px}
+.xb svg{width:13px!important;height:13px!important}
+@media (max-width:900px){.xb{padding:7px 8px!important}.xb svg{width:18px!important;height:18px!important}}
