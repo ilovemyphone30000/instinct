@@ -376,7 +376,6 @@ const ACT={
   help:()=>{openPanel('help');return 1},
   copydigest:async b=>{b.textContent=(await copy(digestText()))?'copied':'copy failed';return 1},
   copylink:async()=>{save();const ok=await copy(location.href);toast(ok?'link copied - it keeps your filters':'could not copy the link');return 1},
-  theme:()=>{const o=['auto','dark','light'],n=o[(o.indexOf(ls.get('instinct_theme')||'auto')+1)%3];ls.set('instinct_theme',n);theme();return 1},
   dens:()=>{document.body.classList.toggle('compact');ls.set('instinct_dens',document.body.classList.contains('compact')?'1':'');renderTop();return 1},
   views:()=>{const v=$('#vws');v.hidden=!v.hidden;if(!v.hidden)v.innerHTML=viewsHtml();return 1},
   applyview:(b,v)=>{const w=VIEWS.find(x=>x.id===v);if(w){try{applyState(JSON.parse(w.state));$('#vws').hidden=true}catch(e){toast('that view could not be read')}}},
@@ -456,9 +455,6 @@ function csv(){
   const rows=[['date','artist','song','monthly listeners','instagram','instagram growth %','listener growth %','press','playlists','agency','agent','signed','flagged by','track url'],...VIEW.map(s=>{const a=agInfo(s),g=gr(s),gi=gr(s,'igh'),o=TEAM[akey(s)],lp=lastPt(s,'igh');return [s.date,s.artist,s.song,cur(s),lp?lp[1]:s.ig,gi&&gi.pct!=null?Math.round(gi.pct*100):'',g&&g.pct!=null?Math.round(g.pct*100):'',(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),a.ag,a.agt||'',a.ag?'yes':'no',o&&o.flag?o.flag.i:s.flag?'sheet':'',s.track]})];
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='instinct.csv';a.click();
 }
-function theme(){const m=ls.get('instinct_theme')||'auto',dark=m==='dark'||(m==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=dark?'dark':'light';const b=$('#thm');if(b)b.textContent='theme: '+m}
-try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',theme)}catch(e){}
-
 // ---- footer: what the data looks like right now
 function paintFoot(d){
   const h=HEALTH,u=new Date(d.updated),hrs=(Date.now()-u)/36e5;
@@ -524,7 +520,7 @@ $('#gate').addEventListener('submit',async e=>{
 });
 const SKEL='<div class="skel"></div>'.repeat(10);
 (async()=>{
-  theme();if(ls.get('instinct_dens'))document.body.classList.add('compact');
+  if(ls.get('instinct_dens'))document.body.classList.add('compact');
   load();lockTick();
   const pw=ls.get('instinct_pw');
   if(pw){

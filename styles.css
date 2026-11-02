@@ -231,15 +231,6 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.62);--line:rgba(0,0,0,.1);--ho
 input:focus-visible{outline-offset:0}
 ::selection{background:var(--lime);color:#000}
 
-/* dark theme: only the default (R&R) look */
-html.rr[data-theme=dark],html.rr[data-theme=dark] body{--bg:#0e0e0e;--ink:#f1f1f1;--mute:rgba(255,255,255,.62);--line:rgba(255,255,255,.14);--hover:rgba(255,255,255,.06);--up:#52d681;--dn:#ff7a70;background:#0e0e0e;color-scheme:dark}
-html.rr[data-theme=dark] .row.fg{background:rgba(255,226,102,.14)}
-html.rr[data-theme=dark] .row.fg:hover{background:rgba(255,226,102,.22)}
-html.rr[data-theme=dark] .rr .chip{color:#000}
-html.rr[data-theme=dark] #hist{background:rgba(0,0,0,.6)}
-html.rr[data-theme=dark] .rr .head>*+*,html.rr[data-theme=dark] .rr .row>*+*{border-left-color:rgba(255,255,255,.07)}
-html.rr[data-theme=dark] .iga{color:rgba(255,255,255,.55);border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.04)}
-
 /* counts, filter chips */
 .cntrow{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
 #cnt{color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}

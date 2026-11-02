@@ -32,12 +32,8 @@ h2:first-child{padding-top:0}
 #gate .err{height:12px;font-size:10px}
 footer{margin:60px 22px 0;padding:8px 0 20px;border-top:1px solid var(--ink);color:var(--mute)}
 @media(max-width:600px){.r{grid-template-columns:48px 1fr 24px}.r .d{display:none}main{margin-top:30px}}
-html[data-theme=dark]{--bg:#0e0e0e;--ink:#f1f1f1;--mute:rgba(255,255,255,.62);--line:rgba(255,255,255,.14);--lime:rgba(255,244,163,.16);color-scheme:dark}
-html[data-theme=dark] .logo{background:#f1f1f1;color:#0e0e0e}
-html[data-theme=dark] .r .d,html[data-theme=dark] .r:hover .n{color:var(--ink)}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 </style>
-<script>(function(){try{var m=localStorage.getItem('instinct_theme')||'auto',d=m==='dark'||(m==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light'}catch(e){}})()</script>
 </head>
 <body>
 <form id="gate" autocomplete="off"><a class="logo" href="./">A&amp;R Instinct</a><input id="pw" type="password" aria-label="password" autocomplete="current-password" spellcheck="false"><div class="err" id="err"></div></form>
