@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>instinct</title>
+<script>if(/[?&]look=rr/.test(location.search))document.documentElement.classList.add('rr')</script>
 <style>
 :root{
   --bg:#bfbfbf; --ink:#000; --dark:#000; --mute:rgba(0,0,0,.55); --line:rgba(0,0,0,.18); --hover:rgba(255,255,255,.35);
@@ -186,6 +187,31 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
 #gate input{font:inherit;font-size:13px;text-transform:uppercase;letter-spacing:.12em;text-align:center;border-bottom:1px solid #000;width:240px;padding:6px 0;outline:0;background:none;color:#000;border-radius:0}
 #gate input::placeholder{color:var(--mute)}
 #gate .err{height:12px;color:#000;font-size:10px}
+
+/* ?look=rr - pure R&R: white, black only, one heavy block, tiny uppercase type, everything else underlined text */
+html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hover:rgba(0,0,0,.035);background:#fff}
+.rr .pill{background:none;padding:0 0 1px;border-radius:0;font-size:10.5px;font-weight:500;letter-spacing:.04em;text-decoration:underline;text-underline-offset:2px;box-shadow:none!important}
+.rr .pill.on{font-weight:800}
+.rr .kp{gap:22px;padding-top:6px}
+.rr .tabs{gap:18px;margin-top:6px}
+.rr .tabs button{padding:0;border-radius:0;opacity:.55}.rr .tabs button.on{background:none;font-weight:800;opacity:1;text-decoration:underline}
+.rr .act{padding:0;border-radius:0}.rr .act:hover{background:none;font-weight:800}
+.rr .active button{background:none;padding:0;border-radius:0;text-decoration:underline}
+.rr .chip,.rr .chip.pr,.rr .chip.pl,.rr .chip.sp,.rr .chip.sh{background:none;padding:0 6px 0 0;border-radius:0;text-decoration:underline;text-underline-offset:2px;font-size:10px}
+.rr .chips{gap:2px 0}
+.rr .shw{background:none;padding:0;border-radius:0;text-decoration:underline;font-weight:500}
+.rr .shwl span{background:none;padding:0;border-radius:0}
+.rr .daycap a{background:none;padding:0;border-radius:0;text-decoration:underline;font-weight:500}
+.rr .daycap{border-bottom:1px solid #000}
+.rr .num::before{background:#000;height:2px}
+.rr .GR .up,.rr .GR .dn{color:#000}.rr .GR svg circle{fill:#000}
+.rr .jp{background:#000;border-radius:0}
+.rr .rp{background:none;border:1px solid #000;border-radius:0;color:#000}
+.rr .tg,.rr .tg.mp{border-radius:0}
+.rr .head{border-bottom:1px solid #000}
+.rr .row{border-bottom:1px solid var(--line)}
+.rr .logo{border-radius:0}
+.rr #q{border-bottom:1px solid #000}
 </style>
 </head>
 <body>
