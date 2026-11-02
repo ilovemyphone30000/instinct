@@ -31,7 +31,7 @@ function foldLog(log){const T={};const g=k=>T[k]||(T[k]={flag:null,notes:[],sign
   Object.values(T).forEach(o=>o.notes.sort((a,b)=>String(b.t).localeCompare(String(a.t))));return T}
 function foldViews(log){const m=new Map();log.forEach(e=>{if(e.y==='view')m.set(e.id,{id:e.id,name:e.n,state:e.x,i:e.i,t:e.t});else if(e.y==='delview')m.delete(e.x)});return [...m.values()].reverse()}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,4500)}
-async function pullTeam(){if(!API)return;try{const r=await fetch(API.url+'?k='+encodeURIComponent(API.key));const j=await r.json();if(j.log){LOG=j.log;TEAM=foldLog(j.log);VIEWS=foldViews(j.log);SIMC=null;syncWatch();render();if(HO)redrawPanel();paintFeedBadge()}}catch(e){}}
+async function pullTeam(){if(!API)return;try{const r=await fetch(API.url+'?k='+encodeURIComponent(API.key));const j=await r.json();if(j.log){LOG=j.log;TEAM=foldLog(j.log);VIEWS=foldViews(j.log);syncWatch();render();if(HO)redrawPanel();paintFeedBadge()}}catch(e){}}
 async function postTeam(o){if(!API)return false;try{const r=await fetch(API.url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({k:API.key,...o})});const j=await r.json();if(j.ok)return true;toast(j.error==='slow down'?'slow down - too many saves a minute':'could not save ('+(j.error||'error')+')');return false}catch(e){toast('could not save - offline?');return false}}
 const nameOf=k=>(ALL.find(s=>akey(s)===k)||{}).artist||k;
 
@@ -87,17 +87,6 @@ function agInfo(s){const o=TEAM[akey(s)],g=o&&o.sign;
   return {ag:s.ag||'',agt:s.agt,man:false}}
 const agOf=s=>agInfo(s).ag;
 
-// ---- similar to flagged: artists that sit on the same (small) playlists as the flagged ones. Cleared when flags change.
-let SIMC=null;
-function SIM(){if(SIMC)return SIMC;const fl=new Set(ALL.filter(isFlag).map(akey));
-  const pl=new Map();ALL.forEach(s=>plain(s).forEach(p=>{let st=pl.get(p.t);if(!st)pl.set(p.t,st=new Set());st.add(akey(s))}));
-  const sc={},why={};
-  pl.forEach((st,t)=>{if(st.size>60)return;const n=[...st].filter(k=>fl.has(k)).length;if(!n)return;const w=Math.min(n,3)/Math.log(2+st.size);
-    st.forEach(k=>{if(fl.has(k))return;sc[k]=(sc[k]||0)+w;(why[k]||(why[k]=[])).push(t)})});
-  const top=new Set(Object.keys(sc).sort((a,b)=>sc[b]-sc[a]).slice(0,40));
-  return SIMC={sc,why,top}}
-const simLine=s=>{if(S.view!=='similar')return '';const w=SIM().why[akey(s)];return w?`<div class="nt">shares ${esc(w.slice(0,3).join(', '))} with flagged artists</div>`:''};
-
 function blob(s){if(!s._b)s._b=(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')+' '+(s.ag||'')+' '+(s.agt||'')+' '+igHandle(s.igUrl)).toLowerCase();
   const o=TEAM[akey(s)];return o?s._b+' '+o.notes.map(n=>n.i+' '+n.x).join(' ').toLowerCase()+(o.flag?' flagged '+o.flag.i.toLowerCase():'')+(o.ig?' '+igHandle(o.ig.u).toLowerCase():''):s._b}
 function match(s,skip){
@@ -110,12 +99,8 @@ function match(s,skip){
   if(skip!=='view'){
     if(S.view==='week'){const c=new Date();c.setDate(c.getDate()-7);if(s.date<c.toISOString().slice(0,10))return false}
     if(S.view==='press'&&!(s.press||[]).length)return false;
-    if(S.view==='shows'&&!s.plays)return false;
-    if(S.view==='noig'&&(s.ig||s.igUrl||lastPt(s,'igh')))return false;
-    if(S.view==='jump'&&!s.jp)return false;
     if(S.view==='grow'&&!(gr(s)&&gr(s).pct>=0.1))return false;
     if(S.view==='igrow'&&!(gr(s,'igh')&&gr(s,'igh').pct>=0.1))return false;
-    if(S.view==='similar'&&!SIM().top.has(akey(s)))return false;
   }
   if(skip!=='days'&&S.days.size&&!S.days.has(s.date))return false;
   if(skip!=='pls'&&S.pls.size&&!plain(s).some(p=>S.pls.has(p.t)))return false;
@@ -126,7 +111,7 @@ function match(s,skip){
   return true;
 }
 const cur=s=>{const p=lastPt(s);return p?p[1]:s.listeners};
-const KEY={sim:s=>SIM().sc[akey(s)]||0,iggr:s=>{const g=gr(s,'igh');return g&&g.pct!=null?g.pct:-9},gr:s=>{const g=gr(s);return g&&g.pct!=null?g.pct:-9},date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>cur(s)??-1,ig:s=>{const p=lastPt(s,'igh');return p?p[1]:(s.ig??-1)},press:s=>(s.press||[]).length,ag:s=>(agOf(s)||'~').toLowerCase(),pls:s=>(s.playlists||[]).length};
+const KEY={iggr:s=>{const g=gr(s,'igh');return g&&g.pct!=null?g.pct:-9},gr:s=>{const g=gr(s);return g&&g.pct!=null?g.pct:-9},date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>cur(s)??-1,ig:s=>{const p=lastPt(s,'igh');return p?p[1]:(s.ig??-1)},press:s=>(s.press||[]).length,ag:s=>(agOf(s)||'~').toLowerCase(),pls:s=>(s.playlists||[]).length};
 function compute(){
   let v=ALL.filter(s=>match(s));
   const k=KEY[S.sort],d=S.dir,k2=S.sort2&&KEY[S.sort2],d2=S.dir2;
@@ -182,7 +167,7 @@ function rowHtml(s,i){
   const xo=XO.has(rowKey(s));
   return `<div class="row${i===S.sel?' sel':''}${fl?' fg':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
-    <div class="A">${star}${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song||s.artist)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':s.src==='WL'?'wl':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':s.src==='WL'?'WATCHLIST':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${s._n>1?`<button class="rp" data-act="artist" data-v="${esc(s.artist)}" title="${s._n} songs - click to list them">×${s._n}</button>`:''}${REP[k]>1&&!S.grp?`<button class="rp" data-act="hist" data-v="${esc(k)}" title="seen before - show history">↻ ${REP[k]}</button>`:''}${API?`<button class="nb${t.notes.length?' has':''}" data-act="hist" data-v="${esc(k)}" aria-label="team notes for ${esc(s.artist)}" title="team notes">✎${t.notes.length||''}</button>`:''}<button class="xb" data-act="x" data-v="${esc(rowKey(s))}" aria-expanded="${xo}" aria-label="${xo?'collapse':'expand'} details" title="details">${xo?'▾':'▸'}</button>${showsHtml(s)}${noteLine(s)}${simLine(s)}</div>
+    <div class="A"><div class="al"><span class="alw">${star}${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song||s.artist)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':s.src==='WL'?'wl':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':s.src==='WL'?'WATCHLIST':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${s._n>1?`<button class="rp" data-act="artist" data-v="${esc(s.artist)}" title="${s._n} songs - click to list them">×${s._n}</button>`:''}${REP[k]>1&&!S.grp?`<button class="rp" data-act="hist" data-v="${esc(k)}" title="seen before - show history">↻ ${REP[k]}</button>`:''}${API?`<button class="nb${t.notes.length?' has':''}" data-act="hist" data-v="${esc(k)}" aria-label="team notes for ${esc(s.artist)}" title="team notes">✎${t.notes.length||''}</button>`:''}<button class="xb" data-act="x" data-v="${esc(rowKey(s))}" aria-expanded="${xo}" aria-label="${xo?'collapse':'expand'} details" title="details">${xo?'▾':'▸'}</button></span></div>${showsHtml(s)}${noteLine(s)}</div>
     <div class="s">${s.track&&s.src!=='WL'?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}${s._n>1?` <span class="hn">+${s._n-1} more</span>`:''}</div>
     <div class="L">${now!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${now.toLocaleString()} monthly listeners${g0?' (latest) · '+g0.f.toLocaleString()+' on '+esc(dstr(g0.d0)):''}"><span>${fmt(now)}</span></a>${ageTag(s.hist)}${s.jp?`<span class="jp" title="listeners ${s.jp.f.toLocaleString()} → ${s.jp.t.toLocaleString()} (${esc(dstr(s.jp.d0))} → ${esc(dstr(s.jp.d1))})">▲ JUMP</span>`:''}${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
     <div class="G">${igHtml(s)}</div>
@@ -208,11 +193,13 @@ function renderRows(){
   RLAST=null;RN=Math.min(VIEW.length,Math.max(LIM,0));
   $('#rows').innerHTML=rowsHtml(0,RN)+(RN<VIEW.length?'<div id="more" class="empty"> </div>':'');
   $('#empty').hidden=VIEW.length>0;
-  watchMore();
+  fitArtist();watchMore();
 }
+function fitArtist(){let m=0;document.querySelectorAll('#rows .alw').forEach(e=>{m=Math.max(m,e.offsetWidth)});
+  document.documentElement.style.setProperty('--aw',innerWidth>900&&m?Math.min(520,Math.ceil(m+20))+'px':'110px')}
 let IO=null;
 function watchMore(){const m=$('#more');if(!m)return;if(!IO)IO=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))moreRows()},{rootMargin:'800px'});IO.disconnect();IO.observe(m)}
-function moreRows(n){const m=$('#more');if(!m)return;const a=RN;LIM=RN=Math.min(VIEW.length,n||RN+120);m.insertAdjacentHTML('beforebegin',rowsHtml(a,RN));if(RN>=VIEW.length)m.remove();else watchMore()}
+function moreRows(n){const m=$('#more');if(!m)return;const a=RN;LIM=RN=Math.min(VIEW.length,n||RN+120);m.insertAdjacentHTML('beforebegin',rowsHtml(a,RN));fitArtist();if(RN>=VIEW.length)m.remove();else watchMore()}
 const FSETS=()=>({'f-pl':S.pls,'f-pr':S.pr,'f-sp':S.sp,'f-ag':S.ag});
 function facet(el,items,set,cls){
   el.innerHTML=items.map(([t,c,u])=>`<div class="f ${set.has(t)?'on ':''}${cls}"><button class="l" data-act="f" data-k="${el.id}" data-v="${esc(t)}" aria-pressed="${set.has(t)}">${esc(t)}</button><span class="c">${c}</span>${u?`<a class="o" href="${esc(u)}" target="_blank" rel="noopener" title="open on spotify">↗</a>`:'<span class="o"></span>'}</div>`).join('');
@@ -233,7 +220,7 @@ function renderSide(){
   $('#bk').innerHTML=bc.map((c,i)=>`<button data-act="bk" data-v="${i}" class="${S.bk.has(i)?'on':''}" style="height:${Math.max(2,Math.round(c/mx*44))}px" aria-label="${BK[i][2]} listeners: ${c} songs" aria-pressed="${S.bk.has(i)}" title="${c} songs"></button>`).join('');
   $('#bkl').innerHTML=BK.map(b=>`<span>${b[2]}</span>`).join('');
 }
-const TABS=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','monthly listeners 10%+'],['jump','jumped'],['igrow','instagram 10%+'],['noig','no instagram'],['similar','similar to flagged']];
+const TABS=[['all','all'],['week','last 7 days'],['press','has press'],['grow','monthly listeners 10%+'],['igrow','instagram 10%+']];
 function renderTop(){
   document.body.classList.toggle('nosong',!S.flag);
   document.querySelectorAll('.pill[data-act]').forEach(b=>{const on=b.dataset.act==='flagged'?S.flag:b.dataset.act==='hs'?S.hs:false;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
@@ -252,7 +239,7 @@ function renderTop(){
 function render(){compute();renderTop();renderSide();renderRows();save()}
 const stateObj=()=>({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],a:[...S.ag],o:S.sort,i:S.dir,o2:S.sort2,i2:S.dir2,x:S.src,f:S.flag,h:S.hs,m:S.mine,g:S.grp});
 function save(){try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify(stateObj())))}catch(e){}}
-function applyState(o){S.view=o.v&&o.v!=='tracked'&&o.v!=='fall'?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.ag=new Set(o.a);S.sort=KEY[o.o]?o.o:'date';S.dir=o.i||-1;S.sort2=KEY[o.o2]?o.o2:'';S.dir2=o.i2||-1;S.src=o.x||'';S.flag=!!o.f;S.hs=!!o.h;S.mine=!!o.m;S.grp=!!o.g;$('#q').value=S.q;LIM=120}
+function applyState(o){S.view=TABS.some(t=>t[0]===o.v)?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.ag=new Set(o.a);S.sort=KEY[o.o]?o.o:'date';S.dir=o.i||-1;S.sort2=KEY[o.o2]?o.o2:'';S.dir2=o.i2||-1;S.src=o.x||'';S.flag=!!o.f;S.hs=!!o.h;S.mine=!!o.m;S.grp=!!o.g;$('#q').value=S.q;LIM=120}
 function load(){try{applyState(JSON.parse(decodeURIComponent(location.hash.slice(1))))}catch(e){}}
 const clearAll=()=>{S.src='';S.flag=false;S.hs=false;S.mine=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.ag.clear();S.q='';S.view='all';$('#q').value='';LIM=120};
 let HO=false,PO=null,PM='artist',OPENER=null,SEEN=ls.get('instinct_seen')||'',SEENP='';
@@ -339,7 +326,7 @@ async function teamAct(o){ // optimistic: apply to local state, post, then re-pu
   else if(o.type==='sign'){const p=o.x.split('|'),v=p.shift();e.sign=v==='reset'?null:{v,ag:p.join('|'),i:o.i,t:now}}
   else if(o.type==='watch'){e.watch={id:o.x.split('|')[0],name:o.n,i:o.i,t:now};syncWatch()}
   else if(o.type==='unwatch'){e.watch=null;syncWatch()}
-  SIMC=null;render();if(HO)paintPanel();
+  render();if(HO)paintPanel();
   await postTeam(o);await pullTeam();
 }
 // artists a teammate asked to watch: show a row right away; the daily build replaces it with a tracked one
@@ -384,7 +371,7 @@ const ACT={
   shows:(b,v)=>{OPEN.has(v)?OPEN.delete(v):OPEN.add(v);renderRows();return 1},
   csv:()=>{csv();return 1},
   facets:()=>{document.querySelector('.layout').classList.toggle('fx');return 1},
-  view:(b,v)=>{S.view=v;if(v==='similar'){S.sort='sim';S.dir=-1}else if(S.sort==='sim'){S.sort='date';S.dir=-1}LIM=120},
+  view:(b,v)=>{S.view=v;LIM=120},
   day:(b,v)=>{S.days=new Set(S.days.has(v)&&S.days.size===1?[]:[v]);lastDay=v;LIM=120},
   artist:(b,v)=>{S.q=v;$('#q').value=v;LIM=120},
   f:(b,v)=>{toggle(FSETS()[b.dataset.k],v);LIM=120},
@@ -395,7 +382,7 @@ const ACT={
   home:()=>{clearAll();S.sort='date';S.dir=-1;S.sort2='';S.sel=-1;window.scrollTo(0,0)},
   flag:(b,v)=>{if(b.classList.contains('lock'))return 1;
     if(API){if(needIni(v))return 1;const o=TEAM[v],was=!!(o&&o.flag);teamAct({type:was?'unflag':'flag',a:v,n:nameOf(v),i:INI});if(!was){openHist(v);setTimeout(()=>{const f=document.querySelector('#hist .nx2');f&&f.focus()},40)}return 1}
-    LF.has(v)?LF.delete(v):LF.add(v);SIMC=null;ls.set('instinct_flags',JSON.stringify([...LF]))},
+    LF.has(v)?LF.delete(v):LF.add(v);ls.set('instinct_flags',JSON.stringify([...LF]))},
   src:(b,v)=>{S.src=S.src===v?'':v;LIM=120},
   flagged:()=>{S.flag=!S.flag;LIM=120},
   mine:()=>{if(!INI){askIni(false);return 1}S.mine=!S.mine;LIM=120},
@@ -445,7 +432,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='?'){e.preventDefault();openPanel('help');return}
   if(e.key==='j'||e.key==='k'){S.sel=Math.max(0,Math.min(VIEW.length-1,S.sel+(e.key==='j'?1:-1)));if(S.sel>=RN&&$('#more'))moreRows(S.sel+60);renderRows();const el=document.querySelector('.row.sel');el&&el.scrollIntoView({block:'center'});return}
   const sel=VIEW[S.sel];if(!sel)return;
-  if(e.key==='f'&&sel.src!=='WL'&&!sel.flag){const k=akey(sel);if(API){if(needIni(k))return;const o=TEAM[k];teamAct({type:o&&o.flag?'unflag':'flag',a:k,n:sel.artist,i:INI})}else{LF.has(k)?LF.delete(k):LF.add(k);SIMC=null;ls.set('instinct_flags',JSON.stringify([...LF]));render()}return}
+  if(e.key==='f'&&sel.src!=='WL'&&!sel.flag){const k=akey(sel);if(API){if(needIni(k))return;const o=TEAM[k];teamAct({type:o&&o.flag?'unflag':'flag',a:k,n:sel.artist,i:INI})}else{LF.has(k)?LF.delete(k):LF.add(k);ls.set('instinct_flags',JSON.stringify([...LF]));render()}return}
   if(e.key==='n'&&API){e.preventDefault();openHist(akey(sel));setTimeout(()=>{const f=document.querySelector('#hist .nx2');f&&f.focus()},40);return}
   if(e.key==='x'){const k=rowKey(sel);XO.has(k)?XO.delete(k):XO.add(k);renderRows();return}
   if((e.key==='Enter'||e.key==='o')&&sel.track)window.open(sel.track,'_blank','noopener');
@@ -472,7 +459,7 @@ function init(data){
   HS=data.hs||{};HEALTH=data.health||null;UPD=String(data.updated||'').slice(0,10);
   data.songs.forEach(s=>{const e=HS[akey(s)];if(e){if(e.h)s.hist=e.h;if(e.g)s.igh=e.g;if(e.x)s.igx=1}});
   REP={};data.songs.forEach(s=>{if(s.src==='WL')return;const k=akey(s);REP[k]=(REP[k]||0)+1});
-  TW=null;SIMC=null;ALL=data.songs.slice().sort((a,b)=>(a.src==='MP')-(b.src==='MP'));
+  TW=null;ALL=data.songs.slice().sort((a,b)=>(a.src==='MP')-(b.src==='MP'));
   DAYS=[...new Set(ALL.map(s=>s.date))].sort();
   paintFoot(data);
   syncWatch();render();

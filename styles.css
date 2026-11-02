@@ -68,8 +68,8 @@ main{min-width:0;padding:0 22px}
 .active .clr{background:none;color:var(--ink);text-decoration:underline;padding:2px 6px}
 .active .clr::after{content:""}
 
-.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 158px 158px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
-@media (min-width:901px){.nosong .head,.nosong .row{grid-template-columns:80px minmax(110px,.9fr) 158px 158px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr)}}
+.head,.row{display:grid;grid-template-columns:80px minmax(var(--aw,110px),.9fr) minmax(130px,1.2fr) 158px 158px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
+@media (min-width:901px){.nosong .head,.nosong .row{grid-template-columns:80px minmax(var(--aw,110px),.9fr) 158px 158px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr)}}
 .nosong .head [data-sort=song],.nosong .row>.s{display:none}
 .head{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid var(--ink);padding:7px 8px 6px;font-size:10px;color:var(--mute)}
 .head button{text-align:left;color:inherit;padding:0}
@@ -217,8 +217,8 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.62);--line:rgba(0,0,0,.1);--ho
 .rr .head{border-bottom:1px solid var(--ink)}
 .rr .row{border-bottom:1px solid var(--line)}
 @media (min-width:901px){
-.rr .head,.rr .row{align-items:stretch;column-gap:0;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr)}
-.rr .nosong .head,.rr .nosong .row{grid-template-columns:80px minmax(110px,.9fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr)}
+.rr .head,.rr .row{align-items:stretch;column-gap:0;grid-template-columns:80px minmax(var(--aw,110px),.9fr) minmax(130px,1.2fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr)}
+.rr .nosong .head,.rr .nosong .row{grid-template-columns:80px minmax(var(--aw,110px),.9fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr)}
 .rr .head>*,.rr .row>*{padding-left:12px;padding-right:6px}
 .rr .head>*+*,.rr .row>*+*{border-left:1px solid rgba(0,0,0,.06)}
 .rr .head>*:first-child,.rr .row>*:first-child{padding-left:0}
@@ -295,3 +295,21 @@ footer{line-height:1.7}
 .NG.col .nc{margin:0;line-height:1.2}
 .NG.col .igp{margin:0}
 .rr .tabs button.on .n{color:var(--mute)}
+
+/* the artist line (star, name, tag, badges) is always one line: the column grows to fit it (see fitArtist in app.js) */
+.row .al{white-space:nowrap}.row .alw{display:inline-block;white-space:nowrap}
+@media (max-width:900px){.row .alw{display:inline;white-space:normal}.row .al{white-space:normal}}
+/* "seen before" (↻ N) and "×N songs" badges carry a colour so repeats stand out */
+.rr .rp,.rp{background:#a8d8ff;border:0;color:#000;border-radius:2px}
+.rr .rp:hover,.rp:hover{background:#000;color:#fff}
+/* notes (✎) and expand (▸) buttons: big, easy targets */
+.nb,.xb{font-size:19px;line-height:1;padding:3px 7px;margin-left:4px;vertical-align:-3px;border-radius:3px;opacity:.55}
+.nb{opacity:.4}.nb.has{opacity:.95;font-weight:800}
+.row:hover .nb,.row:hover .xb{opacity:1}
+.nb:hover,.xb:hover{opacity:1!important;background:var(--hover)}
+.xb[aria-expanded=true]{opacity:1}
+@media (max-width:900px){.nb,.xb{font-size:22px;padding:6px 10px}}
+.nb{font-size:30px;padding:0 8px;vertical-align:-5px;opacity:.55;font-weight:400}.nb.has{opacity:1}
+.xb{font-size:26px;padding:0 8px;vertical-align:-4px;opacity:.7}
+.nb:hover,.xb:hover{background:var(--hover)}
+@media (max-width:900px){.nb{font-size:32px}.xb{font-size:28px}}

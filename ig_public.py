@@ -72,13 +72,15 @@ def main():
     jp = os.path.join(here, "jumps.json")
     jumps = json.load(open(jp)) if os.path.exists(jp) else {}
     cut = (datetime.date.today() - datetime.timedelta(days=14)).isoformat()
-    prio, hand = set(), {}
+    prio, hand, first = set(), {}, set()
     for s in songs:
         k = prim(s["artist"])
         if s.get("igUrl") and handle(s["igUrl"]):
             hand[k] = handle(s["igUrl"])
         if s.get("flag") or s.get("tf") or s.get("jp") or s["date"] >= cut or k in jumps:
             prio.add(k)
+        if s.get("igt"):
+            first.add(k)
     for k, e in A.items():
         if e.get("igUrl") and handle(e["igUrl"]):
             hand.setdefault(k, handle(e["igUrl"]))
@@ -92,7 +94,7 @@ def main():
             continue
         age = (datetime.date.fromisoformat(TODAY) - datetime.date.fromisoformat(last)).days if last else 999
         if k in prio or age >= WEEK:
-            todo.append((0 if k in prio else 1, last, k, h))
+            todo.append((0 if k in first and not last else 1 if k in prio else 2, last, k, h))
     todo.sort()
     skipped = len(hand) - len(todo)
     res = {"read": 0, "failed": 0, "gone": 0, "skipped": skipped, "stopped": False, "queued": len(todo)}

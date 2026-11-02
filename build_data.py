@@ -190,6 +190,7 @@ if os.path.exists(tp):
                     s["igUrl"] = igs[k][0]
                     if igs[k][1] and not s.get("ig"):
                         s["ig"] = igs[k][1]
+                    s["igt"] = True  # typed in by a teammate: its count is read first
             have = {_pk(s["artist"]) for s in songs}
             for k, w in watch.items():
                 if k in have:
