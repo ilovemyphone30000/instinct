@@ -218,7 +218,7 @@ for s in songs:
             s["agt"] = r["agent"]
         if r.get("slug"):
             s["rs"] = r["slug"]
-    elif r and r.get("state") == "none" and not r.get("slug"):
+    elif r and r.get("state") == "nomatch" and not r.get("slug"):
         s["rn"] = 1  # looked up, no exact match on ROSTR
     elif r and r.get("slug"):
         s["rp"] = r["slug"]  # profile found, no agency listed
