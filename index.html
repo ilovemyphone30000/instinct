@@ -283,7 +283,7 @@ function match(s,skip){
   if(S.src&&s.src!==S.src)return false;
   if(S.flag&&!isFlag(s))return false;
   const q=S.q.trim().toLowerCase();
-  if(q&&!(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')).toLowerCase().includes(q))return false;
+  if(q&&!(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')+' '+(s.ag||'')+' '+(s.agt||'')).toLowerCase().includes(q))return false;
   if(skip!=='view'){
     if(S.view==='week'){const c=new Date();c.setDate(c.getDate()-7);if(s.date<c.toISOString().slice(0,10))return false}
     if(S.view==='press'&&!(s.press||[]).length)return false;
@@ -383,12 +383,13 @@ const ago=iso=>{const d=new Date(iso);return isNaN(d)?'':d.toLocaleDateString('e
 function panelHtml(k){
   const l=ALL.filter(s=>akey(s)===k).sort((a,b)=>b.date.localeCompare(a.date));if(!l.length)return '';
   const g=gr(l[0]),first=l[l.length-1].date,o=TEAM[k]||{flag:null,notes:[]},sheet=l.some(s=>s.flag);
+  const rs=l.find(s=>s.ag),agLine=rs?`<div class="hn ag">${rs.rs?`<a href="https://www.rostr.cc/artist/${esc(rs.rs)}" target="_blank" rel="noopener">${esc(rs.ag)} ↗</a>`:esc(rs.ag)}${rs.agt?' · '+esc(rs.agt):''} <span>(rostr)</span></div>`:'';
   const flagBtn=sheet?'<span class="hn">flagged in the sheet</span>':API?`<button class="fb${o.flag?' on':''}" data-act="pflag" data-v="${esc(k)}">${o.flag?'★ flagged by '+esc(o.flag.i)+' · unflag':'☆ flag this artist'}</button>`:'';
   const notes=API?`<div class="ns">${o.notes.map(n=>`<div class="nr"><b>${esc(n.i)}</b><span class="hn"> ${esc(ago(n.t))}</span> <button class="nx" data-act="ndel" data-v="${esc(n.id)}" title="delete note">✕</button><div>${esc(n.x)}</div></div>`).join('')||'<div class="hn">no notes yet</div>'}
     <form class="nf" data-v="${esc(k)}"><input class="ni" name="i" maxlength="4" placeholder="you" value="${esc(INI)}" aria-label="initials"><input class="nx2" name="x" maxlength="500" placeholder="add a note for the team" autocomplete="off" aria-label="note"><button type="submit">add</button></form></div>`:'';
   const hist=l.length>1?`<p class="hs">seen ${l.length} times · first ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>`:'';
   return `<div class="hc" role="dialog" aria-label="artist"><button class="hx" data-act="histx" aria-label="close">✕</button>
-    <h3>${esc(l[0].artist)}</h3><div class="hf">${flagBtn}</div>${notes}${hist}
+    <h3>${esc(l[0].artist)}</h3>${agLine}<div class="hf">${flagBtn}</div>${notes}${hist}
     ${l.length>1?l.map(s=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${TAGN[s.src]||s.src}</span></div>
       <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
       <div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div></div></div>`).join(''):''}</div>`;
@@ -454,7 +455,7 @@ document.addEventListener('keydown',e=>{
 });
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const rows=[['date','artist','song','listeners','instagram','press','playlists','track url'],...VIEW.map(s=>[s.date,s.artist,s.song,s.listeners,s.ig,(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),s.track])];
+  const rows=[['date','artist','song','listeners','instagram','press','playlists','agency','agent','track url'],...VIEW.map(s=>[s.date,s.artist,s.song,s.listeners,s.ig,(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),s.ag||'',s.agt||'',s.track])];
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='instinct.csv';a.click();
 }
 

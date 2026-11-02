@@ -171,6 +171,17 @@ if os.path.exists(tp):
             print("team log not read:", ex)
     else:
         api = None
+# ROSTR agency/agent (rostr.json, filled by the daily routine): attached to every row of the artist
+rjp = os.path.join(here, "rostr.json")
+rj = json.load(open(rjp)) if os.path.exists(rjp) else {}
+for s in songs:
+    r = rj.get(_pk(s["artist"]))
+    if r and r.get("agency"):
+        s["ag"] = r["agency"]
+        if r.get("agent"):
+            s["agt"] = r["agent"]
+        if r.get("slug"):
+            s["rs"] = r["slug"]
 payload = {"updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "songs": songs, "spl": spl, "caps": caps, "api": api, "mega": MEGA, "extra": EXTRA}
 json.dump(payload, open(out, "w"), ensure_ascii=False, separators=(",", ":"))
