@@ -107,6 +107,18 @@ a.num:hover span{text-decoration:underline}
 .G .GR{height:18px;margin-top:3px;font-size:10px;gap:5px}
 .fl{padding:0 5px 0 0;font-size:12px;line-height:1;opacity:.45;vertical-align:-1px}
 .fl:hover{opacity:1}.fl.on{opacity:1}.fl.lock{cursor:default}
+.rp{font-size:9px;font-weight:800;padding:0 5px 1px;margin-left:4px;border-radius:2px;background:var(--lemon);color:#000;vertical-align:1px}
+.rp:hover{background:#000;color:var(--bg)}
+#hist{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.35);display:flex;align-items:flex-start;justify-content:center;padding:8vh 16px 16px;overflow:auto}
+#hist[hidden]{display:none}
+#hist .hc{position:relative;background:var(--bg);border:1px solid #000;width:100%;max-width:620px;padding:20px 22px 8px}
+#hist h3{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;margin-right:30px}
+#hist .hs{color:var(--mute);font-size:10px;margin:4px 0 12px}
+#hist .hx{position:absolute;top:12px;right:14px;font-size:14px}
+#hist .hr{display:grid;grid-template-columns:70px 1fr;gap:0 12px;padding:10px 0;border-top:1px solid #000}
+#hist .hd{font-size:10px;color:var(--mute);padding-top:2px}
+#hist .hm>a{font-weight:700}#hist .hm>a:hover{text-decoration:underline}
+#hist .hn{display:block;color:var(--mute);font-size:10px;margin:2px 0 6px}
 .chip i{font-style:normal;opacity:.6;margin-left:6px;font-size:9px}
 .chips{display:flex;flex-wrap:wrap;gap:3px}
 .chip{display:inline-block;color:var(--dark);padding:1px 7px 2px;border-radius:99px;font-size:10px;line-height:1.35;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -195,6 +207,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
     <button data-sort="press">press</button><button data-sort="pls">playlists</button>
   </div>
   <div id="rows"></div>
+  <div id="hist" hidden></div>
   <div class="empty" id="empty" hidden>nothing matches. <button class="act" data-act="clear">clear filters</button></div>
 </main>
 </div>
@@ -234,7 +247,7 @@ function growHtml(s,k='hist'){
   const up=g.abs>0,dn=g.abs<0,p=g.pct==null?'':Math.abs(Math.round(g.pct*100))+'%';
   return `<div class="GR" title="${esc(dstr(g.d0))}: ${g.f.toLocaleString()} → ${esc(dstr(g.d1))}: ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})">${spark(s[k])}<span class="gp ${up?'up':dn?'dn':''}">${up?'▲':dn?'▼':'–'}${p}</span></div>`;
 }
-let CAPS={},OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false},VIEW=[],lastDay=null;
+let REP={},CAPS={},OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false},VIEW=[],lastDay=null;
 
 const plain=s=>(s.playlists||[]).filter(p=>!isSP(p.t));
 const sps=s=>(s.playlists||[]).filter(p=>isSP(p.t));
@@ -280,7 +293,7 @@ function rowHtml(s,i){
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
-    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?'unflag artist (saved in this browser)':'flag artist (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'MP (recs)':'SP (scan)'} - click to show only these">${s.src}</button>${showsHtml(s)}</div>
+    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?'unflag artist (saved in this browser)':'flag artist (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'MP (recs)':'SP (scan)'} - click to show only these">${s.src}</button>${REP[akey(s)]>1?`<button class="rp" data-act="hist" data-v="${esc(akey(s))}" title="seen before - show history">↻ ${REP[akey(s)]}</button>`:''}${showsHtml(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
     <div class="L">${cur!=null?`<a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>`:'<span class="none">–</span>'}</div>
     <div class="GRC">${growHtml(s)}</div>
@@ -337,14 +350,29 @@ function render(){compute();renderTop();renderSide();renderRows();save()}
 function save(){try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],o:S.sort,i:S.dir,x:S.src,f:S.flag})))}catch(e){}}
 function load(){try{const o=JSON.parse(decodeURIComponent(location.hash.slice(1)));S.view=o.v&&o.v!=='tracked'&&o.v!=='fall'?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.sort=o.o||'date';S.dir=o.i||-1;S.src=o.x||'';S.flag=!!o.f;$('#q').value=S.q}catch(e){}}
 const clearAll=()=>{S.src='';S.flag=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.q='';S.view='all';$('#q').value=''};
+let HO=false;
+function openHist(k){
+  const l=ALL.filter(s=>akey(s)===k).sort((a,b)=>b.date.localeCompare(a.date));if(!l.length)return;
+  const g=gr(l[0]),first=l[l.length-1].date;
+  $('#hist').innerHTML=`<div class="hc" role="dialog" aria-label="artist history"><button class="hx" data-act="histx" aria-label="close">✕</button>
+    <h3>${esc(l[0].artist)}</h3><p class="hs">${l.length} entries · first seen ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>
+    ${l.map(s=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${s.src}</span></div>
+      <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
+      <div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div></div></div>`).join('')}</div>`;
+  $('#hist').hidden=false;HO=true;
+}
+const closeHist=()=>{$('#hist').hidden=true;HO=false};
 const toggle=(set,v)=>set.has(v)?set.delete(v):set.add(v);
 
 document.addEventListener('click',e=>{
+  if(HO&&e.target.id==='hist'){closeHist();return}
   if(e.target.closest('a[href]:not([href="#"])'))return;
   const b=e.target.closest('[data-act],[data-sort]');
   if(!b)return;
   if(b.dataset.sort){const k=b.dataset.sort;if(S.sort===k)S.dir*=-1;else{S.sort=k;S.dir=k==='artist'||k==='song'?1:-1}render();return}
   const a=b.dataset.act,v=b.dataset.v;
+  if(a==='hist'){openHist(v);return}
+  if(a==='histx'){closeHist();return}
   if(a==='view')S.view=v;
   else if(a==='day'||a==='strip'){
     if(e.shiftKey&&lastDay&&a==='strip'){const i=DAYS.indexOf(lastDay),j=DAYS.indexOf(v);DAYS.slice(Math.min(i,j),Math.max(i,j)+1).forEach(d=>S.days.add(d))}
@@ -368,6 +396,7 @@ document.addEventListener('click',e=>{
 $('#q').addEventListener('input',e=>{S.q=e.target.value;render()});
 document.addEventListener('keydown',e=>{
   const t=e.target.tagName==='INPUT';
+  if(e.key==='Escape'&&HO){closeHist();return}
   if(e.key==='Escape'){if(t)e.target.blur();clearAll();S.sel=-1;render();return}
   if(t||e.metaKey||e.ctrlKey)return;
   if(e.key==='/'){e.preventDefault();$('#q').focus();return}
@@ -385,6 +414,7 @@ function init(data){
    [...LF].forEach(k=>{if(/^https?:/.test(k)){LF.delete(k);if(tk[k])LF.add(tk[k]);ch=true}else if(k.includes('|')){LF.delete(k);LF.add(k.split('|')[0].split(/,| & | feat\.? | x /i)[0].trim().toLowerCase());ch=true}});
    if(ch)try{localStorage.setItem('instinct_flags',JSON.stringify([...LF]))}catch(e){}}
   {const c=new Date();c.setMonth(c.getMonth()-6);const cut=c.toISOString().slice(0,10);data.songs.forEach(s=>{if(s.press)s.press=s.press.filter(p=>!p.d||p.d>=cut)})}
+  REP={};data.songs.forEach(s=>{const k=akey(s);REP[k]=(REP[k]||0)+1});
   TW=null;ALL=data.songs.slice().sort((a,b)=>(a.src==='MP')-(b.src==='MP'));
   DAYS=[...new Set(ALL.map(s=>s.date))].sort();
   const u=new Date(data.updated);
