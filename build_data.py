@@ -150,8 +150,29 @@ for s in songs:
     for pr in s.get("press", []):
         if pdates.get(pr.get("u")):
             pr["d"] = pdates[pr["u"]]
+# team notes backend (Apps Script web app): url+key live in team_api.json (git-ignored) and ride inside the encrypted payload.
+# Team-flagged artists are also marked tf so tracking treats them like sheet-flagged ones.
+api = None
+tp = os.path.join(here, "team_api.json")
+if os.path.exists(tp):
+    api = json.load(open(tp))
+    if api.get("url"):
+        try:
+            import urllib.request, urllib.parse
+            log = json.load(urllib.request.urlopen(api["url"] + "?k=" + urllib.parse.quote(api["key"]), timeout=30)).get("log", [])
+            on = {}
+            for e in log:
+                if e["y"] == "flag": on[e["a"]] = True
+                elif e["y"] == "unflag": on.pop(e["a"], None)
+            for s in songs:
+                if _pk(s["artist"]) in on:
+                    s["tf"] = True
+        except Exception as ex:
+            print("team log not read:", ex)
+    else:
+        api = None
 payload = {"updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-           "songs": songs, "spl": spl, "caps": caps, "mega": MEGA, "extra": EXTRA}
+           "songs": songs, "spl": spl, "caps": caps, "api": api, "mega": MEGA, "extra": EXTRA}
 json.dump(payload, open(out, "w"), ensure_ascii=False, separators=(",", ":"))
 enc = os.path.join(here, "data.enc.json")
 subprocess.run(["node", os.path.join(here, "encrypt.js"), out, enc, os.path.join(here, ".password")], check=True)

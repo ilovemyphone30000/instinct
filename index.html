@@ -112,6 +112,20 @@ a.num:hover span{text-decoration:underline}
 .rp:hover{background:#000;color:var(--bg)}
 #hist{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.35);display:flex;align-items:flex-start;justify-content:center;padding:8vh 16px 16px;overflow:auto}
 #hist[hidden]{display:none}
+.nb{font-size:10px;margin-left:5px;opacity:0;vertical-align:1px}
+.row:hover .nb,.nb.has{opacity:.6}.nb:hover{opacity:1!important}
+.nt{font-size:10px;color:var(--mute);margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nt b{color:#000}
+#hist .hf{margin:6px 0 4px}
+#hist .fb{font-weight:800;font-size:11px;padding:3px 10px 4px;border-radius:99px;background:var(--pink);color:#000}
+#hist .fb.on{background:#000;color:var(--bg)}
+#hist .ns{margin:10px 0 4px}
+#hist .nr{padding:6px 0;border-top:1px solid rgba(0,0,0,.2)}
+#hist .nr .nx{opacity:.4;font-size:10px;margin-left:4px}#hist .nr .nx:hover{opacity:1}
+#hist .nf{display:flex;gap:6px;margin-top:8px}
+#hist .nf input{background:none;border:0;border-bottom:1px solid #000;padding:3px 0;font:inherit;color:#000;min-width:0}
+#hist .nf .ni{width:44px;text-transform:uppercase}
+#hist .nf .nx2{flex:1}
+#hist .nf button{font-weight:800;font-size:11px;padding:3px 12px 4px;border-radius:99px;background:var(--lime);color:#000}
 #hist .hc{position:relative;background:var(--bg);border:1px solid #000;width:100%;max-width:620px;padding:20px 22px 8px}
 #hist h3{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;margin-right:30px}
 #hist .hs{color:var(--mute);font-size:10px;margin:4px 0 12px}
@@ -226,7 +240,18 @@ const spN=n=>+(n.match(/#(\d+)/)||[0,0])[1];
 
 let LF=new Set();try{LF=new Set(JSON.parse(localStorage.getItem('instinct_flags')||'[]'))}catch(e){}
 const akey=s=>s.artist.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase();
-const isFlag=s=>!!s.flag||LF.has(akey(s));
+let API=null,TEAM={},INI='';try{INI=localStorage.getItem('instinct_ini')||''}catch(e){}
+const tm=k=>TEAM[k]||(TEAM[k]={flag:null,notes:[]});
+const isFlag=s=>!!s.flag||(API?!!(TEAM[akey(s)]&&TEAM[akey(s)].flag):LF.has(akey(s)));
+function foldLog(log){const T={};log.forEach(e=>{const k=e.a,o=T[k]||(T[k]={flag:null,notes:[]});
+  if(e.y==='flag')o.flag={i:e.i,t:e.t};else if(e.y==='unflag')o.flag=null;
+  else if(e.y==='note')o.notes.push({id:e.id,t:e.t,i:e.i,x:e.x});
+  else if(e.y==='del')for(const q of Object.values(T))q.notes=q.notes.filter(n=>n.id!==e.x)});
+  Object.values(T).forEach(o=>o.notes.sort((a,b)=>String(b.t).localeCompare(String(a.t))));return T}
+async function pullTeam(){if(!API)return;try{const r=await fetch(API.url+'?k='+encodeURIComponent(API.key));const j=await r.json();if(j.log){TEAM=foldLog(j.log);render();if(PO)redrawPanel()}}catch(e){}}
+async function postTeam(o){if(!API)return false;try{const r=await fetch(API.url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({k:API.key,...o})});const j=await r.json();return !!j.ok}catch(e){return false}}
+const nameOf=k=>(ALL.find(s=>akey(s)===k)||{}).artist||k;
+
 const gr=(s,k='hist')=>{const c='_g'+k;if(s[c]!==undefined)return s[c];const h=s[k];if(!h||h.length<2)return s[c]=null;const f=h[0][1],l=h[h.length-1][1];return s[c]={f,l,abs:l-f,pct:f?(l-f)/f:null,d0:h[0][0],d1:h[h.length-1][0]}};
 let TW=null;
 const DAY=864e5,tms=d=>new Date(d+'T12:00:00').getTime();
@@ -284,6 +309,7 @@ const pd=p=>p.d?`<i>${esc(dstr(p.d))}</i>`:'';
 const chipsHtml=(arr,cls)=>(arr||[]).map(p=>p.u?`<a class="chip ${cls||p.c}" href="${esc(p.u)}" target="_blank" rel="noopener" title="${esc(p.t)}${p.d?' · '+esc(dlong(p.d)):''}">${esc(p.t)}${pd(p)}</a>`:`<span class="chip ${cls||p.c}">${esc(p.t)}</span>`).join('');
 const shList=s=>(s.plays||'').split(/;|\n/).map(x=>x.trim().replace(/^upcoming:\s*/i,'')).filter(Boolean);
 const capHtml=x=>{const m=x.match(/^(.+?),\s*([^,]+?)\s+\d+\/\d+\/\d+/);const c=m&&CAPS[(m[1]+'|'+m[2]).toLowerCase()];return c?`<b title="approximate venue capacity">cap ~${c.toLocaleString()}</b>`:''};
+const noteLine=s=>{const n=(TEAM[akey(s)]||{notes:[]}).notes[0];return n?`<div class="nt"><b>${esc(n.i)}</b> ${esc(n.x)}</div>`:''};
 function showsHtml(s){
   const l=shList(s);if(!l.length)return '';
   const k=s.track||s.artist+s.song,o=OPEN.has(k);
@@ -295,7 +321,7 @@ function rowHtml(s,i){
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
-    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?'unflag artist (saved in this browser)':'flag artist (saved in this browser)'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'MP (recs)':'SP (scan)'} - click to show only these">${s.src}</button>${REP[akey(s)]>1?`<button class="rp" data-act="hist" data-v="${esc(akey(s))}" title="seen before - show history">↻ ${REP[akey(s)]}</button>`:''}${showsHtml(s)}</div>
+    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?(API&&TEAM[akey(s)]&&TEAM[akey(s)].flag?'flagged by '+esc(TEAM[akey(s)].flag.i)+' - click to unflag':'unflag artist'):'flag artist'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'MP (recs)':'SP (scan)'} - click to show only these">${s.src}</button>${REP[akey(s)]>1?`<button class="rp" data-act="hist" data-v="${esc(akey(s))}" title="seen before - show history">↻ ${REP[akey(s)]}</button>`:''}${API?`<button class="nb${(TEAM[akey(s)]||{notes:[]}).notes.length?' has':''}" data-act="hist" data-v="${esc(akey(s))}" title="team notes">✎${(TEAM[akey(s)]||{notes:[]}).notes.length||''}</button>`:''}${showsHtml(s)}${noteLine(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
     <div class="L">${cur!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
     <div class="G">${ig?`<div class="NG"><a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${ig.toLocaleString()} instagram followers${gi?' (latest) · '+s.ig.toLocaleString()+' when added':''}"><span>${fmt(ig)}</span></a>${growHtml(s,'igh')}</div>`:'<span class="none">–</span>'}</div>
@@ -351,18 +377,33 @@ function render(){compute();renderTop();renderSide();renderRows();save()}
 function save(){try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],o:S.sort,i:S.dir,x:S.src,f:S.flag})))}catch(e){}}
 function load(){try{const o=JSON.parse(decodeURIComponent(location.hash.slice(1)));S.view=o.v&&o.v!=='tracked'&&o.v!=='fall'?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.sort=o.o||'date';S.dir=o.i||-1;S.src=o.x||'';S.flag=!!o.f;$('#q').value=S.q}catch(e){}}
 const clearAll=()=>{S.src='';S.flag=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.q='';S.view='all';$('#q').value=''};
-let HO=false;
-function openHist(k){
-  const l=ALL.filter(s=>akey(s)===k).sort((a,b)=>b.date.localeCompare(a.date));if(!l.length)return;
-  const g=gr(l[0]),first=l[l.length-1].date;
-  $('#hist').innerHTML=`<div class="hc" role="dialog" aria-label="artist history"><button class="hx" data-act="histx" aria-label="close">✕</button>
-    <h3>${esc(l[0].artist)}</h3><p class="hs">${l.length} entries · first seen ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>
-    ${l.map(s=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${s.src}</span></div>
+let HO=false,PO=null;
+const ago=iso=>{const d=new Date(iso);return isNaN(d)?'':d.toLocaleDateString('en-US',{month:'short',day:'numeric'})};
+function panelHtml(k){
+  const l=ALL.filter(s=>akey(s)===k).sort((a,b)=>b.date.localeCompare(a.date));if(!l.length)return '';
+  const g=gr(l[0]),first=l[l.length-1].date,o=TEAM[k]||{flag:null,notes:[]},sheet=l.some(s=>s.flag);
+  const flagBtn=sheet?'<span class="hn">flagged in the sheet</span>':API?`<button class="fb${o.flag?' on':''}" data-act="pflag" data-v="${esc(k)}">${o.flag?'★ flagged by '+esc(o.flag.i)+' · unflag':'☆ flag this artist'}</button>`:'';
+  const notes=API?`<div class="ns">${o.notes.map(n=>`<div class="nr"><b>${esc(n.i)}</b><span class="hn"> ${esc(ago(n.t))}</span> <button class="nx" data-act="ndel" data-v="${esc(n.id)}" title="delete note">✕</button><div>${esc(n.x)}</div></div>`).join('')||'<div class="hn">no notes yet</div>'}
+    <form class="nf" data-v="${esc(k)}"><input class="ni" name="i" maxlength="4" placeholder="you" value="${esc(INI)}" aria-label="initials"><input class="nx2" name="x" maxlength="500" placeholder="add a note for the team" autocomplete="off" aria-label="note"><button type="submit">add</button></form></div>`:'';
+  const hist=l.length>1?`<p class="hs">seen ${l.length} times · first ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>`:'';
+  return `<div class="hc" role="dialog" aria-label="artist"><button class="hx" data-act="histx" aria-label="close">✕</button>
+    <h3>${esc(l[0].artist)}</h3><div class="hf">${flagBtn}</div>${notes}${hist}
+    ${l.length>1?l.map(s=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${s.src}</span></div>
       <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
-      <div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div></div></div>`).join('')}</div>`;
-  $('#hist').hidden=false;HO=true;
+      <div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div></div></div>`).join(''):''}</div>`;
 }
-const closeHist=()=>{$('#hist').hidden=true;HO=false};
+function redrawPanel(){const f=document.querySelector('#hist .nx2');if(f&&f.value)return;$('#hist').innerHTML=panelHtml(PO)}
+function openHist(k){PO=k;$('#hist').innerHTML=panelHtml(k);$('#hist').hidden=false;HO=true}
+const closeHist=()=>{$('#hist').hidden=true;HO=false;PO=null};
+async function teamAct(o){ // optimistic: apply to local state, post, then re-pull the truth
+  const e=tm(o.a);
+  if(o.type==='flag')e.flag={i:o.i,t:new Date().toISOString()};else if(o.type==='unflag')e.flag=null;
+  else if(o.type==='note')e.notes.unshift({id:'tmp'+Date.now(),t:new Date().toISOString(),i:o.i,x:o.x});
+  else if(o.type==='del')e.notes=e.notes.filter(n=>n.id!==o.x);
+  render();if(PO)$('#hist').innerHTML=panelHtml(PO);
+  await postTeam(o);await pullTeam();
+}
+function needIni(k){if(INI)return false;openHist(k);const i=document.querySelector('#hist .ni');i&&i.focus();return true}
 const toggle=(set,v)=>set.has(v)?set.delete(v):set.add(v);
 
 document.addEventListener('click',e=>{
@@ -374,6 +415,8 @@ document.addEventListener('click',e=>{
   const a=b.dataset.act,v=b.dataset.v;
   if(a==='hist'){openHist(v);return}
   if(a==='histx'){closeHist();return}
+  if(a==='pflag'){if(needIni(v))return;const o=TEAM[v];teamAct({type:o&&o.flag?'unflag':'flag',a:v,n:nameOf(v),i:INI});return}
+  if(a==='ndel'){if(PO&&confirm('Delete this note?'))teamAct({type:'del',a:PO,n:nameOf(PO),x:v});return}
   if(a==='view')S.view=v;
   else if(a==='day'||a==='strip'){
     if(e.shiftKey&&lastDay&&a==='strip'){const i=DAYS.indexOf(lastDay),j=DAYS.indexOf(v);DAYS.slice(Math.min(i,j),Math.max(i,j)+1).forEach(d=>S.days.add(d))}
@@ -386,6 +429,7 @@ document.addEventListener('click',e=>{
   else if(a==='rm'){const k=b.dataset.k;({days:S.days,pls:S.pls,pr:S.pr,sp:S.sp,bk:S.bk})[k].delete(k==='bk'?+v:v)}
   else if(a==='clear')clearAll();
   else if(a==='home'){clearAll();S.sort='date';S.dir=-1;S.sel=-1;window.scrollTo(0,0)}
+  else if(a==='flag'&&API){if(b.classList.contains('lock'))return;if(needIni(v))return;const o=TEAM[v];teamAct({type:o&&o.flag?'unflag':'flag',a:v,n:nameOf(v),i:INI});return}
   else if(a==='flag'){if(b.classList.contains('lock'))return;LF.has(v)?LF.delete(v):LF.add(v);try{localStorage.setItem('instinct_flags',JSON.stringify([...LF]))}catch(e){}}
   else if(a==='shows'){OPEN.has(v)?OPEN.delete(v):OPEN.add(v);renderRows();return}
   else if(a==='csv'){csv();return}
@@ -394,6 +438,9 @@ document.addEventListener('click',e=>{
   else if(a==='flagged')S.flag=!S.flag;
   render();
 });
+document.addEventListener('submit',e=>{const f=e.target.closest('.nf');if(!f)return;e.preventDefault();
+  const i=f.i.value.trim().toUpperCase().slice(0,4),x=f.x.value.trim();if(!i||!x){(i?f.x:f.i).focus();return}
+  INI=i;try{localStorage.setItem('instinct_ini',i)}catch(er){}f.x.value='';teamAct({type:'note',a:f.dataset.v,n:nameOf(f.dataset.v),i,x})});
 $('#q').addEventListener('input',e=>{S.q=e.target.value;render()});
 document.addEventListener('keydown',e=>{
   const t=e.target.tagName==='INPUT';
@@ -433,8 +480,8 @@ const getEnc=()=>fetch('data.enc.json?'+Date.now()).then(r=>r.json());
 let PW=null;
 async function unlock(pw){
   const d=await decrypt(await getEnc(),pw);
-  PW=pw;window.__u=d.updated;SPL=d.spl||[];CAPS=d.caps||{};
-  $('#gate').hidden=true;init(d);
+  PW=pw;window.__u=d.updated;SPL=d.spl||[];CAPS=d.caps||{};API=d.api||null;
+  $('#gate').hidden=true;init(d);pullTeam();
   try{localStorage.setItem('instinct_pw',pw)}catch(e){}
 }
 $('#gate').addEventListener('submit',async e=>{
@@ -447,7 +494,8 @@ $('#gate').addEventListener('submit',async e=>{
   if(pw){try{await unlock(pw)}catch(e){try{localStorage.removeItem('instinct_pw')}catch(_){}}}
   if(!PW)$('#pw').focus();
 })();
-setInterval(async()=>{if(!PW)return;try{const d=await decrypt(await getEnc(),PW);if(d.updated!==window.__u){window.__u=d.updated;SPL=d.spl||[];CAPS=d.caps||{};init(d)}}catch(e){}},9e5);
+setInterval(pullTeam,45e3);
+setInterval(async()=>{if(!PW)return;try{const d=await decrypt(await getEnc(),PW);if(d.updated!==window.__u){window.__u=d.updated;SPL=d.spl||[];CAPS=d.caps||{};API=d.api||null;init(d);pullTeam()}}catch(e){}},9e5);
 </script>
 </body>
 </html>
