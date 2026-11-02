@@ -4,8 +4,8 @@
 Tracked = artists with a FLAG ticked, or any song added in the last 14 days (SP or MP).
 Run with the superplaylist venv:  ~/Downloads/superplaylist/.venv/bin/python track_ids.py
 Prints JSON {"listeners":[{name,id}], "ig":[{name,igUrl}], "rostr":[name]} for the daily lookups.
-IG list = flagged artists first, then the tracked artists whose Instagram was read longest ago (never-read first),
-capped at IG_CAP profiles a run, so every tracked artist is re-read every few days and growth builds for all of them.
+The "ig" list is legacy and unused: Instagram counts now come from ig_public.py (public, logged-out page preview,
+plain HTTP, no browser and no session). Never read Instagram in a signed-in browser.
 """
 import datetime, json, os, re, sys
 sys.path.insert(0, os.path.expanduser("~/Downloads/superplaylist"))
@@ -28,7 +28,7 @@ def prim(a):
 
 active, need = {}, {}
 for s in songs:
-    if not s.get("track") or not (s.get("flag") or s.get("tf") or s.get("jp") or s["date"] >= cut):
+    if not s.get("track") or not (s.get("flag") or s.get("tf") or s.get("jp") or s.get("wid") or s["date"] >= cut):
         continue
     name = prim(s["artist"])
     k = name.lower()
@@ -36,7 +36,9 @@ for s in songs:
     a["flag"] = a["flag"] or bool(s.get("flag") or s.get("tf"))
     a["ig"] = a["ig"] or s.get("igUrl")
     e = hist["artists"].setdefault(k, {"name": name, "pts": []})
-    if not e.get("id"):
+    if s.get("wid"):  # watchlist row: the id is already known
+        e["id"] = s["wid"]
+    elif not e.get("id"):
         need.setdefault(k, s["track"].rsplit("/", 1)[1])
 
 if need:
