@@ -182,6 +182,13 @@ for s in songs:
             s["agt"] = r["agent"]
         if r.get("slug"):
             s["rs"] = r["slug"]
+# listener jumps found by jumps.py (git-ignored jumps.json): attached to every row of the artist
+jpp = os.path.join(here, "jumps.json")
+jmp = json.load(open(jpp)) if os.path.exists(jpp) else {}
+for s in songs:
+    j = jmp.get(_pk(s["artist"]))
+    if j:
+        s["jp"] = {"f": j["from"], "t": j["to"], "d0": j["d0"], "d1": j["d1"]}
 payload = {"updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "songs": songs, "spl": spl, "caps": caps, "api": api, "mega": MEGA, "extra": EXTRA}
 json.dump(payload, open(out, "w"), ensure_ascii=False, separators=(",", ":"))

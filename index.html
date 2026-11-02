@@ -112,6 +112,7 @@ a.num:hover span{text-decoration:underline}
 .rp:hover{background:#000;color:var(--bg)}
 #hist{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.35);display:flex;align-items:flex-start;justify-content:center;padding:8vh 16px 16px;overflow:auto}
 #hist[hidden]{display:none}
+.jp{font-size:9px;font-weight:800;padding:0 5px 1px;border-radius:2px;background:#d9342b;color:#fff;white-space:nowrap}
 .nb{font-size:10px;margin-left:5px;opacity:0;vertical-align:1px}
 .row:hover .nb,.nb.has{opacity:.6}.nb:hover{opacity:1!important}
 .nt{font-size:10px;color:var(--mute);margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nt b{color:#000}
@@ -289,6 +290,7 @@ function match(s,skip){
     if(S.view==='press'&&!(s.press||[]).length)return false;
     if(S.view==='shows'&&!s.plays)return false;
     if(S.view==='noig'&&s.ig)return false;
+    if(S.view==='jump'&&!s.jp)return false;
     if(S.view==='grow'&&!(gr(s)&&gr(s).pct>=0.1))return false;
     if(S.view==='igrow'&&!(gr(s,'igh')&&gr(s,'igh').pct>=0.1))return false;
   }
@@ -324,7 +326,7 @@ function rowHtml(s,i){
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
     <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?(API&&TEAM[akey(s)]&&TEAM[akey(s)].flag?'flagged by '+esc(TEAM[akey(s)].flag.i)+' - click to unflag':'unflag artist'):'flag artist'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${REP[akey(s)]>1?`<button class="rp" data-act="hist" data-v="${esc(akey(s))}" title="seen before - show history">↻ ${REP[akey(s)]}</button>`:''}${API?`<button class="nb${(TEAM[akey(s)]||{notes:[]}).notes.length?' has':''}" data-act="hist" data-v="${esc(akey(s))}" title="team notes">✎${(TEAM[akey(s)]||{notes:[]}).notes.length||''}</button>`:''}${showsHtml(s)}${noteLine(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
-    <div class="L">${cur!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
+    <div class="L">${cur!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>${s.jp?`<span class="jp" title="listeners ${s.jp.f.toLocaleString()} → ${s.jp.t.toLocaleString()} (${esc(dstr(s.jp.d0))} → ${esc(dstr(s.jp.d1))})">▲ JUMP</span>`:''}${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
     <div class="G">${ig?`<div class="NG"><a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${ig.toLocaleString()} instagram followers${gi?' (latest) · '+s.ig.toLocaleString()+' when added':''}"><span>${fmt(ig)}</span></a>${growHtml(s,'igh')}</div>`:'<span class="none">–</span>'}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
     <div class="PL chips">${chipsHtml(pls)}</div>
@@ -364,7 +366,7 @@ function renderSide(){
 function renderTop(){
   document.body.classList.toggle('nosong',!S.flag);
   document.querySelectorAll('.pill[data-act]').forEach(b=>b.classList.toggle('on',b.dataset.act==='flagged'?S.flag:S.src===b.dataset.v));
-  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','listeners 10%+'],['igrow','instagram 10%+'],['noig','no instagram']];
+  const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','listeners 10%+'],['jump','jumped'],['igrow','instagram 10%+'],['noig','no instagram']];
   const cur=S.view;
   $('#tabs').innerHTML=tabs.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cur===k?'on':''}">${l}<span class="n">${n}</span></button>`}).join('');
   S.view=cur;

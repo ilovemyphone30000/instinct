@@ -28,7 +28,7 @@ def prim(a):
 
 active, need = {}, {}
 for s in songs:
-    if not s.get("track") or not (s.get("flag") or s.get("tf") or s["date"] >= cut):
+    if not s.get("track") or not (s.get("flag") or s.get("tf") or s.get("jp") or s["date"] >= cut):
         continue
     name = prim(s["artist"])
     k = name.lower()
