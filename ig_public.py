@@ -5,7 +5,7 @@ Plain HTTPS GET with no cookies, no session and no browser: the same page anyone
 count is read from the page's og:description ("1,235 Followers, 220 Following, ..."). Nothing here ever touches a
 signed-in Instagram session - never point this at a browser profile or pass cookies.
 
-Usage: ig_public.py [--cap N] [--all] [--dry]
+Usage: ig_public.py [--cap N] [--dry]   |   ig_public.py --one <handle>  (print one count, writes nothing)
   handles come from history.json (igUrl) and data.json (igUrl, sheet column + teammate-entered)
   order: flagged / team-flagged / jumped / added in the last 14 days first (daily), everyone else once a week
   results are appended to history.json  artists[k].ig  as [date, followers]  (one point per day)
@@ -55,6 +55,13 @@ def fetch(h):
         return ("gone", None) if re.search(r"<title>[^<]*(not found|isn.t available)", b, re.I) else ("fail", "no preview")
     mm = re.match(r"\s*([\d.,]+\s*[KMB]?)\s+Followers", html.unescape(m[1]), re.I)
     return ("ok", count(mm[1])) if mm else ("fail", "no count")
+
+
+def one(handle):
+    """Print the logged-out follower count for one handle: {"handle":..,"status":"ok|gone|fail","followers":n|null}"""
+    h = re.sub(r"^https?://(www\.)?instagram\.com/", "", handle).split("/")[0].split("?")[0].lstrip("@")
+    st, v = fetch(h)
+    print(json.dumps({"handle": h, "status": st, "followers": v if st == "ok" else None}))
 
 
 def main():
@@ -122,4 +129,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if "--one" in sys.argv:
+        one(sys.argv[sys.argv.index("--one") + 1])
+    else:
+        main()
