@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>instinct</title>
+<title>A&amp;R Instinct</title>
 <script>if(!/[?&]look=old/.test(location.search))document.documentElement.classList.add('rr')</script>
 <style>
 :root{
@@ -125,7 +125,7 @@ a.num:hover span{text-decoration:underline}
 #hist .nr .nx{opacity:.4;font-size:10px;margin-left:4px}#hist .nr .nx:hover{opacity:1}
 #hist .nf{display:flex;gap:6px;margin-top:8px}
 #hist .nf input{background:none;border:0;border-bottom:1px solid #000;padding:3px 0;font:inherit;color:#000;min-width:0}
-#hist .nf .ni{width:44px;text-transform:uppercase}
+#hist .nf .ni{width:96px}
 #hist .nf .nx2{flex:1}
 #hist .nf button{font-weight:800;font-size:11px;padding:3px 12px 4px;border-radius:99px;background:var(--lime);color:#000}
 #hist .hc{position:relative;background:var(--bg);border:1px solid #000;width:100%;max-width:620px;padding:20px 22px 8px}
@@ -178,7 +178,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
 #gate[hidden],#who[hidden]{display:none}
 #gate .logo,#who .logo{width:auto;height:auto;font-size:26px;padding:10px 18px 11px}
 #who p{color:var(--mute);font-size:10px;text-align:center}
-#who input{font:inherit;font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;text-align:center;border-bottom:1px solid #000;width:120px;padding:6px 0;outline:0;background:none;color:#000;border-radius:0}
+#who input{font:inherit;font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;text-align:center;border-bottom:1px solid #000;width:240px;padding:6px 0;outline:0;background:none;color:#000;border-radius:0}
 #who .row2{display:flex;gap:14px;align-items:center}
 #who button[type=submit]{font-weight:800;font-size:12px;padding:6px 16px 7px;border-radius:99px;background:var(--lime);color:#000}
 #who #whox{text-decoration:underline}
@@ -197,8 +197,12 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
 .rr .tabs button{padding:0;border-radius:0;opacity:.55}.rr .tabs button.on{background:none;font-weight:800;opacity:1;text-decoration:underline}
 .rr .act{padding:0;border-radius:0}.rr .act:hover{background:none;font-weight:800}
 .rr .active button{background:none;padding:0;border-radius:0;text-decoration:underline}
-.rr .chip,.rr .chip.pr,.rr .chip.pl,.rr .chip.sp,.rr .chip.sh{background:none;padding:0 6px 0 0;border-radius:0;text-decoration:underline;text-underline-offset:2px;font-size:10px}
-.rr .chips{gap:2px 0}
+.rr .chip{padding:1px 6px 2px;border-radius:2px;text-decoration:none;font-size:10px}
+.rr .chip.pr{background:#ffd6ea}
+.rr .chip.pl,.rr .chip.sp{background:#fff4a3}
+.rr .chip.sh{background:#e9ffa8}
+.rr .chip:hover{box-shadow:0 0 0 1px #000}
+.rr .chips{gap:3px;align-items:flex-start;align-content:flex-start}
 .rr .shw{background:none;padding:0;border-radius:0;text-decoration:underline;font-weight:500}
 .rr .shwl span{background:none;padding:0;border-radius:0}
 .rr .daycap a{background:none;padding:0;border-radius:0;text-decoration:underline;font-weight:500}
@@ -209,24 +213,32 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
 .rr .tg,.rr .tg.mp{border-radius:0}
 .rr .head{border-bottom:1px solid #000}
 .rr .row{border-bottom:1px solid var(--line)}
+@media (min-width:901px){
+.rr .head,.rr .row{align-items:stretch;column-gap:0;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 186px 186px minmax(120px,1fr) minmax(150px,1.6fr)}
+.rr .nosong .head,.rr .nosong .row{grid-template-columns:80px minmax(110px,.9fr) 186px 186px minmax(120px,1fr) minmax(150px,1.6fr)}
+.rr .head>*,.rr .row>*{padding-left:12px;padding-right:6px}
+.rr .head>*+*,.rr .row>*+*{border-left:1px solid rgba(0,0,0,.06)}
+.rr .head>*:first-child,.rr .row>*:first-child{padding-left:0}
+.rr .head button{padding-left:12px}.rr .head button:first-child{padding-left:0}
+}
 .rr .logo{border-radius:0}
 .rr #q{border-bottom:1px solid #000}
 </style>
 </head>
 <body>
 <form id="gate" autocomplete="off">
-  <div class="logo" aria-hidden="true">instinct</div>
+  <div class="logo" aria-hidden="true">A&amp;R Instinct</div>
   <input id="pw" type="password" placeholder="password" autofocus autocomplete="current-password" spellcheck="false">
   <div class="err" id="err"></div>
 </form>
 <div class="top">
-  <button class="logo" data-act="home" title="everything (SP + MP combined)" aria-label="Show everything">instinct</button>
+  <button class="logo" data-act="home" title="everything (SP + MP combined)" aria-label="Show everything">A&amp;R Instinct</button>
   <div class="kp">
     <button class="pill k3" data-act="flagged">Flagged</button>
         <a class="pill k4" href="playlists.html">Playlists</a>
   </div>
   <span class="sp"></span>
-  <div class="meta"><button class="me" id="me" data-act="me" title="your initials - click to change"></button><span id="upd"></span></div>
+  <div class="meta"><button class="me" id="me" data-act="me" title="your name - click to change"></button><span id="upd"></span></div>
 </div>
 
 <div class="layout">
@@ -257,7 +269,7 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
   </div>
   <div id="rows"></div>
   <div id="hist" hidden></div>
-  <div id="who" hidden><div class="logo">instinct</div><p>enter your initials - they go on your flags and notes</p><form id="whof" autocomplete="off"><div class="row2"><input id="whoi" maxlength="4" placeholder="KB" aria-label="initials"><button type="submit">enter</button><button type="button" id="whox" hidden>cancel</button></div></form></div>
+  <div id="who" hidden><div class="logo">A&amp;R Instinct</div><p>enter your name for flags / notes</p><form id="whof" autocomplete="off"><div class="row2"><input id="whoi" maxlength="24" placeholder="your name" aria-label="name"><button type="submit">enter</button><button type="button" id="whox" hidden>cancel</button></div></form></div>
   <div class="empty" id="empty" hidden>nothing matches. <button class="act" data-act="clear">clear filters</button></div>
 </main>
 </div>
@@ -421,7 +433,7 @@ function panelHtml(k){
   const rs=l.find(s=>s.ag),agLine=rs?`<div class="hn ag">${rs.rs?`<a href="https://www.rostr.cc/artist/${esc(rs.rs)}" target="_blank" rel="noopener">${esc(rs.ag)} ↗</a>`:esc(rs.ag)}${rs.agt?' · '+esc(rs.agt):''} <span>(rostr)</span></div>`:'';
   const flagBtn=sheet?'<span class="hn">flagged in the sheet</span>':API?`<button class="fb${o.flag?' on':''}" data-act="pflag" data-v="${esc(k)}">${o.flag?'★ flagged by '+esc(o.flag.i)+' · unflag':'☆ flag this artist'}</button>`:'';
   const notes=API?`<div class="ns">${o.notes.map(n=>`<div class="nr"><b>${esc(n.i)}</b><span class="hn"> ${esc(ago(n.t))}</span> <button class="nx" data-act="ndel" data-v="${esc(n.id)}" title="delete note">✕</button><div>${esc(n.x)}</div></div>`).join('')||'<div class="hn">no notes yet</div>'}
-    <form class="nf" data-v="${esc(k)}"><input class="ni" name="i" maxlength="4" placeholder="you" value="${esc(INI)}" aria-label="initials"><input class="nx2" name="x" maxlength="500" placeholder="add a note for the team" autocomplete="off" aria-label="note"><button type="submit">add</button></form></div>`:'';
+    <form class="nf" data-v="${esc(k)}"><input class="ni" name="i" maxlength="24" placeholder="your name" value="${esc(INI)}" aria-label="name"><input class="nx2" name="x" maxlength="500" placeholder="add a note for the team" autocomplete="off" aria-label="note"><button type="submit">add</button></form></div>`:'';
   const hist=l.length>1?`<p class="hs">seen ${l.length} times · first ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>`:'';
   return `<div class="hc" role="dialog" aria-label="artist"><button class="hx" data-act="histx" aria-label="close">✕</button>
     <h3>${esc(l[0].artist)}</h3>${agLine}<div class="hf">${flagBtn}</div>${notes}${hist}
@@ -429,7 +441,8 @@ function panelHtml(k){
       <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
       <div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div></div></div>`).join(''):''}</div>`;
 }
-function redrawPanel(){const f=document.querySelector('#hist .nx2');if(f&&f.value)return;$('#hist').innerHTML=panelHtml(PO)}
+function paintPanel(){const a=document.activeElement,c=a&&a.closest&&a.closest('#hist')&&a.classList.length?'.'+a.classList[0]:'';$('#hist').innerHTML=panelHtml(PO);if(c){const n=document.querySelector('#hist '+c);n&&n.focus()}}
+function redrawPanel(){const f=document.querySelector('#hist .nx2');if(f&&f.value)return;paintPanel()}
 function openHist(k){PO=k;$('#hist').innerHTML=panelHtml(k);$('#hist').hidden=false;HO=true}
 const closeHist=()=>{$('#hist').hidden=true;HO=false;PO=null};
 async function teamAct(o){ // optimistic: apply to local state, post, then re-pull the truth
@@ -437,12 +450,12 @@ async function teamAct(o){ // optimistic: apply to local state, post, then re-pu
   if(o.type==='flag')e.flag={i:o.i,t:new Date().toISOString()};else if(o.type==='unflag')e.flag=null;
   else if(o.type==='note')e.notes.unshift({id:'tmp'+Date.now(),t:new Date().toISOString(),i:o.i,x:o.x});
   else if(o.type==='del')e.notes=e.notes.filter(n=>n.id!==o.x);
-  render();if(PO)$('#hist').innerHTML=panelHtml(PO);
+  render();if(PO)paintPanel();
   await postTeam(o);await pullTeam();
 }
-const paintMe=()=>{const b=$('#me');if(b)b.textContent=INI?INI+' ▾':'set initials'};
+const paintMe=()=>{const b=$('#me');if(b)b.textContent=INI?INI+' ▾':'set your name'};
 function askIni(first){const w=$('#who');$('#whoi').value=INI;$('#whox').hidden=!!first&&!INI;w.hidden=false;setTimeout(()=>$('#whoi').focus(),30)}
-$('#whof').addEventListener('submit',e=>{e.preventDefault();const v=$('#whoi').value.trim().toUpperCase().slice(0,4);if(!v){$('#whoi').focus();return}INI=v;try{localStorage.setItem('instinct_ini',v)}catch(er){}$('#who').hidden=true;paintMe()});
+$('#whof').addEventListener('submit',e=>{e.preventDefault();const v=$('#whoi').value.trim().slice(0,24);if(!v){$('#whoi').focus();return}INI=v;try{localStorage.setItem('instinct_ini',v)}catch(er){}$('#who').hidden=true;paintMe()});
 $('#whox').addEventListener('click',()=>{$('#who').hidden=true});
 function needIni(k){if(INI)return false;openHist(k);const i=document.querySelector('#hist .ni');i&&i.focus();return true}
 const toggle=(set,v)=>set.has(v)?set.delete(v):set.add(v);
@@ -471,7 +484,7 @@ document.addEventListener('click',e=>{
   else if(a==='rm'){const k=b.dataset.k;({days:S.days,pls:S.pls,pr:S.pr,sp:S.sp,bk:S.bk})[k].delete(k==='bk'?+v:v)}
   else if(a==='clear')clearAll();
   else if(a==='home'){clearAll();S.sort='date';S.dir=-1;S.sel=-1;window.scrollTo(0,0)}
-  else if(a==='flag'&&API){if(b.classList.contains('lock'))return;if(needIni(v))return;const o=TEAM[v];teamAct({type:o&&o.flag?'unflag':'flag',a:v,n:nameOf(v),i:INI});return}
+  else if(a==='flag'&&API){if(b.classList.contains('lock'))return;if(needIni(v))return;const o=TEAM[v],was=!!(o&&o.flag);teamAct({type:was?'unflag':'flag',a:v,n:nameOf(v),i:INI});if(!was){openHist(v);setTimeout(()=>{const f=document.querySelector('#hist .nx2');f&&f.focus()},40)}return}
   else if(a==='flag'){if(b.classList.contains('lock'))return;LF.has(v)?LF.delete(v):LF.add(v);try{localStorage.setItem('instinct_flags',JSON.stringify([...LF]))}catch(e){}}
   else if(a==='shows'){OPEN.has(v)?OPEN.delete(v):OPEN.add(v);renderRows();return}
   else if(a==='csv'){csv();return}
@@ -481,7 +494,7 @@ document.addEventListener('click',e=>{
   render();
 });
 document.addEventListener('submit',e=>{const f=e.target.closest('.nf');if(!f)return;e.preventDefault();
-  const i=f.i.value.trim().toUpperCase().slice(0,4),x=f.x.value.trim();if(!i||!x){(i?f.x:f.i).focus();return}
+  const i=f.i.value.trim().slice(0,24),x=f.x.value.trim();if(!i||!x){(i?f.x:f.i).focus();return}
   INI=i;try{localStorage.setItem('instinct_ini',i)}catch(er){}f.x.value='';teamAct({type:'note',a:f.dataset.v,n:nameOf(f.dataset.v),i,x})});
 $('#q').addEventListener('input',e=>{S.q=e.target.value;render()});
 document.addEventListener('keydown',e=>{
