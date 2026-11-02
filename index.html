@@ -26,6 +26,7 @@ button{cursor:pointer}
 .pill{display:inline-block;font-weight:800;font-size:13px;line-height:1;letter-spacing:.03em;padding:8px 13px 9px;border-radius:99px;background:var(--c);color:#000;text-transform:uppercase}
 .pill:hover{box-shadow:0 0 0 1px #000}
 .pill.on{box-shadow:0 0 0 2px #000}
+.pill.hs::before{content:'☐ '}.pill.hs.on::before{content:'☑ '}
 .k1{--c:var(--lime)}.k2{--c:var(--lemon)}.k3{--c:var(--pink)}.k4{--c:var(--sky)}.k5{--c:#fff}
 .top .sp{flex:1}
 .meta{color:var(--mute);text-align:right;padding-top:4px}
@@ -76,8 +77,8 @@ main{min-width:0;padding:0 22px}
 .active .clr{background:none;color:var(--ink);text-decoration:underline;padding:2px 6px}
 .active .clr::after{content:""}
 
-.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 158px 158px minmax(120px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
-@media (min-width:901px){.nosong .head,.nosong .row{grid-template-columns:80px minmax(110px,.9fr) 158px 158px minmax(120px,1fr) minmax(150px,1.6fr)}}
+.head,.row{display:grid;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 158px 158px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr);gap:0 12px;align-items:start}
+@media (min-width:901px){.nosong .head,.nosong .row{grid-template-columns:80px minmax(110px,.9fr) 158px 158px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr)}}
 .nosong .head [data-sort=song],.nosong .row>.s{display:none}
 .head{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid #000;padding:7px 8px 6px;font-size:10px;color:var(--mute)}
 .head button{text-align:left;color:inherit;padding:0}
@@ -124,6 +125,7 @@ a.num:hover span{text-decoration:underline}
 #hist .igf input{background:none;border:0;border-bottom:1px solid #000;padding:3px 0;font:inherit;color:#000;min-width:0}
 #hist .igf .igi{width:150px}#hist .igf .igc{width:120px}
 #hist .igf button{font-weight:800;font-size:11px;padding:3px 12px 4px;border-radius:99px;background:var(--lime);color:#000}
+.RS{font-size:10px;line-height:1.35;min-width:0;overflow-wrap:anywhere}.RS a{font-weight:700;text-decoration:underline;text-underline-offset:2px}.RS .hn{display:block;color:var(--mute)}
 .iga{font-size:9px;letter-spacing:.06em;color:rgba(0,0,0,.42);border:1px solid rgba(0,0,0,.2);border-radius:2px;padding:2px 8px 3px;background:rgba(0,0,0,.025)}
 .row:hover .iga,.iga:hover{color:#000;border-color:#000;background:none}
 .igp{font-size:10px;opacity:0;margin-left:4px}.row:hover .igp{opacity:.6}.igp:hover{opacity:1!important}
@@ -181,6 +183,7 @@ kbd{font:inherit;border:1px solid rgba(0,0,0,.4);border-radius:3px;padding:0 4px
   .NG svg{display:none}.NG .num{width:50px}
   .row .P{grid-area:p;margin-top:4px}.row .PL{grid-area:pl;margin-top:3px}
   .row .P:empty,.row .PL:empty{display:none}
+  .row .RS{display:none}
   .row .PL{display:none}
 }
 #gate,#who{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
@@ -223,8 +226,8 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
 .rr .head{border-bottom:1px solid #000}
 .rr .row{border-bottom:1px solid var(--line)}
 @media (min-width:901px){
-.rr .head,.rr .row{align-items:stretch;column-gap:0;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 186px 186px minmax(120px,1fr) minmax(150px,1.6fr)}
-.rr .nosong .head,.rr .nosong .row{grid-template-columns:80px minmax(110px,.9fr) 186px 186px minmax(120px,1fr) minmax(150px,1.6fr)}
+.rr .head,.rr .row{align-items:stretch;column-gap:0;grid-template-columns:80px minmax(110px,.9fr) minmax(130px,1.2fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr)}
+.rr .nosong .head,.rr .nosong .row{grid-template-columns:80px minmax(110px,.9fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr) minmax(150px,1.6fr)}
 .rr .head>*,.rr .row>*{padding-left:12px;padding-right:6px}
 .rr .head>*+*,.rr .row>*+*{border-left:1px solid rgba(0,0,0,.06)}
 .rr .head>*:first-child,.rr .row>*:first-child{padding-left:0}
@@ -244,6 +247,7 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
   <button class="logo" data-act="home" title="everything (SP + MP combined)" aria-label="Show everything">A&amp;R Instinct</button>
   <div class="kp">
     <button class="pill k3" data-act="flagged">Flagged</button>
+    <button class="pill k5 hs" data-act="hs" title="hide artists that already have an agency on ROSTR">hide signed artists</button>
         <a class="pill k4" href="playlists.html">Playlists</a>
   </div>
   <span class="sp"></span>
@@ -274,7 +278,7 @@ html.rr,html.rr body{--bg:#fff;--mute:rgba(0,0,0,.5);--line:rgba(0,0,0,.1);--hov
   <div class="head" id="head">
     <button data-sort="date">date</button><button data-sort="artist">artist</button><button data-sort="song">song</button>
     <button class="r" data-sort="listeners">monthly listeners</button><button class="r" data-sort="ig">instagram</button>
-    <button data-sort="press">press</button><button data-sort="pls">playlists</button>
+    <button data-sort="press">press</button><button data-sort="ag">rostr</button><button data-sort="pls">playlists</button>
   </div>
   <div id="rows"></div>
   <div id="hist" hidden></div>
@@ -331,13 +335,14 @@ function growHtml(s,k='hist'){
   const up=g.abs>0,dn=g.abs<0,p=g.pct==null?'':Math.abs(Math.round(g.pct*100))+'%';
   return `<div class="GR" title="${esc(dstr(g.d0))}: ${g.f.toLocaleString()} → ${esc(dstr(g.d1))}: ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})">${spark(s[k])}<span class="gp ${up?'up':dn?'dn':''}">${up?'▲':dn?'▼':'–'}${p}</span></div>`;
 }
-let REP={},CAPS={},OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false},VIEW=[],lastDay=null;
+let REP={},CAPS={},OPEN=new Set(),SPL=[],ALL=[],DAYS=[],S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),sort:'date',dir:-1,sel:-1,src:'',flag:false,hs:false},VIEW=[],lastDay=null;
 
 const plain=s=>(s.playlists||[]).filter(p=>!isSP(p.t));
 const sps=s=>(s.playlists||[]).filter(p=>isSP(p.t));
 function match(s,skip){
   if(S.src&&s.src!==S.src)return false;
   if(S.flag&&!isFlag(s))return false;
+  if(S.hs&&s.ag)return false;
   const q=S.q.trim().toLowerCase();
   if(q&&!(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')+' '+(s.ag||'')+' '+(s.agt||'')).toLowerCase().includes(q))return false;
   if(skip!=='view'){
@@ -356,7 +361,7 @@ function match(s,skip){
   if(skip!=='bk'&&S.bk.size&&![...S.bk].some(i=>s.listeners>=BK[i][0]&&s.listeners<BK[i][1]))return false;
   return true;
 }
-const KEY={iggr:s=>{const g=gr(s,'igh');return g&&g.pct!=null?g.pct:-9},gr:s=>{const g=gr(s);return g&&g.pct!=null?g.pct:-9},date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>s.listeners??-1,ig:s=>s.ig??-1,press:s=>(s.press||[]).length,pls:s=>(s.playlists||[]).length};
+const KEY={iggr:s=>{const g=gr(s,'igh');return g&&g.pct!=null?g.pct:-9},gr:s=>{const g=gr(s);return g&&g.pct!=null?g.pct:-9},date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>s.listeners??-1,ig:s=>s.ig??-1,press:s=>(s.press||[]).length,ag:s=>(s.ag||'~').toLowerCase(),pls:s=>(s.playlists||[]).length};
 function compute(){
   VIEW=ALL.filter(s=>match(s));
   const k=KEY[S.sort],d=S.dir;
@@ -388,6 +393,7 @@ function rowHtml(s,i){
     <div class="L">${cur!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>${s.jp?`<span class="jp" title="listeners ${s.jp.f.toLocaleString()} → ${s.jp.t.toLocaleString()} (${esc(dstr(s.jp.d0))} → ${esc(dstr(s.jp.d1))})">▲ JUMP</span>`:''}${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
     <div class="G">${!ig&&API?igAdd(s):''}${ig?`<div class="NG"><a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${ig.toLocaleString()} instagram followers${gi?' (latest) · '+s.ig.toLocaleString()+' when added':''}"><span>${fmt(ig)}</span></a>${growHtml(s,'igh')}</div>`:(API?'':'<span class="none">–</span>')}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
+    <div class="RS">${s.ag?`<a href="${s.rs?'https://www.rostr.cc/artist/'+esc(s.rs):'#'}" target="_blank" rel="noopener" title="open on ROSTR">${esc(s.ag)}</a>${s.agt?`<span class="hn">${esc(s.agt)}</span>`:''}`:''}</div>
     <div class="PL chips">${chipsHtml(pls)}</div>
   </div>`;
 }
@@ -424,7 +430,7 @@ function renderSide(){
 }
 function renderTop(){
   document.body.classList.toggle('nosong',!S.flag);
-  document.querySelectorAll('.pill[data-act]').forEach(b=>b.classList.toggle('on',b.dataset.act==='flagged'?S.flag:S.src===b.dataset.v));
+  document.querySelectorAll('.pill[data-act]').forEach(b=>b.classList.toggle('on',b.dataset.act==='flagged'?S.flag:b.dataset.act==='hs'?S.hs:S.src===b.dataset.v));
   const tabs=[['all','all'],['week','last 7 days'],['press','has press'],['shows','has shows'],['grow','monthly listeners 10%+'],['jump','jumped'],['igrow','instagram 10%+'],['noig','no instagram']];
   const cur=S.view;
   $('#tabs').innerHTML=tabs.map(([k,l])=>{S.view=k;const n=ALL.filter(s=>match(s)).length;return `<button data-act="view" data-v="${k}" class="${cur===k?'on':''}">${l}<span class="n">${n}</span></button>`}).join('');
@@ -436,9 +442,9 @@ function renderTop(){
 }
 function render(){compute();renderTop();renderSide();renderRows();save()}
 
-function save(){try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],o:S.sort,i:S.dir,x:S.src,f:S.flag})))}catch(e){}}
-function load(){try{const o=JSON.parse(decodeURIComponent(location.hash.slice(1)));S.view=o.v&&o.v!=='tracked'&&o.v!=='fall'?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.sort=o.o||'date';S.dir=o.i||-1;S.src=o.x||'';S.flag=!!o.f;$('#q').value=S.q}catch(e){}}
-const clearAll=()=>{S.src='';S.flag=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.q='';S.view='all';$('#q').value=''};
+function save(){try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],o:S.sort,i:S.dir,x:S.src,f:S.flag,h:S.hs})))}catch(e){}}
+function load(){try{const o=JSON.parse(decodeURIComponent(location.hash.slice(1)));S.view=o.v&&o.v!=='tracked'&&o.v!=='fall'?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.sort=o.o||'date';S.dir=o.i||-1;S.src=o.x||'';S.flag=!!o.f;S.hs=!!o.h;$('#q').value=S.q}catch(e){}}
+const clearAll=()=>{S.src='';S.flag=false;S.hs=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.q='';S.view='all';$('#q').value=''};
 let HO=false,PO=null;
 const ago=iso=>{const d=new Date(iso);return isNaN(d)?'':d.toLocaleDateString('en-US',{month:'short',day:'numeric'})};
 function panelHtml(k){
@@ -508,6 +514,7 @@ document.addEventListener('click',e=>{
   else if(a==='facets'){document.querySelector('.layout').classList.toggle('fx');return}
   else if(a==='src')S.src=S.src===v?'':v;
   else if(a==='flagged')S.flag=!S.flag;
+  else if(a==='hs')S.hs=!S.hs;
   render();
 });
 const parseCount=s=>{s=String(s||'').trim().toLowerCase().replace(/,/g,'');const m=s.match(/^([\d.]+)\s*([km])?$/);if(!m)return null;const n=parseFloat(m[1])*(m[2]==='k'?1e3:m[2]==='m'?1e6:1);return isFinite(n)&&n>0?Math.round(n):null};
