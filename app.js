@@ -72,7 +72,7 @@ function growHtml(s,k='hist'){
 }
 const ageTag=h=>{const p=h&&h.length?h[h.length-1]:null;if(!p)return '';const d=daysAgo(p[0]);return d>=2?`<span class="age${d>10?' old':''}" title="last reading ${esc(dstr(p[0]))} - ${d} days before this build">${d}d</span>`:''};
 
-let REP={},CAPS={},OPEN=new Set(),XO=new Set(),SPL=[],ALL=[],DAYS=[],HS={},HEALTH=null,
+let REP={},CAPS={},OPEN=new Set(),SPL=[],ALL=[],DAYS=[],HS={},HEALTH=null,
   S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),ag:new Set(),sort:'date',dir:-1,sort2:'',dir2:-1,sel:-1,src:'',flag:false,hs:false,mine:false,grp:false},VIEW=[],lastDay=null;
 let LIM=120,RN=0,RLAST=null;
 
@@ -148,32 +148,20 @@ function rostrHtml(s){const a=agInfo(s);
   if(s.rp)return `<a class="soft" href="https://www.rostr.cc/artist/${esc(s.rp)}" target="_blank" rel="noopener" title="profile found, no agency listed">no agency listed</a>`;
   if(s.rn)return '<span class="hn" title="no exact name match on ROSTR - check by hand">no rostr match</span>';
   return ''}
-function expandHtml(s){
-  const k=akey(s),o=TEAM[k]||{notes:[]},a=agInfo(s);
-  const notes=o.notes.slice(0,4).map(n=>`<div class="nr"><b>${esc(n.i)}</b> <span class="hn">${esc(ago(n.t))}${n.ed?' · edited':''}</span> ${mention(n.x)}</div>`).join('');
-  return `<div class="xd"><div class="xg">
-    <div>${sparkBig(s.hist,'monthly listeners')}${sparkBig(s.igh,'instagram followers')}</div>
-    <div><div class="hn">rostr</div>${a.ag?esc(a.ag)+(a.agt?' · '+esc(a.agt):''):s.rn?'no exact match':s.rp?'profile found, no agency listed':'not checked'}${s.rs||s.rp?` · <a href="https://www.rostr.cc/artist/${esc(s.rs||s.rp)}" target="_blank" rel="noopener">matched ${esc(s.rs||s.rp)} ↗</a>`:''}
-      <div class="hn" style="margin-top:8px">notes</div>${notes||'<span class="hn">none yet</span>'}
-      <div style="margin-top:8px"><button class="act" data-act="hist" data-v="${esc(k)}">open full panel</button></div></div>
-    <div><div class="hn">found on</div><div class="chips">${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])||'<span class="hn">–</span>'}</div>${(s.press||[]).length?`<div class="hn" style="margin-top:8px">press</div><div class="chips">${chipsHtml(s.press,'pr')}</div>`:''}</div>
-  </div></div>`;
-}
 function rowHtml(s,i){
   const g0=gr(s),now=cur(s),k=akey(s),fl=isFlag(s),t=TEAM[k]||{notes:[]};
   const w=now?Math.max(2,Math.min(100,now/1e3)):0;
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   const star=s.src==='WL'?'':`<button class="fl${fl?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(k)}" aria-pressed="${fl}" aria-label="${fl?'unflag':'flag'} ${esc(s.artist)}" title="${s.flag?'artist flagged in the sheet':fl?(API&&t.flag?'flagged by '+esc(t.flag.i)+' - click to unflag':'unflag artist'):'flag artist'}">${fl?'★':'☆'}</button>`;
-  const xo=XO.has(rowKey(s));
   return `<div class="row${i===S.sel?' sel':''}${fl?' fg':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
-    <div class="A"><div class="al"><span class="alw">${star}${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song||s.artist)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':s.src==='WL'?'wl':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':s.src==='WL'?'WATCHLIST':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${s._n>1?`<button class="rp" data-act="artist" data-v="${esc(s.artist)}" title="${s._n} songs - click to list them">×${s._n}</button>`:''}${REP[k]>1&&!S.grp?`<button class="rp" data-act="hist" data-v="${esc(k)}" title="seen before - show history">↻ ${REP[k]}</button>`:''}${API?`<button class="nb${t.notes.length?' has':''}" data-act="hist" data-v="${esc(k)}" aria-label="team notes for ${esc(s.artist)}" title="team notes">✎${t.notes.length||''}</button>`:''}<button class="xb" data-act="x" data-v="${esc(rowKey(s))}" aria-expanded="${xo}" aria-label="${xo?'collapse':'expand'} details" title="details">${xo?'▾':'▸'}</button></span></div>${showsHtml(s)}${noteLine(s)}</div>
+    <div class="A"><div class="al"><span class="alw">${star}${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song||s.artist)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':s.src==='WL'?'wl':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':s.src==='WL'?'WATCHLIST':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${s._n>1?`<button class="rp" data-act="artist" data-v="${esc(s.artist)}" title="${s._n} songs - click to list them">×${s._n}</button>`:''}${REP[k]>1&&!S.grp?`<button class="rp" data-act="hist" data-v="${esc(k)}" title="seen before - show history">↻ ${REP[k]}</button>`:''}${API?`<button class="nb${t.notes.length?' has':''}" data-act="hist" data-v="${esc(k)}" aria-label="team notes for ${esc(s.artist)}" title="team notes">✎${t.notes.length||''}</button>`:''}<button class="xb" data-act="hist" data-v="${esc(k)}" aria-label="open details for ${esc(s.artist)}" title="open details: graphs, playlists, press, shows, notes">▸</button></span></div>${showsHtml(s)}${noteLine(s)}</div>
     <div class="s">${s.track&&s.src!=='WL'?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}${s._n>1?` <span class="hn">+${s._n-1} more</span>`:''}</div>
     <div class="L">${now!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${now.toLocaleString()} monthly listeners${g0?' (latest) · '+g0.f.toLocaleString()+' on '+esc(dstr(g0.d0)):''}"><span>${fmt(now)}</span></a>${ageTag(s.hist)}${s.jp?`<span class="jp" title="listeners ${s.jp.f.toLocaleString()} → ${s.jp.t.toLocaleString()} (${esc(dstr(s.jp.d0))} → ${esc(dstr(s.jp.d1))})">▲ JUMP</span>`:''}${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
     <div class="G">${igHtml(s)}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
     <div class="RS">${rostrHtml(s)}</div>
-    <div class="PL chips">${chipsHtml(pls)}</div>${xo?expandHtml(s):''}
+    <div class="PL chips">${chipsHtml(pls)}</div>
   </div>`;
 }
 function rowsHtml(a,b){
@@ -259,12 +247,14 @@ function panelHtml(k){
   const flagBtn=sheet?'<span class="hn">flagged in the sheet</span>':API?`<button class="fb${o.flag?' on':''}" data-act="pflag" data-v="${esc(k)}">${o.flag?'★ flagged by '+esc(o.flag.i)+' · unflag':'☆ flag this artist'}</button>`:'';
   const notes=API?`<div class="ns">${o.notes.map(n=>`<div class="nr" data-id="${esc(n.id)}"><b>${esc(n.i)}</b><span class="hn"> ${esc(ago(n.t))}${n.ed?' · edited by '+esc(n.ei||'')+' '+esc(ago(n.ed)):''}</span> <button class="nx" data-act="nedit" data-v="${esc(n.id)}" aria-label="edit note" title="edit note">✎</button><button class="nx" data-act="ndel" data-v="${esc(n.id)}" aria-label="delete note" title="delete note">✕</button><div class="nbody">${mention(n.x)}</div></div>`).join('')||'<div class="hn">no notes yet</div>'}
     <form class="nf" data-v="${esc(k)}"><input class="ni" name="i" maxlength="24" placeholder="your name" value="${esc(INI)}" aria-label="name"><input class="nx2" name="x" maxlength="500" placeholder="add a note - @name to mention someone" autocomplete="off" aria-label="note"><button type="submit">add</button></form></div>`:'';
+  const shows=shList(rep),pls=[...plain(rep).map(p=>({...p,c:'pl'})),...sps(rep).map(p=>({...p,c:'sp'}))];
+  const detail=(pls.length||(rep.press||[]).length||shows.length)?`<div class="ns pdet">${pls.length?`<div class="hn">found on</div><div class="chips">${chipsHtml(pls)}</div>`:''}${(rep.press||[]).length?`<div class="hn" style="margin-top:8px">press</div><div class="chips">${chipsHtml(rep.press,'pr')}</div>`:''}${shows.length?`<div class="hn" style="margin-top:8px">shows</div><div class="shwl">${shows.map(x=>`<span>${esc(x)}${capHtml(x)}</span>`).join('')}</div>`:''}</div>`:'';
   const hist=l.length>1?`<p class="hs">seen ${l.length} times · first ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>`:'';
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="${esc(rep.artist)}"><button class="hx" data-act="histx" aria-label="close">✕</button>
-    <h3>${esc(rep.artist)}</h3>${agLine}${signForm}<div class="hf">${flagBtn}</div>${igSec}${notes}${hist}
-    ${l.length>1?l.map(s=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${TAGN[s.src]||s.src}</span></div>
+    <h3>${esc(rep.artist)}</h3>${agLine}<div class="pcharts">${sparkBig(rep.hist,'monthly listeners')}${sparkBig(rep.igh,'instagram followers')}</div>${detail}${signForm}<div class="hf">${flagBtn}</div>${igSec}${notes}${hist}
+    ${l.length>1?l.map((s,i)=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${TAGN[s.src]||s.src}</span></div>
       <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
-      <div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div></div></div>`).join(''):''}</div>`;
+      ${i?`<div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div>`:''}</div></div>`).join(''):''}</div>`;
 }
 // activity feed: everything the team did, newest first, with a divider at the last visit
 function evText(e){const n=esc(e.n||e.a),who=`<b>${esc(e.i)}</b>`;
@@ -308,7 +298,7 @@ function watchHtml(){const w=Object.entries(TEAM).filter(([k,o])=>o.watch);
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="watchlist"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>watch an artist</h3><p class="hs">track an artist that is not on the sheet. Paste their Spotify artist link; they get a row and daily listener readings.</p>
    <form class="wf"><input name="u" placeholder="spotify artist link" autocomplete="off" aria-label="spotify artist link"><input name="n" placeholder="artist name" maxlength="60" autocomplete="off" aria-label="artist name"><button type="submit">watch</button></form>
    <div class="ns">${w.map(([k,o])=>`<div class="nr"><b>${esc(o.watch.name)}</b> <span class="hn">added by ${esc(o.watch.i)}</span> <button class="nx" data-act="unwatch" data-v="${esc(k)}" aria-label="stop watching">✕</button></div>`).join('')||'<div class="hn">nothing watched yet</div>'}</div></div>`}
-function helpHtml(){const K=[['j / k','next / previous row'],['f','flag or unflag the selected artist'],['n','open notes for the selected artist'],['x','expand the selected row'],['o or Enter','open the song on Spotify'],['/','search'],['shift-click a column','add a second sort'],['Esc','clear filters / close'],['?','this help']];
+function helpHtml(){const K=[['j / k','next / previous row'],['f','flag or unflag the selected artist'],['n','open notes for the selected artist'],['x','open the details window for the selected row'],['o or Enter','open the song on Spotify'],['/','search'],['shift-click a column','add a second sort'],['Esc','clear filters / close'],['?','this help']];
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="keyboard shortcuts"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>keyboard</h3><div class="ns">${K.map(([a,b])=>`<div class="nr"><kbd>${a}</kbd> ${b}</div>`).join('')}</div></div>`}
 const paintHtml=()=>PM==='feed'?feedHtml():PM==='digest'?digestHtml():PM==='watch'?watchHtml():PM==='help'?helpHtml():panelHtml(PO);
 function paintPanel(){const a=document.activeElement,c=a&&a.closest&&a.closest('#hist')&&a.classList.length?'.'+a.classList[0]:'';$('#hist').innerHTML=paintHtml();if(c){const n=document.querySelector('#hist '+c);n&&n.focus()}}
@@ -367,7 +357,6 @@ const ACT={
   views:()=>{const v=$('#vws');v.hidden=!v.hidden;if(!v.hidden)v.innerHTML=viewsHtml();return 1},
   applyview:(b,v)=>{const w=VIEWS.find(x=>x.id===v);if(w){try{applyState(JSON.parse(w.state));$('#vws').hidden=true}catch(e){toast('that view could not be read')}}},
   delview:(b,v)=>{teamAct({type:'delview',a:'_views',n:'',i:INI,x:v});$('#vws').hidden=true;return 1},
-  x:(b,v)=>{XO.has(v)?XO.delete(v):XO.add(v);renderRows();return 1},
   shows:(b,v)=>{OPEN.has(v)?OPEN.delete(v):OPEN.add(v);renderRows();return 1},
   csv:()=>{csv();return 1},
   facets:()=>{document.querySelector('.layout').classList.toggle('fx');return 1},
@@ -434,7 +423,7 @@ document.addEventListener('keydown',e=>{
   const sel=VIEW[S.sel];if(!sel)return;
   if(e.key==='f'&&sel.src!=='WL'&&!sel.flag){const k=akey(sel);if(API){if(needIni(k))return;const o=TEAM[k];teamAct({type:o&&o.flag?'unflag':'flag',a:k,n:sel.artist,i:INI})}else{LF.has(k)?LF.delete(k):LF.add(k);ls.set('instinct_flags',JSON.stringify([...LF]));render()}return}
   if(e.key==='n'&&API){e.preventDefault();openHist(akey(sel));setTimeout(()=>{const f=document.querySelector('#hist .nx2');f&&f.focus()},40);return}
-  if(e.key==='x'){const k=rowKey(sel);XO.has(k)?XO.delete(k):XO.add(k);renderRows();return}
+  if(e.key==='x'){openHist(akey(sel));return}
   if((e.key==='Enter'||e.key==='o')&&sel.track)window.open(sel.track,'_blank','noopener');
 });
 function csv(){

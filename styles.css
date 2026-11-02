@@ -313,3 +313,10 @@ footer{line-height:1.7}
 .xb{font-size:26px;padding:0 8px;vertical-align:-4px;opacity:.7}
 .nb:hover,.xb:hover{background:var(--hover)}
 @media (max-width:900px){.nb{font-size:32px}.xb{font-size:28px}}
+
+/* the arrow opens the details window (graphs, playlists, press, shows, notes); there is no inline expand any more */
+.xb{font-size:36px!important;padding:0 8px!important;vertical-align:-7px!important;opacity:.8!important}
+.xb:hover{opacity:1!important}
+@media (max-width:900px){.xb{font-size:38px!important}}
+#hist .pcharts{display:flex;gap:18px;flex-wrap:wrap;margin:8px 0 6px}
+#hist .pdet{margin:10px 0 4px;padding-top:6px;border-top:1px solid var(--line)}
