@@ -160,6 +160,7 @@ for s in songs:
 api = None
 tp = os.path.join(here, "team_api.json")
 watch = {}
+matches, rejects = {}, set()  # ROSTR near-matches a teammate confirmed / rejected
 if os.path.exists(tp):
     api = json.load(open(tp))
     if api.get("url"):
@@ -182,6 +183,14 @@ if os.path.exists(tp):
                                          "date": str(e["t"])[:10]}
                 elif e["y"] == "unwatch":
                     watch.pop(e["a"], None)
+                elif e["y"] == "sign" and str(e.get("x", "")).startswith("match|"):
+                    _, sl, nm = (str(e["x"]).split("|", 2) + ["", ""])[:3]
+                    if re.fullmatch(r"[a-z0-9._-]{1,80}", sl):
+                        matches[e["a"]] = (sl, nm)
+                        rejects.discard(e["a"])
+                elif e["y"] == "sign" and str(e.get("x", "")) == "nomatch":
+                    rejects.add(e["a"])
+                    matches.pop(e["a"], None)
             for s in songs:
                 k = _pk(s["artist"])
                 if k in on:
@@ -211,6 +220,15 @@ if watch and os.path.exists(hpath):
 # ROSTR agency/agent (rostr.json, filled by the daily routine): attached to every row of the artist
 rjp = os.path.join(here, "rostr.json")
 rj = json.load(open(rjp)) if os.path.exists(rjp) else {}
+# a teammate confirmed a near-match: file the slug so the next ROSTR pass fetches that profile's agency (state "pending")
+_dirty = False
+for k, (sl, nm) in matches.items():
+    r = rj.get(k)
+    if r is not None and not r.get("slug") and r.get("state") == "nomatch":
+        r.update({"slug": sl, "state": "pending", "confirmed": True, "agency": None, "agent": None})
+        _dirty = True
+if _dirty:
+    json.dump(rj, open(rjp, "w"), indent=1, ensure_ascii=False)
 for s in songs:
     r = rj.get(_pk(s["artist"]))
     if r and r.get("agency"):
@@ -221,8 +239,81 @@ for s in songs:
             s["rs"] = r["slug"]
     elif r and r.get("state") == "nomatch" and not r.get("slug"):
         s["rn"] = 1  # looked up, no exact match on ROSTR
+        k = _pk(s["artist"])
+        if r.get("cand") and k not in rejects:
+            s["rc"] = r["cand"][:2]  # near-matches, shown as "maybe" for a teammate to confirm
     elif r and r.get("slug"):
         s["rp"] = r["slug"]  # profile found, no agency listed
+# release label: the ℗ line Spotify prints under each track, classified against the label map (labels.py)
+import labels as LB
+_lp = os.path.join(here, "labels.json")
+_lj = json.load(open(_lp)) if os.path.exists(_lp) else {}
+_li = LB.load_index()
+for s in songs:
+    _m = re.search(r"track/(\w{22})", s.get("track") or "")
+    if _m and _m.group(1) in _lj:
+        c = LB.classify(s["artist"], *_lj[_m.group(1)][:2], _li)
+        if c:
+            s["lb"] = c
+# artists listed under two spellings: same Spotify id, or the same name once case, accents, "&"/"and"/"y"/"x" and "the" are ignored
+import unicodedata
+_stop = {"and", "y", "x", "the", "feat", "ft", "with", "e", "et", "und"}
+def _nm(a):
+    a = unicodedata.normalize("NFKD", a).encode("ascii", "ignore").decode().lower().replace("&", " and ")
+    return " ".join(sorted(w for w in re.sub(r"[^a-z0-9 ]", " ", a).split() if w not in _stop))
+_grp, _names = {}, {}
+for s in songs:
+    if s.get("src") == "WL":
+        continue
+    k = _pk(s["artist"])
+    _names.setdefault(k, s["artist"])
+    _grp.setdefault("n:" + _nm(k), set()).add(k)
+if os.path.exists(hpath):
+    for k, e in json.load(open(hpath))["artists"].items():
+        if e.get("id") and k in _names:
+            _grp.setdefault("i:" + e["id"], set()).add(k)
+def _lev(a, b):
+    p = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        c = [i]
+        for j, cb in enumerate(b, 1):
+            c.append(min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (ca != cb)))
+        p = c
+    return p[-1]
+_ks = sorted(_names)  # near-identical spellings (one letter off) of names at least 6 long
+for i, x in enumerate(_ks):
+    nx = _nm(x).replace(" ", "")
+    for y in _ks[i + 1:]:
+        ny = _nm(y).replace(" ", "")
+        if len(nx) >= 6 and len(ny) >= 6 and abs(len(nx) - len(ny)) <= 1 and _lev(nx, ny) <= 1:
+            _grp.setdefault("f:" + nx, set()).update([x, y])
+_dup = {}
+for g in _grp.values():
+    if len(g) > 1:
+        for k in g:
+            _dup[k] = sorted(_names[o] for o in g if o != k)
+for s in songs:
+    if _pk(s["artist"]) in _dup:
+        s["dp"] = _dup[_pk(s["artist"])]
+# agency changes: agency_seen.json (git-ignored) remembers what ROSTR said the last time we built. An artist that had no agency and
+# now has one gets sn = [agency, date]; the page shows it for flagged artists ("signed since flagged").
+_sp = os.path.join(here, "agency_seen.json")
+_seen = json.load(open(_sp)) if os.path.exists(_sp) else {}
+_now = datetime.date.today().isoformat()
+for k in {_pk(s["artist"]) for s in songs}:
+    r = rj.get(k) or {}
+    ag = r.get("agency") or ""
+    if k not in _seen:
+        _seen[k] = {"ag": ag, "d": _now, "base": not _seen}  # first ever build is the baseline, never an alert
+    elif ag and ag != _seen[k]["ag"]:
+        _seen[k] = {"ag": ag, "d": _now, "was": _seen[k]["ag"]}
+    elif not ag and _seen[k]["ag"]:
+        pass  # ROSTR lookups can come back empty; keep the last known agency
+for s in songs:
+    e = _seen.get(_pk(s["artist"]))
+    if e and e.get("was") is not None and e["ag"] and (datetime.date.fromisoformat(_now) - datetime.date.fromisoformat(e["d"])).days <= 30:
+        s["sn"] = [e["ag"], e["d"]]
+json.dump(_seen, open(_sp, "w"), indent=0, ensure_ascii=False)
 # listener jumps found by jumps.py (git-ignored jumps.json): attached to every row of the artist
 jpp = os.path.join(here, "jumps.json")
 jmp = json.load(open(jpp)) if os.path.exists(jpp) else {}

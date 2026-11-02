@@ -15,10 +15,11 @@
   <div class="err" id="err" role="status" aria-live="polite"></div>
 </form>
 <div id="stale" role="alert" hidden></div>
+<div id="alerts" hidden></div>
 <div class="top">
   <div class="kp">
     <div class="kg"><button class="pill k3 hs" data-act="flagged" aria-pressed="false" title="only flagged artists">Flagged</button><button class="pill k5 hs" data-act="hs" aria-pressed="false" title="hide artists that already have an agency on ROSTR">hide signed artists</button></div>
-    <div class="kg"><button class="pill tm" data-act="feed" hidden title="what the team has done">activity<span id="fb"></span></button><button class="pill" data-act="digest" title="this week at a glance">this week</button></div>
+    <div class="kg"><button class="pill tm" data-act="feed" hidden title="what the team has done">activity<span id="fb"></span></button><button class="pill" data-act="digest" title="this week at a glance">this week</button><button class="pill" data-act="score" title="how flagged artists have done since they were flagged">scorecard</button></div>
     <div class="kg"><button class="pill btn tm" data-act="watch" hidden title="track an artist that is not on the sheet">+ watch artist</button><a class="pill" href="playlists.html" title="all superplaylists">playlists →</a></div>
   </div>
   <span class="sp"></span>
@@ -33,6 +34,8 @@
   <div class="scroll" id="f-pl" style="max-height:300px"></div>
   <h4>agency</h4>
   <div class="scroll" id="f-ag"></div>
+  <h4>release</h4>
+  <div class="scroll" id="f-lb"></div>
   <h4>press outlets</h4>
   <div class="scroll" id="f-pr"></div>
   <h4>superplaylists</h4>

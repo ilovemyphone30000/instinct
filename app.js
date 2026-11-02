@@ -12,21 +12,25 @@ const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set
 let LF=new Set();try{LF=new Set(JSON.parse(ls.get('instinct_flags')||'[]'))}catch(e){}
 const akey=s=>s.artist.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase();
 let API=null,TEAM={},LOG=[],VIEWS=[],INI=ls.get('instinct_ini')||'';
-const tm=k=>TEAM[k]||(TEAM[k]={flag:null,notes:[],sign:null,watch:null});
+const tm=k=>TEAM[k]||(TEAM[k]={flag:null,notes:[],sign:null,watch:null,pass:null,rmatch:null,rno:false});
+const PASS='[pass] ';
 const isFlag=s=>!!s.flag||(API?!!(TEAM[akey(s)]&&TEAM[akey(s)].flag):LF.has(akey(s)));
 const mine=s=>{const o=TEAM[akey(s)];return !!(o&&o.flag&&INI&&o.flag.i.toLowerCase()===INI.toLowerCase())};
-function foldLog(log){const T={};const g=k=>T[k]||(T[k]={flag:null,notes:[],sign:null,watch:null});
+function foldLog(log){const T={};const g=k=>T[k]||(T[k]={flag:null,notes:[],sign:null,watch:null,pass:null,rmatch:null,rno:false});
   log.forEach(e=>{const o=g(e.a);
     switch(e.y){
       case 'flag':o.flag={i:e.i,t:e.t};break;
       case 'unflag':o.flag=null;break;
-      case 'note':o.notes.push({id:e.id,t:e.t,i:e.i,x:e.x});break;
+      case 'note':if(String(e.x||'').startsWith(PASS))o.pass={id:e.id,t:e.t,i:e.i,x:String(e.x).slice(PASS.length).replace(/^-$/,'')};else o.notes.push({id:e.id,t:e.t,i:e.i,x:e.x});break;
       case 'edit':{const p=String(e.x||'').split('|'),id=p.shift(),t=p.join('|');for(const q of Object.values(T))for(const n of q.notes)if(n.id===id){n.x=t;n.ed=e.t;n.ei=e.i}break}
       case 'ig':{const [u,c]=String(e.x||'').split('|');o.ig={u,c:c?+c:null,i:e.i,t:e.t};break}
-      case 'sign':{const p=String(e.x||'').split('|'),v=p.shift();o.sign=v==='reset'?null:{v,ag:p.join('|'),i:e.i,t:e.t};break}
+      case 'sign':{const p=String(e.x||'').split('|'),v=p.shift();
+        if(v==='match'){o.rmatch={slug:p[0],name:p.slice(1).join('|'),i:e.i,t:e.t};o.rno=false}
+        else if(v==='nomatch'){o.rno=true;o.rmatch=null}
+        else o.sign=v==='reset'?null:{v,ag:p.join('|'),i:e.i,t:e.t};break}
       case 'watch':o.watch={id:String(e.x||'').split('|')[0],name:e.n,i:e.i,t:e.t};break;
       case 'unwatch':o.watch=null;break;
-      case 'del':for(const q of Object.values(T))q.notes=q.notes.filter(n=>n.id!==e.x);break;
+      case 'del':for(const q of Object.values(T)){q.notes=q.notes.filter(n=>n.id!==e.x);if(q.pass&&q.pass.id===e.x)q.pass=null}break;
     }});
   Object.values(T).forEach(o=>o.notes.sort((a,b)=>String(b.t).localeCompare(String(a.t))));return T}
 function foldViews(log){const m=new Map();log.forEach(e=>{if(e.y==='view')m.set(e.id,{id:e.id,name:e.n,state:e.x,i:e.i,t:e.t});else if(e.y==='delview')m.delete(e.x)});return [...m.values()].reverse()}
@@ -73,7 +77,7 @@ function growHtml(s,k='hist'){
 const ageTag=h=>{const p=h&&h.length?h[h.length-1]:null;if(!p)return '';const d=daysAgo(p[0]);return d>=2?`<span class="age${d>10?' old':''}" title="last reading ${esc(dstr(p[0]))} - ${d} days before this build">${d}d</span>`:''};
 
 let REP={},CAPS={},OPEN=new Set(),SPL=[],ALL=[],DAYS=[],HS={},HEALTH=null,
-  S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),ag:new Set(),sort:'date',dir:-1,sort2:'',dir2:-1,sel:-1,src:'',flag:false,hs:false,mine:false,grp:false},VIEW=[],lastDay=null;
+  S={view:'all',q:'',days:new Set(),pls:new Set(),pr:new Set(),sp:new Set(),bk:new Set(),ag:new Set(),sort:'date',dir:-1,sort2:'',dir2:-1,sel:-1,src:'',flag:false,hs:false,mine:false,grp:false,passed:false,lb:new Set()},VIEW=[],lastDay=null;
 let LIM=120,RN=0,RLAST=null;
 
 const plain=s=>(s.playlists||[]).filter(p=>!isSP(p.t));
@@ -87,18 +91,49 @@ function agInfo(s){const o=TEAM[akey(s)],g=o&&o.sign;
   return {ag:s.ag||'',agt:s.agt,man:false}}
 const agOf=s=>agInfo(s).ag;
 
-function blob(s){if(!s._b)s._b=(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')+' '+(s.ag||'')+' '+(s.agt||'')+' '+igHandle(s.igUrl)).toLowerCase();
+function blob(s){if(!s._b)s._b=(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')+' '+(s.ag||'')+' '+(s.agt||'')+' '+igHandle(s.igUrl)+' '+(s.lb?s.lb[0]:'')).toLowerCase();
   const o=TEAM[akey(s)];return o?s._b+' '+o.notes.map(n=>n.i+' '+n.x).join(' ').toLowerCase()+(o.flag?' flagged '+o.flag.i.toLowerCase():'')+(o.ig?' '+igHandle(o.ig.u).toLowerCase():''):s._b}
+const isPassed=s=>{const o=TEAM[akey(s)];return !!(o&&o.pass)};
+const LBC={M:'major label',D:'major-distributed',I:'indie label',O:'indie label',S:'self-released'};
+const lbCat=s=>s.lb?LBC[s.lb[1]]:'(unknown)';
+let VIS='';
+const isNew=s=>!!VIS&&s.src!=='WL'&&s.date>VIS;
+// search operators: listeners:<20k  ig:>5k  agency:none|signed|name  label:major|indie|self|name  flagged:yes  press:>0  pl:>3  added:<7  growth:>20  new:yes  signed:yes  passed:yes
+let PQ={q:null,v:null};
+function opFn(k,op,v){
+  const num=x=>{const n=parseCount(x);return n==null?null:n},cmp=(x,n)=>x==null||n==null?false:op==='<'?x<n:op==='>'?x>n:op==='='?x===n:x>=n;
+  const igv=s=>{const p=lastPt(s,'igh');return p?p[1]:(s.ig??null)};
+  const yes=/^(y|yes|true|1)$/.test(v);
+  switch(k){
+    case 'listeners':case 'l':{const n=num(v);return n==null?null:s=>cmp(cur(s),n)}
+    case 'ig':case 'instagram':{if(v==='none')return s=>igv(s)==null;const n=num(v);return n==null?null:s=>cmp(igv(s),n)}
+    case 'agency':case 'ag':{if(/^(none|no|unsigned)$/.test(v))return s=>!agOf(s);if(/^(signed|any|yes)$/.test(v))return s=>!!agOf(s);return s=>agOf(s).toLowerCase().includes(v)}
+    case 'label':case 'lb':{if(v==='major')return s=>s.lb&&(s.lb[1]==='M'||s.lb[1]==='D');if(v==='indie')return s=>s.lb&&(s.lb[1]==='I'||s.lb[1]==='O');if(v==='self')return s=>s.lb&&s.lb[1]==='S';if(/^(none|unknown)$/.test(v))return s=>!s.lb;return s=>s.lb&&s.lb[0].toLowerCase().includes(v)}
+    case 'flagged':return s=>isFlag(s)===yes;
+    case 'press':{const n=num(v);return n==null?null:s=>cmp((s.press||[]).length,n)}
+    case 'pl':{const n=num(v);return n==null?null:s=>cmp((s.playlists||[]).length,n)}
+    case 'added':{const n=num(v);return n==null?null:s=>cmp(daysAgo(s.date),n)}
+    case 'growth':{const n=num(v);return n==null?null:s=>{const g=gr(s);return g&&g.pct!=null?cmp(g.pct*100,n):false}}
+    case 'new':return s=>isNew(s)===yes;
+    case 'signed':return s=>!!s.sn===yes;
+    case 'passed':return s=>isPassed(s)===yes;
+  }return null}
+function pq(raw){if(PQ.q===raw)return PQ.v;const o=[];let sp=false;
+  const t=String(raw||'').toLowerCase().replace(/\b(listeners|l|ig|instagram|agency|ag|label|lb|flagged|press|pl|added|growth|new|signed|passed):([<>=]?)("[^"]*"|\S+)/g,(m,k,op,v)=>{const f=opFn.call(null,k,op,v.replace(/"/g,''));if(!f)return m;if(k==='passed')sp=true;o.push(f);return ' '}).replace(/\s+/g,' ').trim();
+  PQ={q:raw,v:{t,o,sp}};return PQ.v}
 function match(s,skip){
   if(S.src&&s.src!==S.src)return false;
   if(S.flag&&!isFlag(s))return false;
   if(S.mine&&!mine(s))return false;
   if(S.hs&&agOf(s))return false;
-  const q=S.q.trim().toLowerCase();
-  if(q&&!blob(s).includes(q))return false;
+  const Q=pq(S.q);
+  if(!S.passed&&!Q.sp&&isPassed(s))return false;
+  if(Q.t&&!blob(s).includes(Q.t))return false;
+  if(Q.o.length&&!Q.o.every(f=>f(s)))return false;
   if(skip!=='view'){
     if(S.view==='week'){const c=new Date();c.setDate(c.getDate()-7);if(s.date<c.toISOString().slice(0,10))return false}
     if(S.view==='press'&&!(s.press||[]).length)return false;
+    if(S.view==='new'&&!isNew(s))return false;
     if(S.view==='grow'&&!(gr(s)&&gr(s).pct>=0.1))return false;
     if(S.view==='igrow'&&!(gr(s,'igh')&&gr(s,'igh').pct>=0.1))return false;
   }
@@ -107,6 +142,7 @@ function match(s,skip){
   if(skip!=='pr'&&S.pr.size&&!(s.press||[]).some(p=>S.pr.has(p.t)))return false;
   if(skip!=='sp'&&S.sp.size&&!sps(s).some(p=>S.sp.has(p.t)))return false;
   if(skip!=='ag'&&S.ag.size&&!S.ag.has(agOf(s)||'(none)'))return false;
+  if(skip!=='lb'&&S.lb.size&&!S.lb.has(lbCat(s)))return false;
   if(skip!=='bk'&&S.bk.size&&![...S.bk].some(i=>cur(s)>=BK[i][0]&&cur(s)<BK[i][1]))return false;
   return true;
 }
@@ -142,25 +178,31 @@ function showsHtml(s){
   const k=rowKey(s),o=OPEN.has(k);
   return `<div><button class="shw" data-act="shows" data-v="${esc(k)}" aria-expanded="${o}">${l.length} show${l.length>1?'s':''} ${o?'▴':'▾'}</button></div>${o?`<div class="shwl">${l.map(x=>`<span>${esc(x)}${capHtml(x)}</span>`).join('')}</div>`:''}`;
 }
+const lbHtml=s=>{if(!s.lb)return '';const [n,k,g]=s.lb;const t=k==='S'?'self-released'+(g?' <span>· '+esc(g)+'</span>':''):esc(n)+(g&&g!==n?' <span>· '+esc(g)+'</span>':'');
+  return `<div class="lbl k${k}" title="${esc(LBC[k])}${k==='D'?' - distributed, not owned':''}">${t}</div>`};
+const snTag=s=>s.sn?`<span class="sg" title="agency listed ${esc(dstr(s.sn[1]))}${isFlag(s)?' - after this artist was flagged':''}">new</span>`:'';
 function rostrHtml(s){const a=agInfo(s);
   if(a.ag){return `<a href="${s.rs&&!a.man?'https://www.rostr.cc/artist/'+esc(s.rs):'#'}" target="_blank" rel="noopener" title="${a.man?'set by '+esc(a.by):'open on ROSTR'}">${esc(a.ag)}</a>${a.man?'<span class="hn">set by '+esc(a.by)+'</span>':s.agt?`<span class="hn">${esc(s.agt)}</span>`:''}`}
   if(a.man)return `<span class="hn">${a.wrong?'wrong rostr match':'unsigned'} · ${esc(a.by)}</span>`;
   if(s.rp)return `<a class="soft" href="https://www.rostr.cc/artist/${esc(s.rp)}" target="_blank" rel="noopener" title="profile on ROSTR, no agency listed">–</a>`;
-  if(s.rn)return '<span class="hn" title="no exact name match on ROSTR - check by hand">–</span>';
+  if(s.rn){const k=akey(s),o=TEAM[k]||{};
+    if(o.rmatch)return `<a class="soft" href="https://www.rostr.cc/artist/${esc(o.rmatch.slug)}" target="_blank" rel="noopener">${esc(o.rmatch.name||o.rmatch.slug)} ↗</a><span class="hn">confirmed by ${esc(o.rmatch.i)} · agency on the next update</span>`;
+    if(s.rc&&API&&!o.rno){const c=s.rc[0];return `<span class="hn">maybe</span> <a class="soft" href="https://www.rostr.cc/artist/${esc(c[1])}" target="_blank" rel="noopener" title="closest name on ROSTR">${esc(c[0])} ↗</a><span class="mc"><button class="rmb" data-act="rmatch" data-v="${esc(k)}" data-s="${esc(c[1])}" data-nm="${esc(c[0])}" title="yes, that is them" aria-label="confirm ROSTR match ${esc(c[0])}">✓</button><button class="rmb" data-act="rno" data-v="${esc(k)}" title="not them" aria-label="reject ROSTR match">✕</button></span>`}
+    return '<span class="hn" title="no exact name match on ROSTR - check by hand">–</span>'}
   return ''}
 function rowHtml(s,i){
   const g0=gr(s),now=cur(s),k=akey(s),fl=isFlag(s),t=TEAM[k]||{notes:[]};
   const w=now?Math.max(2,Math.min(100,now/1e3)):0;
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   const star=s.src==='WL'?'':`<button class="fl${fl?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(k)}" aria-pressed="${fl}" aria-label="${fl?'unflag':'flag'} ${esc(s.artist)}" title="${s.flag?'artist flagged in the sheet':fl?(API&&t.flag?'flagged by '+esc(t.flag.i)+' - click to unflag':'unflag artist'):'flag artist'}">${fl?'★':'☆'}</button>`;
-  return `<div class="row${i===S.sel?' sel':''}${fl?' fg':''}" data-i="${i}">
+  return `<div class="row${i===S.sel?' sel':''}${fl?' fg':''}${isPassed(s)?' ps':''}${isNew(s)?' nw':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
-    <div class="A"><div class="al"><span class="alw">${star}${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song||s.artist)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':s.src==='WL'?'wl':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':s.src==='WL'?'WATCHLIST':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${t.flag&&!s.flag?`<span class="fby" title="flagged by ${esc(t.flag.i)}">${esc(t.flag.i)}</span>`:''}${s._n>1?`<button class="rp" data-act="artist" data-v="${esc(s.artist)}" title="${s._n} songs - click to list them">×${s._n}</button>`:''}${REP[k]>1&&!S.grp?`<button class="rp" data-act="hist" data-v="${esc(k)}" title="seen before - show history">↻ ${REP[k]}</button>`:''}</span><button class="xb" data-act="hist" data-v="${esc(k)}" aria-label="open details for ${esc(s.artist)}" title="open details: graphs, playlists, press, shows, notes"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div>${showsHtml(s)}${noteLine(s)}</div>
+    <div class="A"><div class="al"><span class="alw">${star}${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song||s.artist)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':s.src==='WL'?'wl':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':s.src==='WL'?'WATCHLIST':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${s.dp?`<span class="dpb" title="may be the same artist as ${esc(s.dp.join(', '))}">≈</span>`:''}${t.pass?`<span class="fby ps" title="passed by ${esc(t.pass.i)}${t.pass.x?': '+esc(t.pass.x):''}">passed</span>`:''}${t.flag&&!s.flag?`<span class="fby" title="flagged by ${esc(t.flag.i)}">${esc(t.flag.i)}</span>`:''}${s._n>1?`<button class="rp" data-act="artist" data-v="${esc(s.artist)}" title="${s._n} songs - click to list them">×${s._n}</button>`:''}${REP[k]>1&&!S.grp?`<button class="rp" data-act="hist" data-v="${esc(k)}" title="seen before - show history">↻ ${REP[k]}</button>`:''}</span><button class="xb" data-act="hist" data-v="${esc(k)}" aria-label="open details for ${esc(s.artist)}" title="open details: graphs, playlists, press, shows, notes"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div>${lbHtml(s)}${showsHtml(s)}${noteLine(s)}</div>
     <div class="s">${s.track&&s.src!=='WL'?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}${s._n>1?` <span class="hn">+${s._n-1} more</span>`:''}</div>
     <div class="L">${now!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${now.toLocaleString()} monthly listeners${g0?' (latest) · '+g0.f.toLocaleString()+' on '+esc(dstr(g0.d0)):''}"><span>${fmt(now)}</span></a>${ageTag(s.hist)}${s.jp?`<span class="jp" title="listeners ${s.jp.f.toLocaleString()} → ${s.jp.t.toLocaleString()} (${esc(dstr(s.jp.d0))} → ${esc(dstr(s.jp.d1))})">▲ JUMP</span>`:''}${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
     <div class="G">${igHtml(s)}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
-    <div class="RS">${rostrHtml(s)}</div>
+    <div class="RS">${rostrHtml(s)}${snTag(s)}</div>
     <div class="PL chips">${chipsHtml(pls)}</div>
   </div>`;
 }
@@ -188,7 +230,7 @@ function fitArtist(){let m=0;document.querySelectorAll('#rows .alw').forEach(e=>
 let IO=null;
 function watchMore(){const m=$('#more');if(!m)return;if(!IO)IO=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))moreRows()},{rootMargin:'800px'});IO.disconnect();IO.observe(m)}
 function moreRows(n){const m=$('#more');if(!m)return;const a=RN;LIM=RN=Math.min(VIEW.length,n||RN+120);m.insertAdjacentHTML('beforebegin',rowsHtml(a,RN));fitArtist();if(RN>=VIEW.length)m.remove();else watchMore()}
-const FSETS=()=>({'f-pl':S.pls,'f-pr':S.pr,'f-sp':S.sp,'f-ag':S.ag});
+const FSETS=()=>({'f-pl':S.pls,'f-pr':S.pr,'f-sp':S.sp,'f-ag':S.ag,'f-lb':S.lb});
 function facet(el,items,set,cls){
   el.innerHTML=items.map(([t,c,u])=>`<div class="f ${set.has(t)?'on ':''}${cls}"><button class="l" data-act="f" data-k="${el.id}" data-v="${esc(t)}" aria-pressed="${set.has(t)}">${esc(t==='(none)'?'no agency':t)}</button><span class="c">${c}</span>${u?`<a class="o" href="${esc(u)}" target="_blank" rel="noopener" title="open on spotify">↗</a>`:'<span class="o"></span>'}</div>`).join('');
 }
@@ -204,36 +246,40 @@ function renderSide(){
   facet($('#f-pr'),counts('pr',s=>s.press||[]).sort(by),S.pr,'pk');
   facet($('#f-sp'),counts('sp',sps).sort((a,b)=>spN(b[0])-spN(a[0])),S.sp,'sk');
   facet($('#f-ag'),counts('ag',s=>[{t:agOf(s)||'(none)'}]).sort(by),S.ag,'');
+  facet($('#f-lb'),counts('lb',s=>[{t:lbCat(s)}]).sort(by),S.lb,'');
   const bc=BK.map(b=>ALL.filter(s=>match(s,'bk')&&cur(s)>=b[0]&&cur(s)<b[1]).length),mx=Math.max(1,...bc);
   $('#bk').innerHTML=bc.map((c,i)=>`<button data-act="bk" data-v="${i}" class="${S.bk.has(i)?'on':''}" style="height:${Math.max(2,Math.round(c/mx*44))}px" aria-label="${BK[i][2]} listeners: ${c} songs" aria-pressed="${S.bk.has(i)}" title="${c} songs"></button>`).join('');
   $('#bkl').innerHTML=BK.map(b=>`<span>${b[2]}</span>`).join('');
 }
-const TABS=[['all','all'],['week','last 7 days'],['press','has press'],['grow','monthly listeners 10%+'],['igrow','instagram 10%+']];
+const TABS=[['all','all'],['new','new for me'],['week','last 7 days'],['press','has press'],['grow','monthly listeners 10%+'],['igrow','instagram 10%+']];
 function renderTop(){
   document.body.classList.toggle('nosong',!S.flag);
   document.querySelectorAll('.pill[data-act]').forEach(b=>{const on=b.dataset.act==='flagged'?S.flag:b.dataset.act==='hs'?S.hs:false;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
   const cv=S.view;
   const tl=TABS.map(([k,l])=>{S.view=k;return [k,l,ALL.filter(s=>match(s)).length]});
   S.view=cv;
-  $('#tabs').innerHTML=tl.filter(([k,l,n])=>!(k==='igrow'&&n<20&&cv!=='igrow')).map(([k,l,n])=>`<button data-act="view" data-v="${k}" class="${cv===k?'on':''}" aria-pressed="${cv===k}">${l}<span class="n">${n}</span></button>`).join('');
+  $('#tabs').innerHTML=tl.filter(([k,l,n])=>!((k==='igrow'&&n<20||k==='new'&&!n)&&cv!==k)).map(([k,l,n])=>`<button data-act="view" data-v="${k}" class="${cv===k?'on':''}" aria-pressed="${cv===k}">${l}<span class="n">${n}</span></button>`).join('');
   const act=[];
   if(S.src)act.push(['src',S.src,TAGN[S.src]||S.src]);if(S.flag)act.push(['flag','','flagged']);if(S.mine)act.push(['mine','','my flags']);if(S.hs)act.push(['hs','','hide signed']);if(S.q)act.push(['q','','"'+S.q+'"']);
-  S.days.forEach(v=>act.push(['days',v,dstr(v)]));S.pls.forEach(v=>act.push(['pls',v,v]));S.pr.forEach(v=>act.push(['pr',v,v]));S.sp.forEach(v=>act.push(['sp',v,v]));S.ag.forEach(v=>act.push(['ag',v,'agency: '+(v==='(none)'?'none':v)]));S.bk.forEach(v=>act.push(['bk',v,BK[v][2]+' listeners']));
+  S.days.forEach(v=>act.push(['days',v,dstr(v)]));S.pls.forEach(v=>act.push(['pls',v,v]));S.pr.forEach(v=>act.push(['pr',v,v]));S.sp.forEach(v=>act.push(['sp',v,v]));S.ag.forEach(v=>act.push(['ag',v,'agency: '+(v==='(none)'?'none':v)]));S.bk.forEach(v=>act.push(['bk',v,BK[v][2]+' listeners']));S.lb.forEach(v=>act.push(['lb',v,'release: '+v]));if(S.passed)act.push(['passed','','showing passed']);
   $('#active').innerHTML=act.map(([k,v,l])=>`<button data-act="rm" data-k="${k}" data-v="${esc(v)}" aria-label="remove filter ${esc(l)}">${esc(l)}</button>`).join('')+(act.length?'<button class="clr" data-act="clear">clear all</button>':'');
   $('#cnt').textContent=S.grp?VIEW.length+' artists':VIEW.length+' of '+ALL.length+' songs';
   document.querySelectorAll('#head button').forEach(b=>{const d=b.dataset.sort;b.classList.toggle('s',d===S.sort);b.classList.toggle('asc',d===S.sort&&S.dir===1);b.classList.toggle('s2',d===S.sort2);b.classList.toggle('asc2',d===S.sort2&&S.dir2===1);b.setAttribute('aria-sort',d===S.sort?(S.dir===1?'ascending':'descending'):'none')});
   document.body.classList.toggle('bydate',S.sort==='date');
 }
-function render(){compute();renderTop();renderSide();renderRows();save()}
-const stateObj=()=>({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],a:[...S.ag],o:S.sort,i:S.dir,o2:S.sort2,i2:S.dir2,x:S.src,f:S.flag,h:S.hs,m:S.mine,g:S.grp});
+function render(){compute();renderTop();renderSide();renderRows();paintAlerts();save()}
+const stateObj=()=>({v:S.view,q:S.q,d:[...S.days],p:[...S.pls],r:[...S.pr],s:[...S.sp],b:[...S.bk],a:[...S.ag],o:S.sort,i:S.dir,o2:S.sort2,i2:S.dir2,x:S.src,f:S.flag,h:S.hs,m:S.mine,g:S.grp,l:[...S.lb],ps:S.passed});
 function save(){try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify(stateObj())))}catch(e){}}
-function applyState(o){S.view=TABS.some(t=>t[0]===o.v)?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.ag=new Set(o.a);S.sort=KEY[o.o]?o.o:'date';S.dir=o.i||-1;S.sort2=KEY[o.o2]?o.o2:'';S.dir2=o.i2||-1;S.src=o.x||'';S.flag=!!o.f;S.hs=!!o.h;S.mine=!!o.m;S.grp=!!o.g;$('#q').value=S.q;LIM=120}
+function applyState(o){S.view=TABS.some(t=>t[0]===o.v)?o.v:'all';S.q=o.q||'';S.days=new Set(o.d);S.pls=new Set(o.p);S.pr=new Set(o.r);S.sp=new Set(o.s);S.bk=new Set(o.b);S.ag=new Set(o.a);S.sort=KEY[o.o]?o.o:'date';S.dir=o.i||-1;S.sort2=KEY[o.o2]?o.o2:'';S.dir2=o.i2||-1;S.src=o.x||'';S.flag=!!o.f;S.hs=!!o.h;S.mine=!!o.m;S.grp=!!o.g;S.lb=new Set(o.l||[]);S.passed=!!o.ps;$('#q').value=S.q;LIM=120}
 function load(){try{applyState(JSON.parse(decodeURIComponent(location.hash.slice(1))))}catch(e){}}
-const clearAll=()=>{S.src='';S.flag=false;S.hs=false;S.mine=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.ag.clear();S.q='';S.view='all';$('#q').value='';LIM=120};
+const clearAll=()=>{S.src='';S.flag=false;S.hs=false;S.mine=false;S.days.clear();S.pls.clear();S.pr.clear();S.sp.clear();S.bk.clear();S.ag.clear();S.lb.clear();S.passed=false;S.q='';S.view='all';$('#q').value='';LIM=120};
 let HO=false,PO=null,PM='artist',OPENER=null,SEEN=ls.get('instinct_seen')||'',SEENP='';
 const ago=iso=>{const d=new Date(iso);return isNaN(d)?'':d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})};
 
 // ---- panels (artist / activity / digest / watch / help share the #hist modal)
+function passHtml(k,o){if(!API)return '';
+  if(o.pass)return `<div class="hn pass">passed by <b>${esc(o.pass.i)}</b> ${esc(ago(o.pass.t))}${o.pass.x?' - '+esc(o.pass.x):''} <button class="nx" data-act="unpass" data-v="${esc(k)}">undo</button></div>`;
+  return `<form class="pf" data-v="${esc(k)}"><input class="pfi" name="x" maxlength="120" placeholder="pass on this artist - reason (too big, not our genre...)" autocomplete="off" aria-label="reason for passing"><button type="submit">pass</button></form>`}
 function panelHtml(k){
   const l=ALL.filter(s=>akey(s)===k&&s.src!=='WL').sort((a,b)=>b.date.localeCompare(a.date));
   const o=TEAM[k]||{flag:null,notes:[],sign:null};
@@ -251,7 +297,7 @@ function panelHtml(k){
   const detail=(pls.length||(rep.press||[]).length||shows.length)?`<div class="ns pdet">${pls.length?`<div class="hn">found on</div><div class="chips">${chipsHtml(pls)}</div>`:''}${(rep.press||[]).length?`<div class="hn" style="margin-top:8px">press</div><div class="chips">${chipsHtml(rep.press,'pr')}</div>`:''}${shows.length?`<div class="hn" style="margin-top:8px">shows</div><div class="shwl">${shows.map(x=>`<span>${esc(x)}${capHtml(x)}</span>`).join('')}</div>`:''}</div>`:'';
   const hist=l.length>1?`<p class="hs">seen ${l.length} times · first ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>`:'';
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="${esc(rep.artist)}"><button class="hx" data-act="histx" aria-label="close">✕</button>
-    <h3>${esc(rep.artist)}</h3>${agLine}<div class="pcharts">${sparkBig(rep.hist,'monthly listeners')}${sparkBig(rep.igh,'instagram followers')}</div><div class="hf">${flagBtn}</div>${notes}${detail}${igSec}${signForm?`<details class="fix"><summary>fix rostr data</summary>${signForm}</details>`:''}${hist}
+    <h3>${esc(rep.artist)}</h3>${agLine}${rep.lb?`<div class="hn">label: ${esc(rep.lb[0])} · ${esc(LBC[rep.lb[1]])}${rep.lb[2]&&rep.lb[1]!=='S'?' · '+esc(rep.lb[2]):''}</div>`:''}${rep.dp?`<div class="hn">may be the same artist as ${rep.dp.map(n=>`<a href="#" data-act="hist" data-v="${esc(n.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase())}">${esc(n)}</a>`).join(', ')}</div>`:''}<div class="pcharts">${sparkBig(rep.hist,'monthly listeners')}${sparkBig(rep.igh,'instagram followers')}</div><div class="hf">${flagBtn}</div>${passHtml(k,o)}${notes}${detail}${igSec}${signForm?`<details class="fix"><summary>fix rostr data</summary>${signForm}</details>`:''}${hist}
     ${l.length>1?l.map((s,i)=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${TAGN[s.src]||s.src}</span></div>
       <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
       ${i?`<div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div>`:''}</div></div>`).join(''):''}</div>`;
@@ -259,8 +305,8 @@ function panelHtml(k){
 // activity feed: everything the team did, newest first, with a divider at the last visit
 function evText(e){const n=esc(e.n||e.a),who=`<b>${esc(e.i)}</b>`;
   switch(e.y){case 'flag':return `${who} flagged ${n}`;case 'unflag':return `${who} unflagged ${n}`;
-    case 'note':return `${who} noted on ${n}: ${mention(e.x)}`;case 'edit':return `${who} edited a note on ${n}`;case 'del':return `${who} removed a note on ${n}`;
-    case 'ig':return `${who} set Instagram for ${n}`;case 'sign':{const v=String(e.x||'').split('|');return `${who} marked ${n} ${v[0]==='signed'?'signed'+(v[1]?' ('+esc(v[1])+')':''):v[0]==='unsigned'?'unsigned':v[0]==='wrong'?'a wrong rostr match':'back to rostr data'}`}
+    case 'note':return String(e.x||'').startsWith(PASS)?`${who} passed on ${n}${String(e.x).slice(PASS.length).replace(/^-$/,'')?': '+esc(String(e.x).slice(PASS.length)):''}`:`${who} noted on ${n}: ${mention(e.x)}`;case 'edit':return `${who} edited a note on ${n}`;case 'del':return `${who} removed a note on ${n}`;
+    case 'ig':return `${who} set Instagram for ${n}`;case 'sign':{const v=String(e.x||'').split('|');if(v[0]==='match')return `${who} confirmed a ROSTR match for ${n}`;if(v[0]==='nomatch')return `${who} rejected the ROSTR match for ${n}`;return `${who} marked ${n} ${v[0]==='signed'?'signed'+(v[1]?' ('+esc(v[1])+')':''):v[0]==='unsigned'?'unsigned':v[0]==='wrong'?'a wrong rostr match':'back to rostr data'}`}
     case 'view':return `${who} saved the view “${n}”`;case 'watch':return `${who} is watching ${n}`;case 'unwatch':return `${who} stopped watching ${n}`;default:return ''}}
 const mentionsMe=e=>INI&&e.y==='note'&&new RegExp('(^|\\s)@'+INI.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![\\w.-])','i').test(e.x||'');
 const newEv=e=>SEENP&&String(e.t)>SEENP&&e.i!==INI&&evText(e);
@@ -277,18 +323,21 @@ function digestData(){
   const nw=ALL.filter(s=>s.date>=since&&s.src!=='WL');
   const uniq=a=>a.filter(s=>{const k=akey(s);if(seen.has(k))return false;seen.add(k);return true});
   const jumps=uniq(ALL.filter(s=>s.jp));seen.clear();
-  const open=uniq(nw.filter(s=>!agOf(s)&&!isFlag(s)&&(cur(s)||0)<50000).sort((a,b)=>(cur(b)||0)-(cur(a)||0))).slice(0,10);seen.clear();
+  const open=uniq(nw.filter(s=>!agOf(s)&&!isFlag(s)&&!isPassed(s)&&(cur(s)||0)<50000).sort((a,b)=>(cur(b)||0)-(cur(a)||0))).slice(0,10);seen.clear();
   const mov=uniq(ALL.filter(s=>isFlag(s)&&gr(s)&&gr(s).pct!=null).sort((a,b)=>gr(b).pct-gr(a).pct)).slice(0,6);
-  const ev=LOG.filter(e=>String(e.t).slice(0,10)>=since);
-  return {since,nw:nw.length,nwA:new Set(nw.map(akey)).size,jumps,open,mov,flags:ev.filter(e=>e.y==='flag').length,notes:ev.filter(e=>e.y==='note').length}}
+  const ev=LOG.filter(e=>String(e.t).slice(0,10)>=since);seen.clear();
+  const sg=uniq(ALL.filter(s=>s.sn&&isFlag(s)&&s.src!=='WL'));
+  return {sg,since,nw:nw.length,nwA:new Set(nw.map(akey)).size,jumps,open,mov,flags:ev.filter(e=>e.y==='flag').length,notes:ev.filter(e=>e.y==='note').length}}
 function digestText(){const d=digestData(),L=['A&R INSTINCT - week since '+dstr(d.since),'',d.nw+' new songs from '+d.nwA+' artists'];
   if(d.jumps.length){L.push('','JUMPED');d.jumps.forEach(s=>L.push('- '+s.artist+': '+s.jp.f.toLocaleString()+' → '+s.jp.t.toLocaleString()+' monthly listeners'))}
   if(d.open.length){L.push('','NEW AND UNSIGNED, UNDER 50K');d.open.forEach(s=>L.push('- '+s.artist+' ('+fmt(cur(s))+')'+(s.track?' '+s.track:'')))}
+  if(d.sg.length){L.push('','FLAGGED ARTISTS THAT GOT AN AGENCY');d.sg.forEach(s=>L.push('- '+s.artist+' → '+s.sn[0]+' ('+dstr(s.sn[1])+')'))}
   if(d.mov.length){L.push('','FLAGGED ARTISTS MOVING');d.mov.forEach(s=>{const g=gr(s);L.push('- '+s.artist+': '+(g.abs>=0?'+':'')+Math.round(g.pct*100)+'% ('+fmt(g.f)+' → '+fmt(g.l)+')')})}
   L.push('','team: '+d.flags+' flags, '+d.notes+' notes this week');return L.join('\n')}
 function digestHtml(){const d=digestData(),li=(s,x)=>`<li><a href="#" data-act="hist" data-v="${esc(akey(s))}">${esc(s.artist)}</a> <span class="hn">${x}</span></li>`;
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="digest"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>this week</h3><p class="hs">since ${esc(dlong(d.since))}</p>
    <p><b>${d.nw}</b> new songs · <b>${d.nwA}</b> artists</p>
+   ${d.sg.length?`<div class="ns"><div class="hn">flagged, now with an agency</div><ul>${d.sg.map(s=>li(s,esc(s.sn[0])+' · '+esc(dstr(s.sn[1])))).join('')}</ul></div>`:''}
    ${d.jumps.length?`<div class="ns"><div class="hn">jumped</div><ul>${d.jumps.map(s=>li(s,s.jp.f.toLocaleString()+' → '+s.jp.t.toLocaleString())).join('')}</ul></div>`:''}
    ${d.open.length?`<div class="ns"><div class="hn">new, unsigned, under 50k</div><ul>${d.open.map(s=>li(s,fmt(cur(s)))).join('')}</ul></div>`:''}
    ${d.mov.length?`<div class="ns"><div class="hn">flagged artists moving</div><ul>${d.mov.map(s=>{const g=gr(s);return li(s,(g.abs>=0?'+':'')+Math.round(g.pct*100)+'%')}).join('')}</ul></div>`:''}
@@ -298,9 +347,9 @@ function watchHtml(){const w=Object.entries(TEAM).filter(([k,o])=>o.watch);
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="watchlist"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>watch an artist</h3><p class="hs">track an artist that is not on the sheet. Paste their Spotify artist link; they get a row and daily listener readings.</p>
    <form class="wf"><input name="u" placeholder="spotify artist link" autocomplete="off" aria-label="spotify artist link"><input name="n" placeholder="artist name" maxlength="60" autocomplete="off" aria-label="artist name"><button type="submit">watch</button></form>
    <div class="ns">${w.map(([k,o])=>`<div class="nr"><b>${esc(o.watch.name)}</b> <span class="hn">added by ${esc(o.watch.i)}</span> <button class="nx" data-act="unwatch" data-v="${esc(k)}" aria-label="stop watching">✕</button></div>`).join('')||'<div class="hn">nothing watched yet</div>'}</div></div>`}
-function helpHtml(){const K=[['j / k','next / previous row'],['f','flag or unflag the selected artist'],['n','open notes for the selected artist'],['x','open the details window for the selected row'],['o or Enter','open the song on Spotify'],['/','search'],['shift-click a column','add a second sort'],['Esc','clear filters / close'],['?','this help']];
-  return `<div class="hc" role="dialog" aria-modal="true" aria-label="keyboard shortcuts"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>keyboard</h3><div class="ns">${K.map(([a,b])=>`<div class="nr"><kbd>${a}</kbd> ${b}</div>`).join('')}</div></div>`}
-const paintHtml=()=>PM==='feed'?feedHtml():PM==='digest'?digestHtml():PM==='watch'?watchHtml():PM==='help'?helpHtml():panelHtml(PO);
+function helpHtml(){const K=[['j / k','next / previous row'],['f','flag or unflag the selected artist'],['n','open notes for the selected artist'],['p','pass on the selected artist (hides it for everyone)'],['x','open the details window for the selected row'],['o or Enter','open the song on Spotify'],['/','search'],['shift-click a column','add a second sort'],['Esc','clear filters / close'],['?','this help']];
+  return `<div class="hc" role="dialog" aria-modal="true" aria-label="keyboard shortcuts"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>keyboard</h3><div class="ns">${K.map(([a,b])=>`<div class="nr"><kbd>${a}</kbd> ${b}</div>`).join('')}</div><h3 style="margin-top:18px">search tips</h3><div class="ns"><div class="nr">type any of these in the search box, mixed with plain words:</div><div class="nr"><kbd>listeners:&lt;20k</kbd> <kbd>ig:&gt;5k</kbd> <kbd>ig:none</kbd> <kbd>growth:&gt;20</kbd> <kbd>added:&lt;7</kbd></div><div class="nr"><kbd>agency:none</kbd> <kbd>agency:signed</kbd> <kbd>agency:caa</kbd> <kbd>signed:yes</kbd></div><div class="nr"><kbd>label:self</kbd> <kbd>label:indie</kbd> <kbd>label:major</kbd> <kbd>label:sub pop</kbd></div><div class="nr"><kbd>flagged:yes</kbd> <kbd>new:yes</kbd> <kbd>press:&gt;0</kbd> <kbd>pl:&gt;3</kbd> <kbd>passed:yes</kbd></div></div></div>`}
+const paintHtml=()=>PM==='score'?scoreHtml():PM==='feed'?feedHtml():PM==='digest'?digestHtml():PM==='watch'?watchHtml():PM==='help'?helpHtml():panelHtml(PO);
 function paintPanel(){const a=document.activeElement,c=a&&a.closest&&a.closest('#hist')&&a.classList.length?'.'+a.classList[0]:'';$('#hist').innerHTML=paintHtml();if(c){const n=document.querySelector('#hist '+c);n&&n.focus()}}
 function redrawPanel(){const f=document.querySelector('#hist .nx2,#hist .wf input,#hist .sgf input,#hist .ef input');if(f&&f.value)return;if(document.querySelector('#hist .nr.editing'))return;paintPanel()}
 function openPanel(mode,k){OPENER=document.activeElement;PM=mode;PO=k||null;$('#hist').innerHTML=paintHtml();$('#hist').hidden=false;HO=true;const x=document.querySelector('#hist .hx');x&&x.focus()}
@@ -309,11 +358,11 @@ const closeHist=()=>{$('#hist').hidden=true;HO=false;PO=null;PM='artist';if(OPEN
 async function teamAct(o){ // optimistic: apply to local state, post, then re-pull the truth
   const e=tm(o.a),now=new Date().toISOString();
   if(o.type==='flag')e.flag={i:o.i,t:now};else if(o.type==='unflag')e.flag=null;
-  else if(o.type==='note')e.notes.unshift({id:'tmp'+Date.now(),t:now,i:o.i,x:o.x});
-  else if(o.type==='del')e.notes=e.notes.filter(n=>n.id!==o.x);
+  else if(o.type==='note'){if(String(o.x).startsWith(PASS))e.pass={id:'tmp'+Date.now(),t:now,i:o.i,x:String(o.x).slice(PASS.length).replace(/^-$/,'')};else e.notes.unshift({id:'tmp'+Date.now(),t:now,i:o.i,x:o.x})}
+  else if(o.type==='del'){e.notes=e.notes.filter(n=>n.id!==o.x);if(e.pass&&e.pass.id===o.x)e.pass=null}
   else if(o.type==='edit'){const p=o.x.split('|'),id=p.shift();e.notes.forEach(n=>{if(n.id===id){n.x=p.join('|');n.ed=now;n.ei=o.i}})}
   else if(o.type==='ig'){const [u,c]=o.x.split('|');e.ig={u,c:c?+c:null,i:o.i,t:now}}
-  else if(o.type==='sign'){const p=o.x.split('|'),v=p.shift();e.sign=v==='reset'?null:{v,ag:p.join('|'),i:o.i,t:now}}
+  else if(o.type==='sign'){const p=o.x.split('|'),v=p.shift();if(v==='match'){e.rmatch={slug:p[0],name:p.slice(1).join('|'),i:o.i,t:now};e.rno=false}else if(v==='nomatch'){e.rno=true;e.rmatch=null}else e.sign=v==='reset'?null:{v,ag:p.join('|'),i:o.i,t:now}}
   else if(o.type==='watch'){e.watch={id:o.x.split('|')[0],name:o.n,i:o.i,t:now};syncWatch()}
   else if(o.type==='unwatch'){e.watch=null;syncWatch()}
   render();if(HO)paintPanel();
@@ -331,6 +380,32 @@ function needIni(k){if(INI)return false;if(!k){askIni(false);return true}openHis
 const toggle=(set,v)=>set.has(v)?set.delete(v):set.add(v);
 const copy=async t=>{try{await navigator.clipboard.writeText(t);return true}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}a.remove();return ok}};
 
+// flagged artists that picked up an agency since the last build: a banner above the list, dismissable
+function paintAlerts(){const el=$('#alerts');if(!el)return;let dis=[];try{dis=JSON.parse(ls.get('instinct_alerts')||'[]')}catch(e){}
+  const seen=new Set(),l=[];
+  ALL.forEach(s=>{if(!s.sn||s.src==='WL'||!isFlag(s))return;const k=akey(s);if(seen.has(k))return;seen.add(k);const id=k+'|'+s.sn[1];if(dis.includes(id)||daysAgo(s.sn[1])>14)return;l.push({k,id,s})});
+  if(!l.length){el.hidden=true;el.textContent='';return}
+  el.innerHTML='<b>signed since flagged</b> '+l.map(({k,s})=>`<a href="#" data-act="hist" data-v="${esc(k)}">${esc(s.artist)}</a> → ${esc(s.sn[0])} <span class="hn">${esc(dstr(s.sn[1]))}</span>`).join(' · ')+' <button class="act" data-act="alertx" data-v="'+esc(l.map(x=>x.id).join('\n'))+'">dismiss</button>';el.hidden=false}
+// scorecard: every flagged artist, what they were when flagged against now
+function scoreData(){
+  const by=new Map();ALL.forEach(s=>{if(s.src==='WL'||!isFlag(s))return;const k=akey(s),e=by.get(k);if(!e)by.set(k,{k,rows:[s]});else e.rows.push(s)});
+  const at=(h,d)=>{if(!h||!h.length)return null;let p=h[0];for(const q of h){if(q[0]<=d)p=q;else break}return p};
+  const L=[];by.forEach(({k,rows})=>{
+    const o=TEAM[k]||{},first=rows.map(r=>r.date).sort()[0],fd=o.flag?String(o.flag.t).slice(0,10):first,who=o.flag?o.flag.i:'sheet';
+    const rp=rows.slice().sort((a,b)=>((b.hist||[]).length-(a.hist||[]).length))[0],ri=rows.slice().sort((a,b)=>((b.igh||[]).length-(a.igh||[]).length))[0];
+    const h0=at(rp.hist,fd),h1=lastPt(rp),i0=at(ri.igh,fd),i1=lastPt(ri,'igh'),age=daysAgo(fd);
+    const ok=age>=7&&rp.hist&&rp.hist.length>=2&&h0&&h1&&h0[1]>0;
+    const pct=ok?(h1[1]-h0[1])/h0[1]:null,sn=rows.find(r=>r.sn&&r.sn[1]>=fd);
+    L.push({k,name:rows[0].artist,who,fd,age,h0,h1,i0,i1,pct,ag:agOf(rows.find(r=>agOf(r))||rows[0]),signedAfter:!!sn})});
+  const m=L.filter(x=>x.pct!=null);
+  return {L:L.sort((a,b)=>(b.pct??-9)-(a.pct??-9)||b.age-a.age),n:m.length,all:L.length,up50:m.filter(x=>x.pct>=.5).length,up100:m.filter(x=>x.pct>=1).length,down:m.filter(x=>x.pct<0).length,signed:L.filter(x=>x.signedAfter).length,
+    med:m.length?m.map(x=>x.pct).sort((a,b)=>a-b)[Math.floor(m.length/2)]:null}}
+function scoreHtml(){const d=scoreData(),p=x=>x==null?'':(x>=0?'+':'')+Math.round(x*100)+'%';
+  return `<div class="hc" role="dialog" aria-modal="true" aria-label="scorecard"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>scorecard</h3>
+   <p class="hs">${d.all} flagged artists · ${d.n} flagged at least a week ago with readings</p>
+   ${d.n?`<p><b>${d.up50}</b> grew 50%+ · <b>${d.up100}</b> doubled · <b>${d.down}</b> fell · median ${p(d.med)} · <b>${d.signed}</b> got an agency after being flagged</p>`:'<p class="hn">no flagged artist is a week old yet - this fills in as readings accumulate</p>'}
+   <div class="sc">${d.L.slice(0,80).map(x=>`<div class="scr"><a href="#" data-act="hist" data-v="${esc(x.k)}">${esc(x.name)}</a><span class="hn">${esc(x.who)} · ${esc(dstr(x.fd))} · ${x.age}d</span><span>${x.h0&&x.h1?fmt(x.h0[1])+' → '+fmt(x.h1[1]):''} <b class="${x.pct>0?'up':x.pct<0?'dn':''}">${p(x.pct)}</b></span><span class="hn">${x.i0&&x.i1?'IG '+fmt(x.i0[1])+' → '+fmt(x.i1[1]):''}</span><span class="hn">${esc(x.ag||'')}${x.signedAfter?' (after flag)':''}</span></div>`).join('')}</div>
+   <p class="hn" style="margin-top:12px">readings start when an artist enters the sheet, and sheet flags count from the first day the artist appears. Under a week old = not scored.</p></div>`}
 // ---- saved views (shared with the team through the log)
 const SORTS=[['date',-1,'newest first'],['date',1,'oldest first'],['artist',1,'artist A–Z'],['listeners',-1,'monthly listeners'],['gr',-1,'listener growth'],['ig',-1,'instagram followers'],['iggr',-1,'instagram growth'],['pls',-1,'most playlists'],['press',-1,'most press'],['ag',1,'agency A–Z']];
 let MENU='';
@@ -338,13 +413,13 @@ function closeMenu(){$('#pop').hidden=true;MENU=''}
 function menuHtml(v){
   if(v==='views')return viewsHtml();
   const it=(on,act,val,txt)=>`<button class="mi${on?' on':''}" data-act="${act}" data-v="${val}" role="menuitem">${on?'✓ ':''}${txt}</button>`;
-  if(v==='view')return `<div class="vw">${it(S.grp,'tog','grp','group by artist')}${API?it(S.mine,'tog','mine','my flags only'):''}${it(document.body.classList.contains('compact'),'dens','','compact rows')}</div>`;
+  if(v==='view')return `<div class="vw">${it(S.grp,'tog','grp','group by artist')}${API?it(S.mine,'tog','mine','my flags only'):''}${API?it(S.passed,'tog','passed','show passed artists ('+Object.values(TEAM).filter(o=>o.pass).length+')'):''}${it(document.body.classList.contains('compact'),'dens','','compact rows')}</div>`;
   if(v==='sort')return `<div class="vw">${SORTS.map(([k,d,t])=>it(S.sort===k&&S.dir===d,'setsort',k+'|'+d,t)).join('')}</div>`;
   return `<div class="vw">${it(0,'copylink','','copy link to this view')}${it(0,'csv','','download csv')}</div>`}
 function viewsHtml(){return `<div class="vw" role="menu">${VIEWS.map(v=>`<div class="vr"><button data-act="applyview" data-v="${esc(v.id)}" role="menuitem">${esc(v.name)}</button><span class="hn">${esc(v.i)}</span>${v.i===INI?`<button class="nx" data-act="delview" data-v="${esc(v.id)}" aria-label="delete view">✕</button>`:''}</div>`).join('')||'<div class="hn" style="padding:4px 0">no saved views yet</div>'}
   <form class="vf"><input name="n" maxlength="40" placeholder="name this view" aria-label="view name" autocomplete="off"><button type="submit">save current</button></form></div>`}
 
-const SETS=()=>({days:S.days,pls:S.pls,pr:S.pr,sp:S.sp,bk:S.bk,ag:S.ag});
+const SETS=()=>({days:S.days,pls:S.pls,pr:S.pr,sp:S.sp,bk:S.bk,ag:S.ag,lb:S.lb});
 const ACT={
   hist:(b,v)=>{openHist(v);return 1},
   histx:()=>{closeHist();return 1},
@@ -358,13 +433,18 @@ const ACT={
   unwatch:(b,v)=>{teamAct({type:'unwatch',a:v,n:nameOf(v),i:INI,x:''});return 1},
   feed:()=>{openPanel('feed');const now=new Date().toISOString();ls.set('instinct_seen',now);SEEN=now;paintFeedBadge();return 1},
   digest:()=>{openPanel('digest');return 1},
+  score:()=>{openPanel('score');return 1},
+  alertx:(b,v)=>{let d=[];try{d=JSON.parse(ls.get('instinct_alerts')||'[]')}catch(e){}ls.set('instinct_alerts',JSON.stringify([...d,...String(v).split('\n')].slice(-200)));paintAlerts();return 1},
+  rmatch:(b,v)=>{if(needIni(v))return 1;teamAct({type:'sign',a:v,n:nameOf(v),i:INI,x:'match|'+b.dataset.s+'|'+b.dataset.nm});return 1},
+  rno:(b,v)=>{if(needIni(v))return 1;teamAct({type:'sign',a:v,n:nameOf(v),i:INI,x:'nomatch'});return 1},
+  unpass:(b,v)=>{const o=TEAM[v];if(o&&o.pass)teamAct({type:'del',a:v,n:nameOf(v),x:o.pass.id});return 1},
   watch:()=>{if(needIni(''))return 1;openPanel('watch');return 1},
   help:()=>{openPanel('help');return 1},
   copydigest:async b=>{b.textContent=(await copy(digestText()))?'copied':'copy failed';return 1},
   copylink:async()=>{closeMenu();save();const ok=await copy(location.href);toast(ok?'link copied - it keeps your filters':'could not copy the link');return 1},
   dens:()=>{document.body.classList.toggle('compact');ls.set('instinct_dens',document.body.classList.contains('compact')?'1':'');closeMenu();renderTop();return 1},
   menu:(b,v)=>{const p=$('#pop');if(!p.hidden&&MENU===v){closeMenu();return 1}MENU=v;p.innerHTML=menuHtml(v);const r=b.getBoundingClientRect();p.style.left=Math.max(8,Math.min(r.left,innerWidth-250))+'px';p.style.top=(r.bottom+window.scrollY+4)+'px';p.hidden=false;return 1},
-  tog:(b,v)=>{closeMenu();if(v==='mine'){if(!INI){askIni(false);return 1}S.mine=!S.mine}else S.grp=!S.grp;LIM=120},
+  tog:(b,v)=>{closeMenu();if(v==='passed')S.passed=!S.passed;else if(v==='mine'){if(!INI){askIni(false);return 1}S.mine=!S.mine}else S.grp=!S.grp;LIM=120},
   setsort:(b,v)=>{const [k,d]=v.split('|');S.sort=k;S.dir=+d;if(S.sort2===k)S.sort2='';LIM=120;closeMenu()},
   applyview:(b,v)=>{const w=VIEWS.find(x=>x.id===v);if(w){try{applyState(JSON.parse(w.state));closeMenu()}catch(e){toast('that view could not be read')}}},
   delview:(b,v)=>{teamAct({type:'delview',a:'_views',n:'',i:INI,x:v});closeMenu();return 1},
@@ -377,7 +457,7 @@ const ACT={
   f:(b,v)=>{toggle(FSETS()[b.dataset.k],v);LIM=120},
   bk:(b,v)=>{toggle(S.bk,+v);LIM=120},
   'clr-bk':()=>{S.bk.clear()},
-  rm:(b,v)=>{const k=b.dataset.k;if(k==='src')S.src='';else if(k==='flag')S.flag=false;else if(k==='mine')S.mine=false;else if(k==='hs')S.hs=false;else if(k==='q'){S.q='';$('#q').value=''}else SETS()[k].delete(k==='bk'?+v:v);LIM=120},
+  rm:(b,v)=>{const k=b.dataset.k;if(k==='src')S.src='';else if(k==='flag')S.flag=false;else if(k==='mine')S.mine=false;else if(k==='hs')S.hs=false;else if(k==='passed')S.passed=false;else if(k==='q'){S.q='';$('#q').value=''}else SETS()[k].delete(k==='bk'?+v:v);LIM=120},
   clear:()=>{clearAll()},
   home:()=>{clearAll();S.sort='date';S.dir=-1;S.sort2='';S.sel=-1;window.scrollTo(0,0)},
   flag:(b,v)=>{if(b.classList.contains('lock'))return 1;
@@ -412,6 +492,7 @@ document.addEventListener('submit',e=>{const t=e.target;
     if(!/^[A-Za-z0-9._]{1,30}$/.test(h)){t.u.focus();t.u.style.borderBottomColor='#d9342b';return}
     teamAct({type:'ig',a:t.dataset.v,n:nameOf(t.dataset.v),i:INI,x:'https://www.instagram.com/'+h+'/|'+(c||'')});return}
   if(t.matches('.sgf')){e.preventDefault();if(needIni(t.dataset.v))return;const ag=t.ag.value.trim();if(!ag){t.ag.focus();return}teamAct({type:'sign',a:t.dataset.v,n:nameOf(t.dataset.v),i:INI,x:'signed|'+ag});return}
+  if(t.matches('.pf')){e.preventDefault();if(needIni(t.dataset.v))return;teamAct({type:'note',a:t.dataset.v,n:nameOf(t.dataset.v),i:INI,x:PASS+(t.x.value.trim()||'-')});return}
   if(t.matches('.ef')){e.preventDefault();const x=t.x.value.trim();if(!x||!PO)return;teamAct({type:'edit',a:PO,n:nameOf(PO),i:INI,x:t.dataset.id+'|'+x});return}
   if(t.matches('.wf')){e.preventDefault();const id=spotArtistId(t.u.value),n=t.n.value.trim();
     if(!id){t.u.focus();t.u.style.borderBottomColor='#d9342b';return}if(!n){t.n.focus();return}
@@ -433,12 +514,13 @@ document.addEventListener('keydown',e=>{
   const sel=VIEW[S.sel];if(!sel)return;
   if(e.key==='f'&&sel.src!=='WL'&&!sel.flag){const k=akey(sel);if(API){if(needIni(k))return;const o=TEAM[k];teamAct({type:o&&o.flag?'unflag':'flag',a:k,n:sel.artist,i:INI})}else{LF.has(k)?LF.delete(k):LF.add(k);ls.set('instinct_flags',JSON.stringify([...LF]));render()}return}
   if(e.key==='n'&&API){e.preventDefault();openHist(akey(sel));setTimeout(()=>{const f=document.querySelector('#hist .nx2');f&&f.focus()},40);return}
+  if(e.key==='p'&&API&&sel.src!=='WL'){e.preventDefault();openHist(akey(sel));setTimeout(()=>{const f=document.querySelector('#hist .pfi');f&&f.focus()},40);return}
   if(e.key==='x'){openHist(akey(sel));return}
   if((e.key==='Enter'||e.key==='o')&&sel.track)window.open(sel.track,'_blank','noopener');
 });
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const rows=[['date','artist','song','monthly listeners','instagram','instagram growth %','listener growth %','press','playlists','agency','agent','signed','flagged by','track url'],...VIEW.map(s=>{const a=agInfo(s),g=gr(s),gi=gr(s,'igh'),o=TEAM[akey(s)],lp=lastPt(s,'igh');return [s.date,s.artist,s.song,cur(s),lp?lp[1]:s.ig,gi&&gi.pct!=null?Math.round(gi.pct*100):'',g&&g.pct!=null?Math.round(g.pct*100):'',(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),a.ag,a.agt||'',a.ag?'yes':'no',o&&o.flag?o.flag.i:s.flag?'sheet':'',s.track]})];
+  const rows=[['date','artist','song','monthly listeners','instagram','instagram growth %','listener growth %','press','playlists','agency','agent','signed','flagged by','label','release','track url'],...VIEW.map(s=>{const a=agInfo(s),g=gr(s),gi=gr(s,'igh'),o=TEAM[akey(s)],lp=lastPt(s,'igh');return [s.date,s.artist,s.song,cur(s),lp?lp[1]:s.ig,gi&&gi.pct!=null?Math.round(gi.pct*100):'',g&&g.pct!=null?Math.round(g.pct*100):'',(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),a.ag,a.agt||'',a.ag?'yes':'no',o&&o.flag?o.flag.i:s.flag?'sheet':'',s.lb?s.lb[0]:'',lbCat(s),s.track]})];
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='instinct.csv';a.click();
 }
 // ---- footer: what the data looks like right now
@@ -455,6 +537,9 @@ function init(data){
    [...LF].forEach(k=>{if(/^https?:/.test(k)){LF.delete(k);if(tk[k])LF.add(tk[k]);ch=true}else if(k.includes('|')){LF.delete(k);LF.add(k.split('|')[0].split(/,| & | feat\.? | x /i)[0].trim().toLowerCase());ch=true}});
    if(ch)ls.set('instinct_flags',JSON.stringify([...LF]))}
   {const c=new Date();c.setMonth(c.getMonth()-6);const cut=c.toISOString().slice(0,10);data.songs.forEach(s=>{if(s.press)s.press=s.press.filter(p=>!p.d||p.d>=cut)})}
+  {const mx=data.songs.filter(s=>s.src!=='WL').reduce((a,s)=>s.date>a?s.date:a,'');
+   if(!ss.get('vs')){ls.set('instinct_prevmax',ls.get('instinct_lastmax')||'');ls.set('instinct_lastmax',mx);ss.set('vs','1')}
+   VIS=ls.get('instinct_prevmax')||''}
   HS=data.hs||{};HEALTH=data.health||null;UPD=String(data.updated||'').slice(0,10);
   data.songs.forEach(s=>{const e=HS[akey(s)];if(e){if(e.h)s.hist=e.h;if(e.g)s.igh=e.g;if(e.x)s.igx=1}});
   REP={};data.songs.forEach(s=>{if(s.src==='WL')return;const k=akey(s);REP[k]=(REP[k]||0)+1});
