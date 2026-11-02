@@ -253,6 +253,7 @@ async function postTeam(o){if(!API)return false;try{const r=await fetch(API.url,
 const nameOf=k=>(ALL.find(s=>akey(s)===k)||{}).artist||k;
 
 const gr=(s,k='hist')=>{const c='_g'+k;if(s[c]!==undefined)return s[c];const h=s[k];if(!h||h.length<2)return s[c]=null;const f=h[0][1],l=h[h.length-1][1];return s[c]={f,l,abs:l-f,pct:f?(l-f)/f:null,d0:h[0][0],d1:h[h.length-1][0]}};
+const TAGN={SP:'SCAN',MP:'REC'};
 let TW=null;
 const DAY=864e5,tms=d=>new Date(d+'T12:00:00').getTime();
 // every sparkline shares one date window (the last 28 days up to the newest reading), so lines line up row to row
@@ -321,7 +322,7 @@ function rowHtml(s,i){
   const pls=[...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))];
   return `<div class="row${i===S.sel?' sel':''}" data-i="${i}">
     <button class="d" data-act="day" data-v="${s.date}" title="filter to ${esc(dlong(s.date))}">${dstr(s.date)}</button>
-    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?(API&&TEAM[akey(s)]&&TEAM[akey(s)].flag?'flagged by '+esc(TEAM[akey(s)].flag.i)+' - click to unflag':'unflag artist'):'flag artist'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'MP (recs)':'SP (scan)'} - click to show only these">${s.src}</button>${REP[akey(s)]>1?`<button class="rp" data-act="hist" data-v="${esc(akey(s))}" title="seen before - show history">↻ ${REP[akey(s)]}</button>`:''}${API?`<button class="nb${(TEAM[akey(s)]||{notes:[]}).notes.length?' has':''}" data-act="hist" data-v="${esc(akey(s))}" title="team notes">✎${(TEAM[akey(s)]||{notes:[]}).notes.length||''}</button>`:''}${showsHtml(s)}${noteLine(s)}</div>
+    <div class="A"><button class="fl${isFlag(s)?' on':''}${s.flag?' lock':''}" data-act="flag" data-v="${esc(akey(s))}" title="${s.flag?'artist flagged in the sheet':isFlag(s)?(API&&TEAM[akey(s)]&&TEAM[akey(s)].flag?'flagged by '+esc(TEAM[akey(s)].flag.i)+' - click to unflag':'unflag artist'):'flag artist'}">${isFlag(s)?'★':'☆'}</button>${s.track?`<a class="a" href="${esc(s.track)}" target="_blank" rel="noopener" title="open ${esc(s.song)} on spotify">${esc(s.artist)}</a>`:`<span class="a">${esc(s.artist)}</span>`}<button class="tg ${s.src==='MP'?'mp':'sp'}${S.src===s.src?' on':''}" data-act="src" data-v="${s.src}" title="${s.src==='MP'?'REC':'SCAN'} - click to show only these">${TAGN[s.src]||s.src}</button>${REP[akey(s)]>1?`<button class="rp" data-act="hist" data-v="${esc(akey(s))}" title="seen before - show history">↻ ${REP[akey(s)]}</button>`:''}${API?`<button class="nb${(TEAM[akey(s)]||{notes:[]}).notes.length?' has':''}" data-act="hist" data-v="${esc(akey(s))}" title="team notes">✎${(TEAM[akey(s)]||{notes:[]}).notes.length||''}</button>`:''}${showsHtml(s)}${noteLine(s)}</div>
     <div class="s">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener" title="open on spotify">${esc(s.song)}</a>`:esc(s.song)}</div>
     <div class="L">${cur!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${cur.toLocaleString()} monthly listeners${g0?' (latest) · '+s.listeners.toLocaleString()+' when added':''}"><span>${fmt(cur)}</span></a>${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
     <div class="G">${ig?`<div class="NG"><a class="num n2" style="--w:${wi}%" ${s.igUrl?`href="${esc(s.igUrl)}" target="_blank" rel="noopener"`:''} title="${ig.toLocaleString()} instagram followers${gi?' (latest) · '+s.ig.toLocaleString()+' when added':''}"><span>${fmt(ig)}</span></a>${growHtml(s,'igh')}</div>`:'<span class="none">–</span>'}</div>
@@ -388,7 +389,7 @@ function panelHtml(k){
   const hist=l.length>1?`<p class="hs">seen ${l.length} times · first ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>`:'';
   return `<div class="hc" role="dialog" aria-label="artist"><button class="hx" data-act="histx" aria-label="close">✕</button>
     <h3>${esc(l[0].artist)}</h3><div class="hf">${flagBtn}</div>${notes}${hist}
-    ${l.length>1?l.map(s=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${s.src}</span></div>
+    ${l.length>1?l.map(s=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${TAGN[s.src]||s.src}</span></div>
       <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
       <div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div></div></div>`).join(''):''}</div>`;
 }
