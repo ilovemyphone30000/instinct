@@ -404,7 +404,7 @@ body.bydate{--dc:0px}
 /* label line, alerts, near-match confirm, pass, scorecard, new-since-visit */
 .lbl{font-size:9px;font-weight:600;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;letter-spacing:0}
 .lbl::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:0;background:#999}
-.lbl.kM::before{background:#c0392b}.lbl.kD::before{background:#e08a3c}.lbl.kI::before,.lbl.kO::before{background:#2f6fd0}.lbl.kS::before{background:#1f9d55}
+.lbl.kM::before{background:#c0392b}.lbl.kD::before{background:#e08a3c}.lbl.kI::before{background:#2f6fd0}.lbl.kS::before{background:#1f9d55}.lbl.kN::before{background:transparent;border:1px solid #888}
 .lbl span{opacity:.7}
 #alerts{margin:0 16px 8px;padding:8px 12px;background:#bff0c9;border:1px solid var(--ink);color:#000;text-transform:none;letter-spacing:0;font-size:12px}
 #alerts a{color:#000;font-weight:800}#alerts .hn{color:rgba(0,0,0,.6)}#alerts button{margin-left:10px}

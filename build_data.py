@@ -244,17 +244,21 @@ for s in songs:
             s["rc"] = r["cand"][:2]  # near-matches, shown as "maybe" for a teammate to confirm
     elif r and r.get("slug"):
         s["rp"] = r["slug"]  # profile found, no agency listed
-# release label: the ℗ line Spotify prints under each track, classified against the label map (labels.py)
-import labels as LB
-_lp = os.path.join(here, "labels.json")
+# record label from ROSTR (rostr_labels.json, filled by the daily routine): lb = [label name(s), kind] with kind M major, I indie,
+# D distribution/services, S self-released; ln = ROSTR profile exists but lists no label. No slug / never checked = nothing.
+_lp = os.path.join(here, "rostr_labels.json")
 _lj = json.load(open(_lp)) if os.path.exists(_lp) else {}
-_li = LB.load_index()
+_rank = {"M": 0, "I": 1, "D": 2, "S": 3}
 for s in songs:
-    _m = re.search(r"track/(\w{22})", s.get("track") or "")
-    if _m and _m.group(1) in _lj:
-        c = LB.classify(s["artist"], *_lj[_m.group(1)][:2], _li)
-        if c:
-            s["lb"] = c
+    sl = s.get("rs") or s.get("rp")
+    if sl and sl in _lj:
+        labs = _lj[sl]
+        if labs:
+            main = sorted(labs, key=lambda x: _rank.get(x[1], 9))[0]
+            names = [x[0] for x in labs if x[1] == main[1]]
+            s["lb"] = [" / ".join(names), main[1]]
+        else:
+            s["ln"] = 1
 # artists listed under two spellings: same Spotify id, or the same name once case, accents, "&"/"and"/"y"/"x" and "the" are ignored
 import unicodedata
 _stop = {"and", "y", "x", "the", "feat", "ft", "with", "e", "et", "und"}
