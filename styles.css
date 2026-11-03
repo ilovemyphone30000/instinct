@@ -420,3 +420,12 @@ form.pf{display:flex;gap:6px;margin:10px 0}form.pf input{flex:1;min-width:0}
 .sc{margin-top:8px}.scr{display:grid;grid-template-columns:minmax(110px,1.2fr) 1.4fr 1.3fr .9fr 1fr;gap:8px;padding:6px 0;border-top:1px solid var(--line);align-items:baseline;text-transform:none;letter-spacing:0;font-size:12px}
 .scr a{font-weight:800;color:var(--ink)}.scr b.up{color:var(--up)}.scr b.dn{color:var(--dn)}
 @media(max-width:700px){.scr{grid-template-columns:1fr 1fr}}
+
+#toast .tb{margin-left:10px;color:var(--bg);text-decoration:underline;background:none;border:0;cursor:pointer;font:inherit;text-transform:inherit}
+@media(max-width:900px){.row .RS.e{display:none!important}}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.tabs button .n,.tabs .n{color:rgba(0,0,0,.62)!important}
+.lbl span{opacity:1;color:rgba(0,0,0,.6)}
+.iga{color:rgba(0,0,0,.6)}
+.rr .tabs button{opacity:.72}.rr .tabs button.on{opacity:1}.tabs button .n,.tabs button.on .n{color:#000!important}

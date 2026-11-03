@@ -34,7 +34,7 @@ function foldLog(log){const T={};const g=k=>T[k]||(T[k]={flag:null,notes:[],sign
     }});
   Object.values(T).forEach(o=>o.notes.sort((a,b)=>String(b.t).localeCompare(String(a.t))));return T}
 function foldViews(log){const m=new Map();log.forEach(e=>{if(e.y==='view')m.set(e.id,{id:e.id,name:e.n,state:e.x,i:e.i,t:e.t});else if(e.y==='delview')m.delete(e.x)});return [...m.values()].reverse()}
-function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,4500)}
+function toast(msg,act){const t=$('#toast');t.textContent=msg;if(act){const b=document.createElement('button');b.className='tb';b.textContent=act[0];b.onclick=()=>{act[1]();t.hidden=true};t.append(' ',b)}t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,act?9000:4500)}
 async function pullTeam(){if(!API)return;try{const r=await fetch(API.url+'?k='+encodeURIComponent(API.key));const j=await r.json();if(j.log){LOG=j.log;TEAM=foldLog(j.log);VIEWS=foldViews(j.log);syncWatch();render();if(HO)redrawPanel();paintFeedBadge()}}catch(e){}}
 async function postTeam(o){if(!API)return false;try{const r=await fetch(API.url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({k:API.key,...o})});const j=await r.json();if(j.ok)return true;toast(j.error==='slow down'?'slow down - too many saves a minute':'could not save ('+(j.error||'error')+')');return false}catch(e){toast('could not save - offline?');return false}}
 const nameOf=k=>(ALL.find(s=>akey(s)===k)||{}).artist||k;
@@ -147,7 +147,7 @@ function match(s,skip){
   return true;
 }
 const cur=s=>{const p=lastPt(s);return p?p[1]:s.listeners};
-const KEY={iggr:s=>{const g=gr(s,'igh');return g&&g.pct!=null?g.pct:-9},gr:s=>{const g=gr(s);return g&&g.pct!=null?g.pct:-9},date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>cur(s)??-1,ig:s=>{const p=lastPt(s,'igh');return p?p[1]:(s.ig??-1)},press:s=>(s.press||[]).length,ag:s=>(agOf(s)||'~').toLowerCase(),pls:s=>(s.playlists||[]).length};
+const KEY={mom:s=>{const c=v=>Math.max(-.5,Math.min(2,v)),g=gr(s),gi=gr(s,'igh');return (g&&g.pct!=null?c(g.pct):0)*50+(gi&&gi.pct!=null?c(gi.pct):0)*30+Math.min((s.playlists||[]).length,8)*4+Math.min((s.press||[]).length,4)*3+(s.jp?15:0)},iggr:s=>{const g=gr(s,'igh');return g&&g.pct!=null?g.pct:-9},gr:s=>{const g=gr(s);return g&&g.pct!=null?g.pct:-9},date:s=>s.date,artist:s=>s.artist.toLowerCase(),song:s=>s.song.toLowerCase(),listeners:s=>cur(s)??-1,ig:s=>{const p=lastPt(s,'igh');return p?p[1]:(s.ig??-1)},press:s=>(s.press||[]).length,ag:s=>(agOf(s)||'~').toLowerCase(),pls:s=>(s.playlists||[]).length};
 function compute(){
   let v=ALL.filter(s=>match(s));
   const k=KEY[S.sort],d=S.dir,k2=S.sort2&&KEY[S.sort2],d2=S.dir2;
@@ -181,15 +181,16 @@ function showsHtml(s){
 const lbHtml=s=>{if(s.ln)return '<div class="lbl kN" title="ROSTR has a profile for this artist and lists no record label">no label listed</div>';if(!s.lb)return '';const [n,k]=s.lb;
   const t=k==='S'?'self-released':esc(n)+(k==='M'?' <span>· major</span>':k==='D'?' <span>· distribution</span>':'');
   return `<div class="lbl k${k}" title="${esc(LBC[k])} (from ROSTR)">${t}</div>`};
+const rsCell=s=>{const h=rostrHtml(s)+snTag(s);return `<div class="RS${/^<(?:a|span) class="[^"]*\bdash\b/.test(h)?' e':''}">${h}</div>`};
 const snTag=s=>s.sn?`<span class="sg" title="agency listed ${esc(dstr(s.sn[1]))}${isFlag(s)?' - after this artist was flagged':''}">new</span>`:'';
 function rostrHtml(s){const a=agInfo(s);
   if(a.ag){return `<a href="${s.rs&&!a.man?'https://www.rostr.cc/artist/'+esc(s.rs):'#'}" target="_blank" rel="noopener" title="${a.man?'set by '+esc(a.by):'open on ROSTR'}">${esc(a.ag)}</a>${a.man?'<span class="hn">set by '+esc(a.by)+'</span>':s.agt?`<span class="hn">${esc(s.agt)}</span>`:''}`}
   if(a.man)return `<span class="hn">${a.wrong?'wrong rostr match':'unsigned'} · ${esc(a.by)}</span>`;
-  if(s.rp)return `<a class="soft" href="https://www.rostr.cc/artist/${esc(s.rp)}" target="_blank" rel="noopener" title="profile on ROSTR, no agency listed">–</a>`;
+  if(s.rp)return `<a class="soft dash" href="https://www.rostr.cc/artist/${esc(s.rp)}" target="_blank" rel="noopener" title="profile on ROSTR, no agency listed">–</a>`;
   if(s.rn){const k=akey(s),o=TEAM[k]||{};
     if(o.rmatch)return `<a class="soft" href="https://www.rostr.cc/artist/${esc(o.rmatch.slug)}" target="_blank" rel="noopener">${esc(o.rmatch.name||o.rmatch.slug)} ↗</a><span class="hn">confirmed by ${esc(o.rmatch.i)} · agency on the next update</span>`;
     if(s.rc&&API&&!o.rno){const c=s.rc[0];return `<span class="hn">maybe</span> <a class="soft" href="https://www.rostr.cc/artist/${esc(c[1])}" target="_blank" rel="noopener" title="closest name on ROSTR">${esc(c[0])} ↗</a><span class="mc"><button class="rmb" data-act="rmatch" data-v="${esc(k)}" data-s="${esc(c[1])}" data-nm="${esc(c[0])}" title="yes, that is them" aria-label="confirm ROSTR match ${esc(c[0])}">✓</button><button class="rmb" data-act="rno" data-v="${esc(k)}" title="not them" aria-label="reject ROSTR match">✕</button></span>`}
-    return '<span class="hn" title="no exact name match on ROSTR - check by hand">–</span>'}
+    return '<span class="hn dash" title="no exact name match on ROSTR - check by hand">–</span>'}
   return ''}
 function rowHtml(s,i){
   const g0=gr(s),now=cur(s),k=akey(s),fl=isFlag(s),t=TEAM[k]||{notes:[]};
@@ -203,7 +204,7 @@ function rowHtml(s,i){
     <div class="L">${now!=null?`<div class="NG"><a class="num n1" style="--w:${w}%" ${s.track?`href="${esc(s.track)}" target="_blank" rel="noopener"`:''} title="${now.toLocaleString()} monthly listeners${g0?' (latest) · '+g0.f.toLocaleString()+' on '+esc(dstr(g0.d0)):''}"><span>${fmt(now)}</span></a>${ageTag(s.hist)}${s.jp?`<span class="jp" title="listeners ${s.jp.f.toLocaleString()} → ${s.jp.t.toLocaleString()} (${esc(dstr(s.jp.d0))} → ${esc(dstr(s.jp.d1))})">▲ JUMP</span>`:''}${growHtml(s)}</div>`:'<span class="none">–</span>'}</div>
     <div class="G">${igHtml(s)}</div>
     <div class="P chips">${chipsHtml(s.press,'pr')}</div>
-    <div class="RS">${rostrHtml(s)}${snTag(s)}</div>
+    ${rsCell(s)}
     <div class="PL chips">${chipsHtml(pls)}</div>
   </div>`;
 }
@@ -265,7 +266,7 @@ function renderTop(){
   S.days.forEach(v=>act.push(['days',v,dstr(v)]));S.pls.forEach(v=>act.push(['pls',v,v]));S.pr.forEach(v=>act.push(['pr',v,v]));S.sp.forEach(v=>act.push(['sp',v,v]));S.ag.forEach(v=>act.push(['ag',v,'agency: '+(v==='(none)'?'none':v)]));S.bk.forEach(v=>act.push(['bk',v,BK[v][2]+' listeners']));S.lb.forEach(v=>act.push(['lb',v,'release: '+v]));if(S.passed)act.push(['passed','','showing passed']);
   $('#active').innerHTML=act.map(([k,v,l])=>`<button data-act="rm" data-k="${k}" data-v="${esc(v)}" aria-label="remove filter ${esc(l)}">${esc(l)}</button>`).join('')+(act.length?'<button class="clr" data-act="clear">clear all</button>':'');
   $('#cnt').textContent=S.grp?VIEW.length+' artists':VIEW.length+' of '+ALL.length+' songs';
-  document.querySelectorAll('#head button').forEach(b=>{const d=b.dataset.sort;b.classList.toggle('s',d===S.sort);b.classList.toggle('asc',d===S.sort&&S.dir===1);b.classList.toggle('s2',d===S.sort2);b.classList.toggle('asc2',d===S.sort2&&S.dir2===1);b.setAttribute('aria-sort',d===S.sort?(S.dir===1?'ascending':'descending'):'none')});
+  document.querySelectorAll('#head button').forEach(b=>{const d=b.dataset.sort;b.classList.toggle('s',d===S.sort);b.classList.toggle('asc',d===S.sort&&S.dir===1);b.classList.toggle('s2',d===S.sort2);b.classList.toggle('asc2',d===S.sort2&&S.dir2===1);b.setAttribute('aria-label','sort by '+b.textContent+(d===S.sort?(S.dir===1?', ascending':', descending'):''))});
   document.body.classList.toggle('bydate',S.sort==='date');
 }
 function render(){compute();renderTop();renderSide();renderRows();paintAlerts();save()}
@@ -280,7 +281,7 @@ const ago=iso=>{const d=new Date(iso);return isNaN(d)?'':d.toLocaleString('en-US
 // ---- panels (artist / activity / digest / watch / help share the #hist modal)
 function passHtml(k,o){if(!API)return '';
   if(o.pass)return `<div class="hn pass">passed by <b>${esc(o.pass.i)}</b> ${esc(ago(o.pass.t))}${o.pass.x?' - '+esc(o.pass.x):''} <button class="nx" data-act="unpass" data-v="${esc(k)}">undo</button></div>`;
-  return `<form class="pf" data-v="${esc(k)}"><input class="pfi" name="x" maxlength="120" placeholder="pass on this artist - reason (too big, not our genre...)" autocomplete="off" aria-label="reason for passing"><button type="submit">pass</button></form>`}
+  return `<form class="pf" data-v="${esc(k)}"><input class="pfi" name="x" maxlength="120" placeholder="pass - reason (optional)" autocomplete="off" aria-label="reason for passing"><button type="submit">pass</button></form>`}
 function panelHtml(k){
   const l=ALL.filter(s=>akey(s)===k&&s.src!=='WL').sort((a,b)=>b.date.localeCompare(a.date));
   const o=TEAM[k]||{flag:null,notes:[],sign:null};
@@ -306,7 +307,7 @@ function panelHtml(k){
 // activity feed: everything the team did, newest first, with a divider at the last visit
 function evText(e){const n=esc(e.n||e.a),who=`<b>${esc(e.i)}</b>`;
   switch(e.y){case 'flag':return `${who} flagged ${n}`;case 'unflag':return `${who} unflagged ${n}`;
-    case 'note':return String(e.x||'').startsWith(PASS)?`${who} passed on ${n}${String(e.x).slice(PASS.length).replace(/^-$/,'')?': '+esc(String(e.x).slice(PASS.length)):''}`:`${who} noted on ${n}: ${mention(e.x)}`;case 'edit':return `${who} edited a note on ${n}`;case 'del':return `${who} removed a note on ${n}`;
+    case 'note':return String(e.x||'').startsWith(PASS)?`${who} passed on ${n}${String(e.x).slice(PASS.length).replace(/^-$/,'')?': '+esc(String(e.x).slice(PASS.length)):''}`:`${who} noted on ${n}: ${mention(e.x)}`;case 'edit':return `${who} edited a note on ${n}`;case 'del':return `${who} removed a note or pass on ${n}`;
     case 'ig':return `${who} set Instagram for ${n}`;case 'sign':{const v=String(e.x||'').split('|');if(v[0]==='match')return `${who} confirmed a ROSTR match for ${n}`;if(v[0]==='nomatch')return `${who} rejected the ROSTR match for ${n}`;return `${who} marked ${n} ${v[0]==='signed'?'signed'+(v[1]?' ('+esc(v[1])+')':''):v[0]==='unsigned'?'unsigned':v[0]==='wrong'?'a wrong rostr match':'back to rostr data'}`}
     case 'view':return `${who} saved the view “${n}”`;case 'watch':return `${who} is watching ${n}`;case 'unwatch':return `${who} stopped watching ${n}`;default:return ''}}
 const mentionsMe=e=>INI&&e.y==='note'&&new RegExp('(^|\\s)@'+INI.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![\\w.-])','i').test(e.x||'');
@@ -324,7 +325,7 @@ function digestData(){
   const nw=ALL.filter(s=>s.date>=since&&s.src!=='WL');
   const uniq=a=>a.filter(s=>{const k=akey(s);if(seen.has(k))return false;seen.add(k);return true});
   const jumps=uniq(ALL.filter(s=>s.jp));seen.clear();
-  const open=uniq(nw.filter(s=>!agOf(s)&&!isFlag(s)&&!isPassed(s)&&(cur(s)||0)<50000).sort((a,b)=>(cur(b)||0)-(cur(a)||0))).slice(0,10);seen.clear();
+  const open=uniq(nw.filter(s=>!agOf(s)&&!isFlag(s)&&!isPassed(s)&&!(s.lb&&s.lb[1]==='M')&&(cur(s)||0)<50000).sort((a,b)=>(cur(b)||0)-(cur(a)||0))).slice(0,10);seen.clear();
   const mov=uniq(ALL.filter(s=>isFlag(s)&&gr(s)&&gr(s).pct!=null).sort((a,b)=>gr(b).pct-gr(a).pct)).slice(0,6);
   const ev=LOG.filter(e=>String(e.t).slice(0,10)>=since);seen.clear();
   const sg=uniq(ALL.filter(s=>s.sn&&isFlag(s)&&s.src!=='WL'));
@@ -340,7 +341,7 @@ function digestHtml(){const d=digestData(),li=(s,x)=>`<li><a href="#" data-act="
    <p><b>${d.nw}</b> new songs · <b>${d.nwA}</b> artists</p>
    ${d.sg.length?`<div class="ns"><div class="hn">flagged, now with an agency</div><ul>${d.sg.map(s=>li(s,esc(s.sn[0])+' · '+esc(dstr(s.sn[1])))).join('')}</ul></div>`:''}
    ${d.jumps.length?`<div class="ns"><div class="hn">jumped</div><ul>${d.jumps.map(s=>li(s,s.jp.f.toLocaleString()+' → '+s.jp.t.toLocaleString())).join('')}</ul></div>`:''}
-   ${d.open.length?`<div class="ns"><div class="hn">new, unsigned, under 50k</div><ul>${d.open.map(s=>li(s,fmt(cur(s)))).join('')}</ul></div>`:''}
+   ${d.open.length?`<div class="ns"><div class="hn">new, unsigned, under 50k</div><ul>${d.open.map(s=>li(s,fmt(cur(s))+(s.lb?' · '+(s.lb[1]==='S'?'self-released':esc(s.lb[0])):''))).join('')}</ul></div>`:''}
    ${d.mov.length?`<div class="ns"><div class="hn">flagged artists moving</div><ul>${d.mov.map(s=>{const g=gr(s);return li(s,(g.abs>=0?'+':'')+Math.round(g.pct*100)+'%')}).join('')}</ul></div>`:''}
    <p class="hn" style="margin-top:12px">team: ${d.flags} flags · ${d.notes} notes</p>
    <div class="nf"><button data-act="copydigest">copy as text</button></div></div>`}
@@ -348,7 +349,7 @@ function watchHtml(){const w=Object.entries(TEAM).filter(([k,o])=>o.watch);
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="watchlist"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>watch an artist</h3><p class="hs">track an artist that is not on the sheet. Paste their Spotify artist link; they get a row and daily listener readings.</p>
    <form class="wf"><input name="u" placeholder="spotify artist link" autocomplete="off" aria-label="spotify artist link"><input name="n" placeholder="artist name" maxlength="60" autocomplete="off" aria-label="artist name"><button type="submit">watch</button></form>
    <div class="ns">${w.map(([k,o])=>`<div class="nr"><b>${esc(o.watch.name)}</b> <span class="hn">added by ${esc(o.watch.i)}</span> <button class="nx" data-act="unwatch" data-v="${esc(k)}" aria-label="stop watching">✕</button></div>`).join('')||'<div class="hn">nothing watched yet</div>'}</div></div>`}
-function helpHtml(){const K=[['j / k','next / previous row'],['f','flag or unflag the selected artist'],['n','open notes for the selected artist'],['p','pass on the selected artist (hides it for everyone)'],['x','open the details window for the selected row'],['o or Enter','open the song on Spotify'],['/','search'],['shift-click a column','add a second sort'],['Esc','clear filters / close'],['?','this help']];
+function helpHtml(){const K=[['j / k','next / previous row'],['f','flag or unflag the selected artist'],['n','open notes for the selected artist'],['p','pass on the selected artist: hides it for everyone, with an undo'],['shift-P','pass with a reason'],['x','open the details window for the selected row'],['o or Enter','open the song on Spotify'],['/','search'],['shift-click a column','add a second sort'],['Esc','clear filters / close'],['?','this help']];
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="keyboard shortcuts"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>keyboard</h3><div class="ns">${K.map(([a,b])=>`<div class="nr"><kbd>${a}</kbd> ${b}</div>`).join('')}</div><h3 style="margin-top:18px">search tips</h3><div class="ns"><div class="nr">type any of these in the search box, mixed with plain words:</div><div class="nr"><kbd>listeners:&lt;20k</kbd> <kbd>ig:&gt;5k</kbd> <kbd>ig:none</kbd> <kbd>growth:&gt;20</kbd> <kbd>added:&lt;7</kbd></div><div class="nr"><kbd>agency:none</kbd> <kbd>agency:signed</kbd> <kbd>agency:caa</kbd> <kbd>signed:yes</kbd></div><div class="nr"><kbd>label:self</kbd> <kbd>label:indie</kbd> <kbd>label:major</kbd> <kbd>label:none</kbd> <kbd>label:sub pop</kbd></div><div class="nr"><kbd>flagged:yes</kbd> <kbd>new:yes</kbd> <kbd>press:&gt;0</kbd> <kbd>pl:&gt;3</kbd> <kbd>passed:yes</kbd></div></div></div>`}
 const paintHtml=()=>PM==='score'?scoreHtml():PM==='feed'?feedHtml():PM==='digest'?digestHtml():PM==='watch'?watchHtml():PM==='help'?helpHtml():panelHtml(PO);
 function paintPanel(){const a=document.activeElement,c=a&&a.closest&&a.closest('#hist')&&a.classList.length?'.'+a.classList[0]:'';$('#hist').innerHTML=paintHtml();if(c){const n=document.querySelector('#hist '+c);n&&n.focus()}}
@@ -395,10 +396,10 @@ function scoreData(){
     const o=TEAM[k]||{},first=rows.map(r=>r.date).sort()[0],fd=o.flag?String(o.flag.t).slice(0,10):first,who=o.flag?o.flag.i:'sheet';
     const rp=rows.slice().sort((a,b)=>((b.hist||[]).length-(a.hist||[]).length))[0],ri=rows.slice().sort((a,b)=>((b.igh||[]).length-(a.igh||[]).length))[0];
     const h0=at(rp.hist,fd),h1=lastPt(rp),i0=at(ri.igh,fd),i1=lastPt(ri,'igh'),age=daysAgo(fd);
-    const ok=age>=7&&rp.hist&&rp.hist.length>=2&&h0&&h1&&h0[1]>0;
+    const ok=rp.hist&&rp.hist.length>=2&&h0&&h1&&h0[1]>0;
     const pct=ok?(h1[1]-h0[1])/h0[1]:null,sn=rows.find(r=>r.sn&&r.sn[1]>=fd);
     L.push({k,name:rows[0].artist,who,fd,age,h0,h1,i0,i1,pct,ag:agOf(rows.find(r=>agOf(r))||rows[0]),signedAfter:!!sn})});
-  const m=L.filter(x=>x.pct!=null);
+  const m=L.filter(x=>x.pct!=null&&x.age>=7);
   return {L:L.sort((a,b)=>(b.pct??-9)-(a.pct??-9)||b.age-a.age),n:m.length,all:L.length,up50:m.filter(x=>x.pct>=.5).length,up100:m.filter(x=>x.pct>=1).length,down:m.filter(x=>x.pct<0).length,signed:L.filter(x=>x.signedAfter).length,
     med:m.length?m.map(x=>x.pct).sort((a,b)=>a-b)[Math.floor(m.length/2)]:null}}
 function scoreHtml(){const d=scoreData(),p=x=>x==null?'':(x>=0?'+':'')+Math.round(x*100)+'%';
@@ -406,9 +407,9 @@ function scoreHtml(){const d=scoreData(),p=x=>x==null?'':(x>=0?'+':'')+Math.roun
    <p class="hs">${d.all} flagged artists · ${d.n} flagged at least a week ago with readings</p>
    ${d.n?`<p><b>${d.up50}</b> grew 50%+ · <b>${d.up100}</b> doubled · <b>${d.down}</b> fell · median ${p(d.med)} · <b>${d.signed}</b> got an agency after being flagged</p>`:'<p class="hn">no flagged artist is a week old yet - this fills in as readings accumulate</p>'}
    <div class="sc">${d.L.slice(0,80).map(x=>`<div class="scr"><a href="#" data-act="hist" data-v="${esc(x.k)}">${esc(x.name)}</a><span class="hn">${esc(x.who)} · ${esc(dstr(x.fd))} · ${x.age}d</span><span>${x.h0&&x.h1?fmt(x.h0[1])+' → '+fmt(x.h1[1]):''} <b class="${x.pct>0?'up':x.pct<0?'dn':''}">${p(x.pct)}</b></span><span class="hn">${x.i0&&x.i1?'IG '+fmt(x.i0[1])+' → '+fmt(x.i1[1]):''}</span><span class="hn">${esc(x.ag||'')}${x.signedAfter?' (after flag)':''}</span></div>`).join('')}</div>
-   <p class="hn" style="margin-top:12px">readings start when an artist enters the sheet, and sheet flags count from the first day the artist appears. Under a week old = not scored.</p></div>`}
+   <p class="hn" style="margin-top:12px">readings start when an artist enters the sheet, and sheet flags count from the first day the artist appears. Artists flagged under a week ago are listed but not counted in the summary.</p></div>`}
 // ---- saved views (shared with the team through the log)
-const SORTS=[['date',-1,'newest first'],['date',1,'oldest first'],['artist',1,'artist A–Z'],['listeners',-1,'monthly listeners'],['gr',-1,'listener growth'],['ig',-1,'instagram followers'],['iggr',-1,'instagram growth'],['pls',-1,'most playlists'],['press',-1,'most press'],['ag',1,'agency A–Z']];
+const SORTS=[['mom',-1,'momentum (growth, playlists, press)'],['date',-1,'newest first'],['date',1,'oldest first'],['artist',1,'artist A–Z'],['listeners',-1,'monthly listeners'],['gr',-1,'listener growth'],['ig',-1,'instagram followers'],['iggr',-1,'instagram growth'],['pls',-1,'most playlists'],['press',-1,'most press'],['ag',1,'agency A–Z']];
 let MENU='';
 function closeMenu(){$('#pop').hidden=true;MENU=''}
 function menuHtml(v){
@@ -515,7 +516,10 @@ document.addEventListener('keydown',e=>{
   const sel=VIEW[S.sel];if(!sel)return;
   if(e.key==='f'&&sel.src!=='WL'&&!sel.flag){const k=akey(sel);if(API){if(needIni(k))return;const o=TEAM[k];teamAct({type:o&&o.flag?'unflag':'flag',a:k,n:sel.artist,i:INI})}else{LF.has(k)?LF.delete(k):LF.add(k);ls.set('instinct_flags',JSON.stringify([...LF]));render()}return}
   if(e.key==='n'&&API){e.preventDefault();openHist(akey(sel));setTimeout(()=>{const f=document.querySelector('#hist .nx2');f&&f.focus()},40);return}
-  if(e.key==='p'&&API&&sel.src!=='WL'){e.preventDefault();openHist(akey(sel));setTimeout(()=>{const f=document.querySelector('#hist .pfi');f&&f.focus()},40);return}
+  if((e.key==='p'||e.key==='P')&&API&&sel.src!=='WL'){e.preventDefault();const k=akey(sel);
+    if(e.key==='P'){openHist(k);setTimeout(()=>{const f=document.querySelector('#hist .pfi');f&&f.focus()},40);return}
+    if(needIni(k))return;S.sel=Math.min(S.sel,Math.max(0,VIEW.length-2));
+    teamAct({type:'note',a:k,n:sel.artist,i:INI,x:PASS+'-'}).then(()=>{const o=TEAM[k];if(o&&o.pass)toast('passed on '+sel.artist,['undo',()=>teamAct({type:'del',a:k,n:sel.artist,x:o.pass.id})])});return}
   if(e.key==='x'){openHist(akey(sel));return}
   if((e.key==='Enter'||e.key==='o')&&sel.track)window.open(sel.track,'_blank','noopener');
 });
