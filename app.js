@@ -418,6 +418,8 @@ function syncWatch(){ALL=ALL.filter(s=>!s._opt);const have=new Set(ALL.map(akey)
     ALL.push({src:'PR',date:r.d,artist:r.name||k,song:r.s,track:r.t,hist:r.l!=null?[[r.d,r.l]]:undefined,press:r.u.map(u=>({t:hostOf(u),u,d:r.d})),_opt:true,_pr:r.id,_rby:r.i})}));
   Object.entries(TEAM).forEach(([k,o])=>{if(o.watch&&!have.has(k)&&!recKeys.has(k))ALL.push({src:'WL',date:UPD||new Date().toISOString().slice(0,10),artist:o.watch.name||k,song:'',track:o.watch.id?'https://open.spotify.com/artist/'+o.watch.id:'',wid:o.watch.id||undefined,_opt:true})});
   DAYS=[...new Set(ALL.map(s=>s.date))].sort()}
+// the "hide playlists" pill: drops the playlists column (the grid is re-templated in styles.css)
+function paintNopl(){const b=document.querySelector('[data-act=nopl]');if(!b)return;const on=document.body.classList.contains('nopl');b.textContent=on?'show playlists':'hide playlists';b.setAttribute('aria-pressed',on)}
 const paintMe=()=>{const b=$('#me');if(b)b.textContent=INI?'you: '+INI+' ▾':'set your name'};
 function askIni(first){const w=$('#who');$('#whoi').value=INI;$('#whox').hidden=!!first&&!INI;w.hidden=false;setTimeout(()=>$('#whoi').focus(),30)}
 $('#whof').addEventListener('submit',e=>{e.preventDefault();const v=$('#whoi').value.trim().slice(0,24);if(!v){$('#whoi').focus();return}INI=v;ls.set('instinct_ini',v);$('#who').hidden=true;paintMe();render()});
@@ -564,6 +566,7 @@ const ACT={
   help:()=>{openPanel('help');return 1},
   copydigest:async b=>{b.textContent=(await copy(digestText()))?'copied':'copy failed';return 1},
   copylink:async()=>{closeMenu();save();const ok=await copy(location.href);toast(ok?'link copied - it keeps your filters':'could not copy the link');return 1},
+  nopl:()=>{const on=document.body.classList.toggle('nopl');ls.set('instinct_nopl',on?'1':'');paintNopl();return 1},
   dens:()=>{document.body.classList.toggle('compact');ls.set('instinct_dens',document.body.classList.contains('compact')?'1':'');closeMenu();renderTop();return 1},
   menu:(b,v)=>{const p=$('#pop');if(!p.hidden&&MENU===v){closeMenu();return 1}MENU=v;p.innerHTML=menuHtml(v);const r=b.getBoundingClientRect();p.style.left=Math.max(8,Math.min(r.left,innerWidth-250))+'px';p.style.top=(r.bottom+window.scrollY+4)+'px';p.hidden=false;return 1},
   tog:(b,v)=>{closeMenu();if(v==='passed')S.passed=!S.passed;else if(v==='mine'){if(!INI){askIni(false);return 1}S.mine=!S.mine}else S.grp=!S.grp;LIM=120},
@@ -717,6 +720,7 @@ $('#gate').addEventListener('submit',async e=>{
 const SKEL='<div class="skel"></div>'.repeat(10);
 (async()=>{
   if(ls.get('instinct_dens'))document.body.classList.add('compact');
+  if(ls.get('instinct_nopl'))document.body.classList.add('nopl');paintNopl();
   load();lockTick();
   const pw=ls.get('instinct_pw');
   if(pw){

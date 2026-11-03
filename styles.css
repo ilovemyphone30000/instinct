@@ -452,3 +452,12 @@ body.board #head,body.board .daycap{display:none}
 .mline{margin:2px 0 6px}.cl{margin-top:8px;font-size:12px;text-transform:none;letter-spacing:0}.cl div{padding:3px 0}.cl i{display:inline-block;width:14px;height:3px;margin-right:8px;vertical-align:middle}
 .act[disabled]{opacity:.35;cursor:default}
 @media(max-width:600px){.bgrid{grid-template-columns:1fr}.bf input{min-width:0;flex:1}}
+
+/* hide playlists: drop the last column and re-template the grid */
+.nopl .head [data-sort=pls],.nopl .row>.PL{display:none}
+@media (min-width:901px){
+  .nopl .head,.nopl .row{grid-template-columns:var(--dc,80px) minmax(var(--aw,110px),.9fr) minmax(130px,1.2fr) 158px 158px minmax(120px,1fr) minmax(130px,1fr)}
+  .nopl.nosong .head,.nopl.nosong .row{grid-template-columns:var(--dc,80px) minmax(var(--aw,110px),.9fr) 158px 158px minmax(120px,1fr) minmax(130px,1fr)}
+  .rr .nopl .head,.rr .nopl .row{grid-template-columns:var(--dc,80px) minmax(var(--aw,110px),.9fr) minmax(130px,1.2fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr)}
+  .rr .nopl.nosong .head,.rr .nopl.nosong .row{grid-template-columns:var(--dc,80px) minmax(var(--aw,110px),.9fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr)}
+}
