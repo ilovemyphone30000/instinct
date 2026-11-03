@@ -461,3 +461,6 @@ body.board #head,body.board .daycap{display:none}
   .rr .nopl .head,.rr .nopl .row{grid-template-columns:var(--dc,80px) minmax(var(--aw,110px),.9fr) minmax(130px,1.2fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr)}
   .rr .nopl.nosong .head,.rr .nopl.nosong .row{grid-template-columns:var(--dc,80px) minmax(var(--aw,110px),.9fr) 186px 186px minmax(120px,1fr) minmax(130px,1fr)}
 }
+
+/* phones: no dangling ROSTR label on empty cells */
+@media(max-width:900px){.row .RS:empty{display:none!important}}
