@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>intake</title>
+<style>
+:root{--bg:#fff;--fg:#000;--mute:#595959;--line:#d9d9d9;--ok:#116611;--bad:#b00020}
+@media (prefers-color-scheme:dark){:root{--bg:#111;--fg:#f2f2f2;--mute:#a0a0a0;--line:#333;--ok:#6fd36f;--bad:#ff7a8a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Helvetica,Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:14px;font-weight:600;text-transform:lowercase;letter-spacing:.02em;margin:0 0 16px}
+p.h{color:var(--mute);margin:0 0 16px}
+textarea,input{font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:0;padding:8px;width:100%}
+textarea{min-height:140px;resize:vertical}
+label{display:block;margin:12px 0 4px;color:var(--mute)}
+button{font:inherit;color:inherit;background:transparent;border:1px solid var(--fg);padding:6px 12px;cursor:pointer;margin:12px 8px 0 0}
+button:disabled{opacity:.4;cursor:default}
+button.s{border-color:var(--line);padding:2px 8px;margin:0}
+table{width:100%;border-collapse:collapse;margin-top:16px}
+td{border-top:1px solid var(--line);padding:6px 4px;vertical-align:top}
+td input{padding:2px 4px}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.m{color:var(--mute)}
+#err{color:var(--bad);min-height:1.4em}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<form id="gate" autocomplete="off">
+  <h1>intake</h1>
+  <label for="pw">password</label>
+  <input id="pw" type="password" autocomplete="off">
+  <div id="err" role="status"></div>
+  <button type="submit">open</button>
+</form>
+<section id="app" hidden>
+  <h1>add recs</h1>
+  <p class="h">One track per line: a Spotify track link, or <code>Artist - Song</code>, or <code>Artist - Song - 2026-11-03</code>. A link with no artist needs the artist typed in the preview.</p>
+  <label for="ini">initials of who these are from</label>
+  <input id="ini" maxlength="24" style="max-width:160px">
+  <label for="ta">tracks</label>
+  <textarea id="ta" spellcheck="false"></textarea>
+  <button id="prev" type="button">preview</button>
+  <button id="go" type="button" disabled>add</button>
+  <div id="sum" class="m" role="status" style="margin-top:12px"></div>
+  <table id="tb"></table>
+</section>
+</main>
+<script>document.write('<script src="intake.js?'+Date.now()+'"><\/script>')</script>
+</body>
+</html>

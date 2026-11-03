@@ -178,7 +178,7 @@ if os.path.exists(tp):
                     igs[e["a"]] = (u, int(c) if c.isdigit() else None)
                 elif e["y"] == "watch" and e.get("x"):  # a teammate asked to track an artist that is not on the sheet
                     wid, _, wn = str(e["x"]).partition("|")
-                    if re.fullmatch(r"[A-Za-z0-9]{22}", wid):
+                    if wid == "" or re.fullmatch(r"[A-Za-z0-9]{22}", wid):  # no id = a watch with no Spotify page
                         watch[e["a"]] = {"id": wid, "name": e.get("n") or wn or e["a"],
                                          "date": str(e["t"])[:10]}
                 elif e["y"] == "unwatch":
@@ -205,7 +205,8 @@ if os.path.exists(tp):
                 if k in have:
                     continue
                 songs.append({"src": "WL", "date": w["date"], "artist": w["name"], "song": "",
-                              "track": "https://open.spotify.com/artist/" + w["id"], "wid": w["id"],
+                              "track": ("https://open.spotify.com/artist/" + w["id"]) if w["id"] else "",
+                              **({"wid": w["id"]} if w["id"] else {}),
                               **({"tf": True} if k in on else {})})
         except Exception as ex:
             print("team log not read:", ex)
@@ -215,7 +216,8 @@ if os.path.exists(tp):
 if watch and os.path.exists(hpath):
     Hd = json.load(open(hpath))
     for k, w in watch.items():
-        Hd["artists"].setdefault(k, {"name": w["name"], "pts": []})["id"] = w["id"]
+        if w["id"]:
+            Hd["artists"].setdefault(k, {"name": w["name"], "pts": []})["id"] = w["id"]
     json.dump(Hd, open(hpath, "w"), indent=1, ensure_ascii=False)
 # ROSTR agency/agent (rostr.json, filled by the daily routine): attached to every row of the artist
 rjp = os.path.join(here, "rostr.json")

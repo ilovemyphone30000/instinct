@@ -15,7 +15,7 @@ Live: https://ilovemyphone30000.github.io/instinct/
 - `ig_public.py` - Instagram follower counts from the PUBLIC, LOGGED-OUT profile preview (plain HTTP, no cookies, no
   browser, never a signed-in session). Daily for flagged/new/jumped, weekly for the rest.
 - `jumps.py`, `track_ids.py`, `all_ids.py`, `add_points.py`, `rostr_add.py`, `press_dates.py` - daily-routine helpers.
-- `rostr_label_add.py` - record label per artist from ROSTR (RECORD_LABEL team: indie / major / distribution / self-released), in git-ignored `rostr_labels.json`; rides inside the encrypted data.
+- `rostr_label_add.py` - record label per artist from ROSTR (RECORD_LABEL team: indie / major / distribution; the site shows only the label names ROSTR lists - self-released entries and "no label" are not displayed), in git-ignored `rostr_labels.json`; rides inside the encrypted data.
 - `digest.py` - plain-text weekly digest for pasting (sends nothing).
 - `team_log.gs` - the Apps Script backend (appends to the TEAM LOG tab only; rate-limited, size-capped).
 - `set_password.py` - change the password (prompts; never put it in chat or a commit).
@@ -39,3 +39,13 @@ Search box: `listeners:<20k  ig:>5k  ig:none  growth:>20  added:<7  agency:none|
   (listener growth 40, Instagram growth 20, playlists 20, press 10, jump 10), 7-14 day changes, sparklines, agency/label/OPEN chip and the latest note.
   Paste a Spotify artist link to follow someone not on the sheet (name via Spotify oEmbed; becomes a watch + flag). Compare up to 7 artists, copy a weekly report.
   OPEN = ROSTR has a profile but lists no agency and no label (or self-released). Search: `open:yes momentum:>60 status:heating`.
+
+## REC intake (unlisted)
+`intake.html` (not linked anywhere, noindex) adds tracks to the REC list: unlock with the site password, paste one track per
+line (`open.spotify.com/track/...` link, `Artist - Song`, or `Artist - Song - YYYY-MM-DD`), preview, add. A bare link needs the
+artist typed in (Spotify's oEmbed returns the song title only). Each line posts a `rec` event to the same log API; the backend
+(`team_log.gs`) validates it, dedupes on track URL (or artist+song when there is no URL) and returns `deduped:true` on a repeat,
+so re-running a list is safe. `unrec` (x = the rec's id) removes that rec only. The site renders recs as `MP` ("REC") rows with
+no counts until the daily build carries them, and skips any rec the base data already has. The log key is a shared secret that
+rides inside the encrypted data; initials are self-asserted, so this is not per-user login. After editing `team_log.gs`, paste it
+into the Apps Script project (keep KEY and SHEET_ID) and redeploy a new version.

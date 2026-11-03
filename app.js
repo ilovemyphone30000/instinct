@@ -12,11 +12,11 @@ const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set
 let LF=new Set();try{LF=new Set(JSON.parse(ls.get('instinct_flags')||'[]'))}catch(e){}
 const akey=s=>s.artist.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase();
 let API=null,TEAM={},LOG=[],VIEWS=[],INI=ls.get('instinct_ini')||'';
-const tm=k=>TEAM[k]||(TEAM[k]={flag:null,notes:[],sign:null,watch:null,pass:null,rmatch:null,rno:false});
+const tm=k=>TEAM[k]||(TEAM[k]={flag:null,notes:[],sign:null,watch:null,pass:null,rmatch:null,rno:false,recs:[]});
 const PASS='[pass] ';
 const isFlag=s=>!!s.flag||(API?!!(TEAM[akey(s)]&&TEAM[akey(s)].flag):LF.has(akey(s)));
 const mine=s=>{const o=TEAM[akey(s)];return !!(o&&o.flag&&INI&&o.flag.i.toLowerCase()===INI.toLowerCase())};
-function foldLog(log){const T={};const g=k=>T[k]||(T[k]={flag:null,notes:[],sign:null,watch:null,pass:null,rmatch:null,rno:false});
+function foldLog(log){const T={};const g=k=>T[k]||(T[k]={flag:null,notes:[],sign:null,watch:null,pass:null,rmatch:null,rno:false,recs:[]});
   log.forEach(e=>{const o=g(e.a);
     switch(e.y){
       case 'flag':o.flag={i:e.i,t:e.t};break;
@@ -30,6 +30,8 @@ function foldLog(log){const T={};const g=k=>T[k]||(T[k]={flag:null,notes:[],sign
         else o.sign=v==='reset'?null:{v,ag:p.join('|'),i:e.i,t:e.t};break}
       case 'watch':o.watch={id:String(e.x||'').split('|')[0],name:e.n,i:e.i,t:e.t};break;
       case 'unwatch':o.watch=null;break;
+      case 'rec':{const x=String(e.x||''),a=x.indexOf('|'),z=x.lastIndexOf('|');if(a>=0&&z>a)o.recs.push({id:e.id,url:x.slice(0,a),song:x.slice(a+1,z),date:x.slice(z+1),name:e.n,i:e.i,t:e.t});break}
+      case 'unrec':for(const q of Object.values(T))q.recs=q.recs.filter(r=>r.id!==e.x);break;
       case 'del':for(const q of Object.values(T)){q.notes=q.notes.filter(n=>n.id!==e.x);if(q.pass&&q.pass.id===e.x)q.pass=null}break;
     }});
   Object.values(T).forEach(o=>o.notes.sort((a,b)=>String(b.t).localeCompare(String(a.t))));return T}
@@ -91,7 +93,7 @@ function agInfo(s){const o=TEAM[akey(s)],g=o&&o.sign;
   return {ag:s.ag||'',agt:s.agt,man:false}}
 const agOf=s=>agInfo(s).ag;
 
-function blob(s){if(!s._b)s._b=(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')+' '+(s.ag||'')+' '+(s.agt||'')+' '+igHandle(s.igUrl)+' '+(s.lb?s.lb[0]:'')).toLowerCase();
+function blob(s){if(!s._b)s._b=(s.artist+' '+s.song+' '+(s.press||[]).map(p=>p.t).join(' ')+' '+(s.playlists||[]).map(p=>p.t).join(' ')+' '+(s.ag||'')+' '+(s.agt||'')+' '+igHandle(s.igUrl)+' '+(realLb(s)?s.lb[0]:'')).toLowerCase();
   const o=TEAM[akey(s)];return o?s._b+' '+o.notes.map(n=>n.i+' '+n.x).join(' ').toLowerCase()+(o.flag?' flagged '+o.flag.i.toLowerCase():'')+(o.ig?' '+igHandle(o.ig.u).toLowerCase():''):s._b}
 // growth over the last 14 days of readings (or fewer if that is all there is), scaled to a per-week rate
 function win(h){if(!h||h.length<2)return null;const l=h[h.length-1],t1=tms(l[0]);let f=h[0];for(const p of h){if(t1-tms(p[0])<=14*DAY){f=p;break}}
@@ -108,7 +110,9 @@ function why(s){const a=win(s.hist),b=win(s.igh),p=n=>(n>=0?'+':'')+Math.round(n
 const isOpen=s=>!!s.rp&&!agOf(s)&&(!!s.ln||(s.lb&&s.lb[1]==='S'));
 const isPassed=s=>{const o=TEAM[akey(s)];return !!(o&&o.pass)};
 const LBC={M:'major label',I:'indie label',D:'distributor / services',S:'self-released'};
-const lbCat=s=>s.lb?LBC[s.lb[1]]:s.ln?'no label listed':'(not on rostr)';
+// only what ROSTR lists: a self-released entry or no label at all is simply not shown
+const realLb=s=>s.lb&&s.lb[1]!=='S'?s.lb:null;
+const lbCat=s=>realLb(s)?LBC[s.lb[1]]:'';
 let VIS='';
 const isNew=s=>!!VIS&&s.src!=='WL'&&s.date>VIS;
 // search operators: listeners:<20k  ig:>5k  agency:none|signed|name  label:major|indie|self|name  flagged:yes  press:>0  pl:>3  added:<7  growth:>20  new:yes  signed:yes  passed:yes
@@ -121,7 +125,7 @@ function opFn(k,op,v){
     case 'listeners':case 'l':{const n=num(v);return n==null?null:s=>cmp(cur(s),n)}
     case 'ig':case 'instagram':{if(v==='none')return s=>igv(s)==null;const n=num(v);return n==null?null:s=>cmp(igv(s),n)}
     case 'agency':case 'ag':{if(/^(none|no|unsigned)$/.test(v))return s=>!agOf(s);if(/^(signed|any|yes)$/.test(v))return s=>!!agOf(s);return s=>agOf(s).toLowerCase().includes(v)}
-    case 'label':case 'lb':{if(v==='major')return s=>s.lb&&s.lb[1]==='M';if(v==='indie')return s=>s.lb&&s.lb[1]==='I';if(v==='self')return s=>s.lb&&s.lb[1]==='S';if(v==='dist')return s=>s.lb&&s.lb[1]==='D';if(v==='none')return s=>!!s.ln;if(v==='unknown')return s=>!s.lb&&!s.ln;return s=>s.lb&&s.lb[0].toLowerCase().includes(v)}
+    case 'label':case 'lb':{if(v==='major')return s=>s.lb&&s.lb[1]==='M';if(v==='indie')return s=>s.lb&&s.lb[1]==='I';if(v==='dist')return s=>s.lb&&s.lb[1]==='D';if(v==='none')return s=>!!s.ln;if(v==='unknown')return s=>!s.lb&&!s.ln;return s=>s.lb&&s.lb[0].toLowerCase().includes(v)}
     case 'flagged':return s=>isFlag(s)===yes;
     case 'press':{const n=num(v);return n==null?null:s=>cmp((s.press||[]).length,n)}
     case 'pl':{const n=num(v);return n==null?null:s=>cmp((s.playlists||[]).length,n)}
@@ -195,10 +199,9 @@ function showsHtml(s){
   return `<div><button class="shw" data-act="shows" data-v="${esc(k)}" aria-expanded="${o}">${l.length} show${l.length>1?'s':''} ${o?'▴':'▾'}</button></div>${o?`<div class="shwl">${l.map(x=>`<span>${esc(x)}${capHtml(x)}</span>`).join('')}</div>`:''}`;
 }
 const opChip=s=>isOpen(s)?'<span class="op" title="ROSTR has a profile but lists no agency and no label">open</span>':'';
-const lbHtml=s=>{const x=lbHtml0(s);return x?x.replace(/<\/div>$/,opChip(s)+'</div>'):''};
-const lbHtml0=s=>{if(s.ln)return '<div class="lbl kN" title="ROSTR has a profile for this artist and lists no record label">no label listed</div>';if(!s.lb)return '';const [n,k]=s.lb;
-  const t=k==='S'?'self-released':esc(n)+(k==='M'?' <span>· major</span>':k==='D'?' <span>· distribution</span>':'');
-  return `<div class="lbl k${k}" title="${esc(LBC[k])} (from ROSTR)">${t}</div>`};
+const lbHtml=s=>{const x=lbHtml0(s);return x?x.replace(/<\/div>$/,opChip(s)+'</div>'):isOpen(s)?'<div class="lbl">'+opChip(s)+'</div>':''};
+const lbHtml0=s=>{const l=realLb(s);if(!l)return '';const k=l[1];
+  return `<div class="lbl k${k}" title="${esc(LBC[k])} (from ROSTR)">${esc(l[0])}</div>`};
 const rsCell=s=>{const h=rostrHtml(s)+snTag(s);return `<div class="RS${/^<(?:a|span) class="[^"]*\bdash\b/.test(h)?' e':''}">${h}</div>`};
 const snTag=s=>s.sn?`<span class="sg" title="agency listed ${esc(dstr(s.sn[1]))}${isFlag(s)?' - after this artist was flagged':''}">new</span>`:'';
 function rostrHtml(s){const a=agInfo(s);
@@ -267,7 +270,7 @@ function renderSide(){
   facet($('#f-pr'),counts('pr',s=>s.press||[]).sort(by),S.pr,'pk');
   facet($('#f-sp'),counts('sp',sps).sort((a,b)=>spN(b[0])-spN(a[0])),S.sp,'sk');
   facet($('#f-ag'),counts('ag',s=>[{t:agOf(s)||'(none)'}]).sort(by),S.ag,'');
-  facet($('#f-lb'),counts('lb',s=>[{t:lbCat(s)}]).sort(by),S.lb,'');
+  facet($('#f-lb'),counts('lb',s=>lbCat(s)?[{t:lbCat(s)}]:[]).sort(by),S.lb,'');
   const bc=BK.map(b=>ALL.filter(s=>match(s,'bk')&&cur(s)>=b[0]&&cur(s)<b[1]).length),mx=Math.max(1,...bc);
   $('#bk').innerHTML=bc.map((c,i)=>`<button data-act="bk" data-v="${i}" class="${S.bk.has(i)?'on':''}" style="height:${Math.max(2,Math.round(c/mx*44))}px" aria-label="${BK[i][2]} listeners: ${c} songs" aria-pressed="${S.bk.has(i)}" title="${c} songs"></button>`).join('');
   $('#bkl').innerHTML=BK.map(b=>`<span>${b[2]}</span>`).join('');
@@ -319,7 +322,7 @@ function panelHtml(k){
   const detail=(pls.length||(rep.press||[]).length||shows.length)?`<div class="ns pdet">${pls.length?`<div class="hn">found on</div><div class="chips">${chipsHtml(pls)}</div>`:''}${(rep.press||[]).length?`<div class="hn" style="margin-top:8px">press</div><div class="chips">${chipsHtml(rep.press,'pr')}</div>`:''}${shows.length?`<div class="hn" style="margin-top:8px">shows</div><div class="shwl">${shows.map(x=>`<span>${esc(x)}${capHtml(x)}</span>`).join('')}</div>`:''}</div>`:'';
   const hist=l.length>1?`<p class="hs">seen ${l.length} times · first ${esc(dlong(first))}${g?` · listeners ${g.f.toLocaleString()} → ${g.l.toLocaleString()} (${g.abs>=0?'+':''}${g.abs.toLocaleString()})`:''}</p>`:'';
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="${esc(rep.artist)}"><button class="hx" data-act="histx" aria-label="close">✕</button>
-    <h3>${esc(rep.artist)}</h3><div class="hn mline"><span class="st ${STC[status(rep)]}">${esc(status(rep))}</span> momentum <b>${momentum(rep)}</b> · ${esc(why(rep))}</div>${agLine}${rep.lb?`<div class="hn">label: ${esc(rep.lb[0])} · ${esc(LBC[rep.lb[1]])} <span>(rostr)</span></div>`:rep.ln?'<div class="hn">label: none listed on rostr</div>':''}${rep.dp?`<div class="hn">may be the same artist as ${rep.dp.map(n=>`<a href="#" data-act="hist" data-v="${esc(n.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase())}">${esc(n)}</a>`).join(', ')}</div>`:''}<div class="pcharts">${sparkBig(rep.hist,'monthly listeners')}${sparkBig(rep.igh,'instagram followers')}</div><div class="hf">${flagBtn}</div>${passHtml(k,o)}${notes}${detail}${igSec}${signForm?`<details class="fix"><summary>fix rostr data</summary>${signForm}</details>`:''}${hist}
+    <h3>${esc(rep.artist)}</h3><div class="hn mline"><span class="st ${STC[status(rep)]}">${esc(status(rep))}</span> momentum <b>${momentum(rep)}</b> · ${esc(why(rep))}</div>${agLine}${realLb(rep)?`<div class="hn">label: ${esc(rep.lb[0])} <span>(rostr)</span></div>`:rep.ln?'<div class="hn">label: none listed on rostr</div>':''}${rep.dp?`<div class="hn">may be the same artist as ${rep.dp.map(n=>`<a href="#" data-act="hist" data-v="${esc(n.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase())}">${esc(n)}</a>`).join(', ')}</div>`:''}<div class="pcharts">${sparkBig(rep.hist,'monthly listeners')}${sparkBig(rep.igh,'instagram followers')}</div><div class="hf">${flagBtn}</div>${passHtml(k,o)}${notes}${detail}${igSec}${signForm?`<details class="fix"><summary>fix rostr data</summary>${signForm}</details>`:''}${hist}
     ${l.length>1?l.map((s,i)=>`<div class="hr"><div class="hd">${esc(dstr(s.date))}<span class="tg ${s.src==='MP'?'mp':'sp'}">${TAGN[s.src]||s.src}</span></div>
       <div class="hm">${s.track?`<a href="${esc(s.track)}" target="_blank" rel="noopener">${esc(s.song)} ↗</a>`:esc(s.song)}<span class="hn">${s.listeners!=null?fmt(s.listeners)+' listeners when added':''}${s.ig?' · '+fmt(s.ig)+' instagram':''}</span>
       ${i?`<div class="chips">${chipsHtml(s.press,'pr')}${chipsHtml([...plain(s).map(p=>({...p,c:'pl'})),...sps(s).map(p=>({...p,c:'sp'}))])}</div>`:''}</div></div>`).join(''):''}</div>`;
@@ -361,13 +364,13 @@ function digestHtml(){const d=digestData(),li=(s,x)=>`<li><a href="#" data-act="
    <p><b>${d.nw}</b> new songs · <b>${d.nwA}</b> artists</p>
    ${d.sg.length?`<div class="ns"><div class="hn">flagged, now with an agency</div><ul>${d.sg.map(s=>li(s,esc(s.sn[0])+' · '+esc(dstr(s.sn[1])))).join('')}</ul></div>`:''}
    ${d.jumps.length?`<div class="ns"><div class="hn">jumped</div><ul>${d.jumps.map(s=>li(s,s.jp.f.toLocaleString()+' → '+s.jp.t.toLocaleString())).join('')}</ul></div>`:''}
-   ${d.open.length?`<div class="ns"><div class="hn">new, unsigned, under 50k</div><ul>${d.open.map(s=>li(s,fmt(cur(s))+(s.lb?' · '+(s.lb[1]==='S'?'self-released':esc(s.lb[0])):''))).join('')}</ul></div>`:''}
+   ${d.open.length?`<div class="ns"><div class="hn">new, unsigned, under 50k</div><ul>${d.open.map(s=>li(s,fmt(cur(s))+(realLb(s)?' · '+esc(s.lb[0]):''))).join('')}</ul></div>`:''}
    ${d.mov.length?`<div class="ns"><div class="hn">flagged artists moving</div><ul>${d.mov.map(s=>{const g=gr(s);return li(s,(g.abs>=0?'+':'')+Math.round(g.pct*100)+'%')}).join('')}</ul></div>`:''}
    <p class="hn" style="margin-top:12px">team: ${d.flags} flags · ${d.notes} notes</p>
    <div class="nf"><button data-act="copydigest">copy as text</button></div></div>`}
 function watchHtml(){const w=Object.entries(TEAM).filter(([k,o])=>o.watch);
-  return `<div class="hc" role="dialog" aria-modal="true" aria-label="watchlist"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>watch an artist</h3><p class="hs">track an artist that is not on the sheet. Paste their Spotify artist link; they get a row and daily listener readings.</p>
-   <form class="wf"><input name="u" placeholder="spotify artist link" autocomplete="off" aria-label="spotify artist link"><input name="n" placeholder="artist name" maxlength="60" autocomplete="off" aria-label="artist name"><button type="submit">watch</button></form>
+  return `<div class="hc" role="dialog" aria-modal="true" aria-label="watchlist"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>watch an artist</h3><p class="hs">track an artist that is not on the sheet. Paste their Spotify artist link and the name fills in; with no link, type the name. Instagram is optional - Spotify's public pages do not carry it, so it fills in on a daily update if the artist lists one there.</p>
+   <form class="wf"><input name="u" placeholder="spotify artist link" autocomplete="off" aria-label="spotify artist link (optional)"><input name="n" placeholder="artist name" maxlength="60" autocomplete="off" aria-label="artist name (optional when you paste a link)"><input name="ig" placeholder="instagram @handle (optional)" maxlength="80" autocomplete="off" aria-label="instagram handle (optional)"><button type="submit">watch</button></form>
    <div class="ns">${w.map(([k,o])=>`<div class="nr"><b>${esc(o.watch.name)}</b> <span class="hn">added by ${esc(o.watch.i)}</span> <button class="nx" data-act="unwatch" data-v="${esc(k)}" aria-label="stop watching">✕</button></div>`).join('')||'<div class="hn">nothing watched yet</div>'}</div></div>`}
 function helpHtml(){const K=[['j / k','next / previous row'],['f','flag or unflag the selected artist'],['n','open notes for the selected artist'],['p','pass on the selected artist: hides it for everyone, with an undo'],['shift-P','pass with a reason'],['x','open the details window for the selected row'],['o or Enter','open the song on Spotify'],['/','search'],['m','show or hide my list'],['shift-click a column','add a second sort'],['Esc','clear filters / close'],['?','this help']];
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="keyboard shortcuts"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>keyboard</h3><div class="ns">${K.map(([a,b])=>`<div class="nr"><kbd>${a}</kbd> ${b}</div>`).join('')}</div><h3 style="margin-top:18px">search tips</h3><div class="ns"><div class="nr">type any of these in the search box, mixed with plain words:</div><div class="nr"><kbd>listeners:&lt;20k</kbd> <kbd>ig:&gt;5k</kbd> <kbd>ig:none</kbd> <kbd>growth:&gt;20</kbd> <kbd>added:&lt;7</kbd></div><div class="nr"><kbd>agency:none</kbd> <kbd>agency:signed</kbd> <kbd>agency:caa</kbd> <kbd>signed:yes</kbd></div><div class="nr"><kbd>label:self</kbd> <kbd>label:indie</kbd> <kbd>label:major</kbd> <kbd>label:none</kbd> <kbd>label:sub pop</kbd></div><div class="nr"><kbd>momentum:&gt;70</kbd> <kbd>status:heating</kbd> <kbd>open:yes</kbd> <kbd>flagged:yes</kbd> <kbd>new:yes</kbd> <kbd>press:&gt;0</kbd> <kbd>pl:&gt;3</kbd> <kbd>passed:yes</kbd></div></div></div>`}
@@ -387,12 +390,23 @@ async function teamAct(o){ // optimistic: apply to local state, post, then re-pu
   else if(o.type==='sign'){const p=o.x.split('|'),v=p.shift();if(v==='match'){e.rmatch={slug:p[0],name:p.slice(1).join('|'),i:o.i,t:now};e.rno=false}else if(v==='nomatch'){e.rno=true;e.rmatch=null}else e.sign=v==='reset'?null:{v,ag:p.join('|'),i:o.i,t:now}}
   else if(o.type==='watch'){e.watch={id:o.x.split('|')[0],name:o.n,i:o.i,t:now};syncWatch()}
   else if(o.type==='unwatch'){e.watch=null;syncWatch()}
+  else if(o.type==='rec'){const x=String(o.x),a=x.indexOf('|'),z=x.lastIndexOf('|');e.recs.push({id:'tmp'+Date.now(),url:x.slice(0,a),song:x.slice(a+1,z),date:x.slice(z+1),name:o.n,i:o.i,t:now});syncWatch()}
+  else if(o.type==='unrec'){Object.values(TEAM).forEach(q=>q.recs=(q.recs||[]).filter(r=>r.id!==o.x));syncWatch()}
   render();if(HO)paintPanel();
   await postTeam(o);await pullTeam();
 }
 // artists a teammate asked to watch: show a row right away; the daily build replaces it with a tracked one
+// Recs added from the intake page become MP ("REC") rows with no counts until the daily build carries them. A rec the
+// base data already has (same track, or same artist and song) is skipped, so promotion never doubles a row.
+const trkId=u=>{const m=/track\/([A-Za-z0-9]{22})/.exec(u||'');return m?m[1]:''};
+const songKey=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 function syncWatch(){ALL=ALL.filter(s=>!s._opt);const have=new Set(ALL.map(akey));
-  Object.entries(TEAM).forEach(([k,o])=>{if(o.watch&&!have.has(k))ALL.push({src:'WL',date:UPD||new Date().toISOString().slice(0,10),artist:o.watch.name||k,song:'',track:'https://open.spotify.com/artist/'+o.watch.id,wid:o.watch.id,_opt:true})});
+  const bt=new Set(ALL.map(s=>trkId(s.track)).filter(Boolean)),bs=new Set(ALL.filter(s=>s.song).map(s=>akey(s)+'|'+songKey(s.song)));
+  const recKeys=new Set();
+  Object.entries(TEAM).forEach(([k,o])=>(o.recs||[]).forEach(r=>{const id=trkId(r.url),sk=k+'|'+songKey(r.song);
+    if((id&&bt.has(id))||bs.has(sk))return;if(id)bt.add(id);bs.add(sk);recKeys.add(k);
+    ALL.push({src:'MP',date:r.date,artist:r.name||k,song:r.song,track:r.url||'',_opt:true,_rec:r.id,_rby:r.i})}));
+  Object.entries(TEAM).forEach(([k,o])=>{if(o.watch&&!have.has(k)&&!recKeys.has(k))ALL.push({src:'WL',date:UPD||new Date().toISOString().slice(0,10),artist:o.watch.name||k,song:'',track:o.watch.id?'https://open.spotify.com/artist/'+o.watch.id:'',wid:o.watch.id||undefined,_opt:true})});
   DAYS=[...new Set(ALL.map(s=>s.date))].sort()}
 const paintMe=()=>{const b=$('#me');if(b)b.textContent=INI?'you: '+INI+' ▾':'set your name'};
 function askIni(first){const w=$('#who');$('#whoi').value=INI;$('#whox').hidden=!!first&&!INI;w.hidden=false;setTimeout(()=>$('#whoi').focus(),30)}
@@ -446,7 +460,7 @@ function cardHtml(s){const k=akey(s),o=TEAM[k]||{notes:[]},st=status(s),a=win(s.
    <div class="bt"><span class="st ${STC[st]}">${esc(st)}</span><span class="hn">${esc(why(s))}</span></div>
    <div class="bm"><div><span class="hn">monthly listeners</span><b>${cur(s)!=null?fmt(cur(s)):'–'}</b>${a?`<i class="${a.pct>=0?'up':'dn'}">${p(a.pct)}</i>`:''}</div>${s.hist&&s.hist.length>1?spark(s.hist,96):''}</div>
    <div class="bm"><div><span class="hn">instagram</span><b>${ig?fmt(ig):'–'}</b>${b?`<i class="${b.pct>=0?'up':'dn'}">${p(b.pct)}</i>`:''}</div>${s.igh&&s.igh.length>1?spark(s.igh,96):''}</div>
-   <div class="bi">${a2.ag?`<span>${esc(a2.ag)}</span>`:'<span class="hn">no agency</span>'}${s.lb?`<span>${esc(s.lb[1]==='S'?'self-released':s.lb[0])}</span>`:''}${opChip(s)}${s.sn?snTag(s):''}</div>
+   <div class="bi">${a2.ag?`<span>${esc(a2.ag)}</span>`:'<span class="hn">no agency</span>'}${realLb(s)?`<span>${esc(s.lb[0])}</span>`:''}${opChip(s)}${s.sn?snTag(s):''}</div>
    ${n?`<div class="nt"><b>${esc(n.i)}</b> ${mention(n.x)}</div>`:''}
    <div class="bb"><button data-act="hist" data-v="${esc(k)}">details</button>${s.track&&s.src!=='WL'?`<a href="${esc(s.track)}" target="_blank" rel="noopener">play ↗</a>`:''}</div></div>`}
 function boardHtml(){
@@ -467,8 +481,31 @@ function cmpHtml(){const ks=[...CMP].slice(0,7),rows=ks.map(repOf).filter(Boolea
   return `<div class="hc" role="dialog" aria-modal="true" aria-label="compare"><button class="hx" data-act="histx" aria-label="close">✕</button><h3>compare monthly listeners</h3><p class="hs">each line starts at 100 on its first reading in the last 28 days</p>
    <svg width="100%" viewBox="0 0 ${W} ${H}" role="img" aria-label="listener growth comparison"><line x1="${P}" x2="${W-8}" y1="${Y(100).toFixed(1)}" y2="${Y(100).toFixed(1)}" stroke="rgba(0,0,0,.25)" stroke-dasharray="3 3"/><text x="2" y="${(Y(100)+3).toFixed(1)}" font-size="9">100</text><text x="2" y="${(Y(hi)+9).toFixed(1)}" font-size="9">${hi}</text><text x="2" y="${(Y(lo)).toFixed(1)}" font-size="9">${lo}</text>${lines}</svg>
    <div class="cl">${ser.map((x,i)=>{const l=x.h.length?x.h[x.h.length-1][1]:null;return `<div><i style="background:${CCOL[i]}"></i><b>${esc(x.s.artist)}</b> <span class="hn">${l!=null?fmt(l)+' listeners':''}${x.base&&l!=null?' · '+(l>=x.base?'+':'')+Math.round((l/x.base-1)*100)+'%':''} · momentum ${momentum(x.s)}</span></div>`}).join('')}</div></div>`}
+// Spotify's own oEmbed gives the artist name for a link (CORS-open); cached per id
+const OEN=new Map();
+async function spotName(id){if(OEN.has(id))return OEN.get(id);let n='';try{const r=await fetch('https://open.spotify.com/oembed?url='+encodeURIComponent('https://open.spotify.com/artist/'+id));n=(await r.json()).title||''}catch(e){}if(n)OEN.set(id,n);return n}
+const nameKey=n=>n.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase();
+// the watch form: the name fills in as soon as a Spotify link is pasted (unless the name was typed by hand)
+let WFT=0;
+document.addEventListener('input',e=>{const t=e.target;if(!t.matches)return;
+  if(t.matches('.wf [name=n]')){t.dataset.auto='';return}
+  if(!t.matches('.wf [name=u]'))return;const f=t.form,id=spotArtistId(t.value);clearTimeout(WFT);if(!id)return;
+  WFT=setTimeout(async()=>{const n=f.n;if(n.value&&n.dataset.auto!=='1')return;const ph=n.placeholder;n.placeholder='reading spotify…';
+    const name=await spotName(id);n.placeholder=ph;
+    if(name&&f.isConnected&&spotArtistId(f.u.value)===id&&(!n.value||n.dataset.auto==='1')){n.value=name;n.dataset.auto='1'}},120)});
+async function watchSubmit(t){
+  if(needIni(''))return;const raw=t.u.value.trim(),id=spotArtistId(raw)||'';
+  if(raw&&!id){t.u.focus();t.u.style.borderBottomColor='#d9342b';return}
+  let n=t.n.value.trim();if(!n&&id)n=await spotName(id);
+  if(!n){t.n.focus();t.n.style.borderBottomColor='#d9342b';toast('type a name, or paste a Spotify link');return}
+  const igRaw=t.ig.value.trim().replace(/^@/,''),h=igRaw?igHandle(igRaw):'';
+  if(igRaw&&!/^[A-Za-z0-9._]{1,30}$/.test(h)){t.ig.focus();t.ig.style.borderBottomColor='#d9342b';return}
+  const k=nameKey(n);t.reset();
+  await teamAct({type:'watch',a:k,n,i:INI,x:id+'|'+n});
+  if(h)await teamAct({type:'ig',a:k,n,i:INI,x:'https://www.instagram.com/'+h+'/|'});
+  toast(n+' is on the watchlist'+(id?'':' - no Spotify link, so no listener readings'))}
 async function followLink(raw){const id=spotArtistId(raw);if(!id){toast('that is not a Spotify artist link');return}
-  if(needIni(''))return;let name='';try{const r=await fetch('https://open.spotify.com/oembed?url='+encodeURIComponent('https://open.spotify.com/artist/'+id));name=(await r.json()).title||''}catch(e){}
+  if(needIni(''))return;let name=await spotName(id);
   if(!name)name=(prompt('artist name?')||'').trim();if(!name)return;
   const k=name.split(/,| & | feat\.? | x /i)[0].trim().toLowerCase(),have=ALL.some(s=>akey(s)===k&&s.src!=='WL');
   if(!have&&!(TEAM[k]&&TEAM[k].watch))await teamAct({type:'watch',a:k,n:name,i:INI,x:id+'|'+name});
@@ -570,9 +607,7 @@ document.addEventListener('submit',e=>{const t=e.target;
   if(t.matches('.bf')){e.preventDefault();const v=t.u.value;t.u.value='';followLink(v);return}
   if(t.matches('.pf')){e.preventDefault();if(needIni(t.dataset.v))return;teamAct({type:'note',a:t.dataset.v,n:nameOf(t.dataset.v),i:INI,x:PASS+(t.x.value.trim()||'-')});return}
   if(t.matches('.ef')){e.preventDefault();const x=t.x.value.trim();if(!x||!PO)return;teamAct({type:'edit',a:PO,n:nameOf(PO),i:INI,x:t.dataset.id+'|'+x});return}
-  if(t.matches('.wf')){e.preventDefault();const id=spotArtistId(t.u.value),n=t.n.value.trim();
-    if(!id){t.u.focus();t.u.style.borderBottomColor='#d9342b';return}if(!n){t.n.focus();return}
-    teamAct({type:'watch',a:n.toLowerCase(),n,i:INI,x:id+'|'+n});t.reset();return}
+  if(t.matches('.wf')){e.preventDefault();watchSubmit(t);return}
   if(t.matches('.vf')){e.preventDefault();if(needIni(''))return;const n=t.n.value.trim();if(!n)return;teamAct({type:'view',a:'_views',n,i:INI,x:JSON.stringify(stateObj())}).then(()=>{$('#pop').innerHTML=viewsHtml()});return}
   if(!t.matches('.nf'))return;e.preventDefault();
   const i=t.i.value.trim().slice(0,24),x=t.x.value.trim();if(!i||!x){(i?t.x:t.i).focus();return}
@@ -600,7 +635,7 @@ document.addEventListener('keydown',e=>{
 });
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const rows=[['date','artist','song','monthly listeners','instagram','instagram growth %','listener growth %','press','playlists','agency','agent','signed','flagged by','label','release','track url'],...VIEW.map(s=>{const a=agInfo(s),g=gr(s),gi=gr(s,'igh'),o=TEAM[akey(s)],lp=lastPt(s,'igh');return [s.date,s.artist,s.song,cur(s),lp?lp[1]:s.ig,gi&&gi.pct!=null?Math.round(gi.pct*100):'',g&&g.pct!=null?Math.round(g.pct*100):'',(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),a.ag,a.agt||'',a.ag?'yes':'no',o&&o.flag?o.flag.i:s.flag?'sheet':'',s.lb?s.lb[0]:'',lbCat(s),s.track]})];
+  const rows=[['date','artist','song','monthly listeners','instagram','instagram growth %','listener growth %','press','playlists','agency','agent','signed','flagged by','label','release','track url'],...VIEW.map(s=>{const a=agInfo(s),g=gr(s),gi=gr(s,'igh'),o=TEAM[akey(s)],lp=lastPt(s,'igh');return [s.date,s.artist,s.song,cur(s),lp?lp[1]:s.ig,gi&&gi.pct!=null?Math.round(gi.pct*100):'',g&&g.pct!=null?Math.round(g.pct*100):'',(s.press||[]).map(p=>p.t).join(' | '),(s.playlists||[]).map(p=>p.t).join(' | '),a.ag,a.agt||'',a.ag?'yes':'no',o&&o.flag?o.flag.i:s.flag?'sheet':'',realLb(s)?s.lb[0]:'',lbCat(s),s.track]})];
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='instinct.csv';a.click();
 }
 // ---- footer: what the data looks like right now
