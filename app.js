@@ -48,7 +48,7 @@ const gr=(s,k='hist')=>{const c='_g'+k;if(s[c]!==undefined)return s[c];const h=s
 const lastPt=(s,k='hist')=>{const h=s[k];return h&&h.length?h[h.length-1]:null};
 const TAGN={SP:'SCAN',MP:'REC',WL:'WATCH',PR:'PRESS'};
 const tagCls=s=>({MP:'mp',WL:'wl',PR:'pr'})[s.src]||'sp';
-let TW=null,UPD='';
+let TW=null,UPD='',PD={},FOOTD=null;
 const DAY=864e5,tms=d=>new Date(d+'T12:00:00').getTime();
 const daysAgo=iso=>iso?Math.round((tms(UPD||new Date().toISOString().slice(0,10))-tms(iso))/DAY):999;
 // every sparkline shares one date window (the last 28 days up to the newest reading), so lines line up row to row
@@ -415,9 +415,9 @@ function syncWatch(){ALL=ALL.filter(s=>!s._opt);const have=new Set(ALL.map(akey)
   const bpu={};ALL.forEach(x=>(x.press||[]).forEach(p=>{if(p.u)(bpu[akey(x)]||(bpu[akey(x)]=new Set())).add(p.u)}));
   const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return u}};
   Object.entries(TEAM).forEach(([k,o])=>(o.prs||[]).forEach(r=>{const b=bpu[k];if(b&&r.u.every(u=>b.has(u)))return;recKeys.add(k);
-    ALL.push({src:'PR',date:r.d,artist:r.name||k,song:r.s,track:r.t,hist:r.l!=null?[[r.d,r.l]]:undefined,press:r.u.map(u=>({t:hostOf(u),u,d:r.d})),_opt:true,_pr:r.id,_rby:r.i})}));
+    ALL.push({src:'PR',date:r.d,artist:r.name||k,song:r.s,track:r.t,hist:r.l!=null?[[r.d,r.l]]:undefined,press:r.u.map(u=>({t:hostOf(u),u,d:PD[u]||''})),_opt:true,_pr:r.id,_rby:r.i})}));
   Object.entries(TEAM).forEach(([k,o])=>{if(o.watch&&!have.has(k)&&!recKeys.has(k))ALL.push({src:'WL',date:UPD||new Date().toISOString().slice(0,10),artist:o.watch.name||k,song:'',track:o.watch.id?'https://open.spotify.com/artist/'+o.watch.id:'',wid:o.watch.id||undefined,_opt:true})});
-  DAYS=[...new Set(ALL.map(s=>s.date))].sort()}
+  DAYS=[...new Set(ALL.map(s=>s.date))].sort();if(FOOTD)paintFoot(FOOTD)}
 // the "hide playlists" pill: drops the playlists column (the grid is re-templated in styles.css)
 function paintNopl(){const b=document.querySelector('[data-act=nopl]');if(!b)return;const on=document.body.classList.contains('nopl');b.textContent=on?'show playlists':'hide playlists';b.setAttribute('aria-pressed',on)}
 const paintMe=()=>{const b=$('#me');if(b)b.textContent=INI?'you: '+INI+' ▾':'set your name'};
@@ -531,6 +531,7 @@ function closeMenu(){$('#pop').hidden=true;MENU=''}
 function menuHtml(v){
   if(v==='views')return viewsHtml();
   const it=(on,act,val,txt)=>`<button class="mi${on?' on':''}" data-act="${act}" data-v="${val}" role="menuitem">${on?'✓ ':''}${txt}</button>`;
+  if(v==='recap')return `<div class="vw" role="menu">${it(false,'go','digest','this week')}${it(false,'go','score','scorecard')}${API?it(false,'go','feed','team activity'+(($('#fb')||{}).textContent||'')):''}</div>`;
   if(v==='view')return `<div class="vw">${it(S.grp,'tog','grp','group by artist')}${API?it(S.mine,'tog','mine','my flags only'):''}${API?it(S.passed,'tog','passed','show passed artists ('+Object.values(TEAM).filter(o=>o.pass).length+')'):''}${it(document.body.classList.contains('compact'),'dens','','compact rows')}</div>`;
   if(v==='sort')return `<div class="vw">${SORTS.map(([k,d,t])=>it(S.sort===k&&S.dir===d,'setsort',k+'|'+d,t)).join('')}</div>`;
   return `<div class="vw">${it(0,'copylink','','copy link to this view')}${it(0,'csv','','download csv')}</div>`}
@@ -549,6 +550,7 @@ const ACT={
   ecancel:()=>{paintPanel();return 1},
   sign:(b,v)=>{if(needIni(v))return 1;teamAct({type:'sign',a:v,n:nameOf(v),i:INI,x:b.dataset.s});return 1},
   unwatch:(b,v)=>{teamAct({type:'unwatch',a:v,n:nameOf(v),i:INI,x:''});return 1},
+  go:(b,v)=>{closeMenu();return ACT[v](b,'')},
   feed:()=>{openPanel('feed');const now=new Date().toISOString();ls.set('instinct_seen',now);SEEN=now;paintFeedBadge();return 1},
   digest:()=>{openPanel('digest');return 1},
   score:()=>{openPanel('score');return 1},
@@ -652,12 +654,12 @@ function csv(){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='instinct.csv';a.click();
 }
 // ---- footer: what the data looks like right now
-function paintFoot(d){
+function paintFoot(d){FOOTD=d;
   const h=HEALTH,u=new Date(d.updated),hrs=(Date.now()-u)/36e5;
   $('#upd').textContent='updated '+u.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+u.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   const st=$('#stale');st.hidden=hrs<30;st.textContent=hrs>=30?`this data is ${Math.round(hrs)} hours old - the daily refresh may have failed`:'';
   if(!h){$('#foot').textContent='';return}
-  const bits=[`${h.rows} songs · ${h.artists} artists`,`listener readings through ${h.lastread?dstr(h.lastread):'–'}${h.stale?` (${h.stale} artists over 10 days old)`:''}`,`instagram: ${h.igcount} counts, ${h.iggrow} with growth, ${h.noig} songs with no profile${h.lastig?', last read '+dstr(h.lastig):''}`,`rostr: ${h.rostr_nomatch} no match${h.rostr_never?`, ${h.rostr_never} never checked`:''}`,`${h.jumps} active jump${h.jumps===1?'':'s'}`];
+  const live=ALL.filter(s=>s.src!=='WL'),bits=[`${live.length} songs · ${new Set(live.map(akey)).size} artists`,`listener readings through ${h.lastread?dstr(h.lastread):'–'}${h.stale?` (${h.stale} artists over 10 days old)`:''}`,`instagram: ${h.igcount} counts, ${h.iggrow} with growth, ${h.noig} songs with no profile${h.lastig?', last read '+dstr(h.lastig):''}`,`rostr: ${h.rostr_nomatch} no match${h.rostr_never?`, ${h.rostr_never} never checked`:''}`,`${h.jumps} active jump${h.jumps===1?'':'s'}`];
   $('#foot').innerHTML=bits.map(esc).join(' · ')+' · <button class="act" data-act="help">keys (?)</button>';
 }
 function init(data){
@@ -668,7 +670,7 @@ function init(data){
   {const mx=data.songs.filter(s=>s.src!=='WL').reduce((a,s)=>s.date>a?s.date:a,'');
    if(!ss.get('vs')){ls.set('instinct_prevmax',ls.get('instinct_lastmax')||'');ls.set('instinct_lastmax',mx);ss.set('vs','1')}
    VIS=ls.get('instinct_prevmax')||''}
-  HS=data.hs||{};HEALTH=data.health||null;UPD=String(data.updated||'').slice(0,10);
+  HS=data.hs||{};PD=data.pd||{};HEALTH=data.health||null;UPD=String(data.updated||'').slice(0,10);
   data.songs.forEach(s=>{const e=HS[akey(s)];if(e){if(e.h)s.hist=e.h;if(e.g)s.igh=e.g;if(e.x)s.igx=1}});
   REP={};data.songs.forEach(s=>{if(s.src==='WL')return;const k=akey(s);REP[k]=(REP[k]||0)+1});
   TW=null;ALL=data.songs.slice().sort((a,b)=>(a.src==='MP')-(b.src==='MP'));

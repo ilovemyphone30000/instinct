@@ -7,7 +7,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 cp = os.path.join(here, "press_dates.json")
 cache = json.load(open(cp)) if os.path.exists(cp) else {}
 songs = json.load(open(os.path.join(here, "data.json")))["songs"]
-urls = sorted({p["u"] for s in songs for p in s.get("press", []) if p.get("u")})
+urls = sorted({p["u"] for s in songs for p in s.get("press", []) if p.get("u")} | set(json.load(open(os.path.join(here, "team_press.json"))) if os.path.exists(os.path.join(here, "team_press.json")) else []))
 todo = [u for u in urls if u not in cache or (cache[u] is None and "--retry" in sys.argv)]
 META = r'(?:article:published_time|og:article:published_time|datePublished|date|pubdate|publishdate|DC\.date\.issued|sailthru\.date|parsely-pub-date)'
 PATS = [r'"datePublished"\s*:\s*"(\d{4}-\d{2}-\d{2})', r'<meta[^>]+(?:property|name|itemprop)=["\']' + META + r'["\'][^>]+content=["\'](\d{4}-\d{2}-\d{2})',

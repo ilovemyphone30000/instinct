@@ -160,6 +160,7 @@ for s in songs:
 api = None
 tp = os.path.join(here, "team_api.json")
 watch = {}
+tpress = set()  # article links from PRESS finds added on the intake page
 matches, rejects = {}, set()  # ROSTR near-matches a teammate confirmed / rejected
 if os.path.exists(tp):
     api = json.load(open(tp))
@@ -168,6 +169,11 @@ if os.path.exists(tp):
             import urllib.request, urllib.parse
             log = json.load(urllib.request.urlopen(api["url"] + "?k=" + urllib.parse.quote(api["key"]), timeout=30)).get("log", [])
             on = {}
+            _unp = {str(e.get("x")) for e in log if e["y"] == "unpress"}
+            for e in log:
+                if e["y"] == "press" and str(e.get("id")) not in _unp:
+                    try: tpress.update(json.loads(e["x"]).get("u", []))
+                    except Exception: pass
             for e in log:
                 if e["y"] == "flag": on[e["a"]] = True
                 elif e["y"] == "unflag": on.pop(e["a"], None)
@@ -219,6 +225,13 @@ if watch and os.path.exists(hpath):
         if w["id"]:
             Hd["artists"].setdefault(k, {"name": w["name"], "pts": []})["id"] = w["id"]
     json.dump(Hd, open(hpath, "w"), indent=1, ensure_ascii=False)
+# publication dates for the intake page's press links (so a PRESS chip shows when the article ran, not when it was imported)
+pd = {}
+if tpress:
+    json.dump(sorted(tpress), open(os.path.join(here, "team_press.json"), "w"))
+    subprocess.run([sys.executable, os.path.join(here, "press_dates.py")], check=False)
+    _pj = json.load(open(pdp)) if os.path.exists(pdp) else {}
+    pd = {u: _pj[u] for u in tpress if _pj.get(u)}
 # ROSTR agency/agent (rostr.json, filled by the daily routine): attached to every row of the artist
 rjp = os.path.join(here, "rostr.json")
 rj = json.load(open(rjp)) if os.path.exists(rjp) else {}
@@ -350,7 +363,7 @@ health = {
     "jumps": len(jmp),
 }
 payload = {"updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-           "songs": songs, "hs": HS, "health": health, "spl": spl, "caps": caps, "api": api, "mega": MEGA, "extra": EXTRA}
+           "songs": songs, "hs": HS, "health": health, "spl": spl, "caps": caps, "api": api, "mega": MEGA, "extra": EXTRA, "pd": pd}
 json.dump(payload, open(out, "w"), ensure_ascii=False, separators=(",", ":"))
 # refuse to publish a broken build (see check_data.py); the previous data.enc.json stays in place
 r = subprocess.run([sys.executable, os.path.join(here, "check_data.py"), out])
