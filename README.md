@@ -35,3 +35,7 @@ Search box: `listeners:<20k  ig:>5k  ig:none  growth:>20  added:<7  agency:none|
 - Signed-since-flagged banner: build_data.py compares ROSTR agencies with agency_seen.json (the first build is a baseline and never alerts).
 - Scorecard: flagged artists, listeners/Instagram when flagged vs now, agency since. New-for-me: rows dated after the newest date seen at your previous session (per browser).
 - Possible duplicate artists (same Spotify id, or names one letter apart) get a ≈ badge and a note in the popup.
+- My list (tab, key `m`): a board of the artists you flagged or added, each with a status (heating up / moving / holding / cooling / new), a 0-100 momentum score
+  (listener growth 40, Instagram growth 20, playlists 20, press 10, jump 10), 7-14 day changes, sparklines, agency/label/OPEN chip and the latest note.
+  Paste a Spotify artist link to follow someone not on the sheet (name via Spotify oEmbed; becomes a watch + flag). Compare up to 7 artists, copy a weekly report.
+  OPEN = ROSTR has a profile but lists no agency and no label (or self-released). Search: `open:yes momentum:>60 status:heating`.
