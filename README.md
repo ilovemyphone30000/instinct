@@ -49,3 +49,7 @@ so re-running a list is safe. `unrec` (x = the rec's id) removes that rec only. 
 no counts until the daily build carries them, and skips any rec the base data already has. The log key is a shared secret that
 rides inside the encrypted data; initials are self-asserted, so this is not per-user login. After editing `team_log.gs`, paste it
 into the Apps Script project (keep KEY and SHEET_ID) and redeploy a new version.
+
+PRESS mode on the same page posts `press` events (x = JSON `{d,l,s,t,u}`: date, listeners, song, track url, article links); `unpress`
+removes one. The backend dedupes on artist + any shared article link. The site renders them as `PRESS` rows (src `PR`) with the
+article links in the press column and the listener count as of the find date. Backend now accepts rec, unrec, press, unpress.

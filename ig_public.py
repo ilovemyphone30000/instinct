@@ -5,7 +5,7 @@ Plain HTTPS GET with no cookies, no session and no browser: the same page anyone
 count is read from the page's og:description ("1,235 Followers, 220 Following, ..."). Nothing here ever touches a
 signed-in Instagram session - never point this at a browser profile or pass cookies.
 
-Usage: ig_public.py [--cap N] [--dry]   |   ig_public.py --one <handle>  (print one count, writes nothing)
+Usage: ig_public.py [--cap N] [--dry] [--all]   |   ig_public.py --one <handle>  (print one count, writes nothing)
   handles come from history.json (igUrl) and data.json (igUrl, sheet column + teammate-entered)
   order: flagged / team-flagged / jumped / added in the last 14 days first (daily), everyone else once a week
   results are appended to history.json  artists[k].ig  as [date, followers]  (one point per day)
@@ -17,8 +17,8 @@ import datetime, html, json, os, random, re, sys, time, urllib.request
 here = os.path.dirname(os.path.abspath(__file__))
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
 TODAY = datetime.date.today().isoformat()
-WEEK = 7
-cap = int(sys.argv[sys.argv.index("--cap") + 1]) if "--cap" in sys.argv else 200
+WEEK = 1 if "--all" in sys.argv else 7   # --all: everyone not already read today
+cap = int(sys.argv[sys.argv.index("--cap") + 1]) if "--cap" in sys.argv else (10000 if "--all" in sys.argv else 200)
 dry = "--dry" in sys.argv
 
 

@@ -249,6 +249,7 @@ a.num.hd span{font-weight:500}
 .RS .soft,.soft{color:var(--mute);text-decoration:none!important;font-weight:500!important}
 mark{background:#fff4a3;color:#000;padding:0 2px}mark.me2{background:var(--pink);font-weight:800}
 .tg.wl{border-style:dashed}
+.tg.pr{border-style:dotted;border-width:2px;padding:0 3px}
 .rr .tg.wl{border-style:dashed}
 /* header: secondary sort marker */
 .head button.s2::after{content:" ↓ 2"}.head button.s2.asc2::after{content:" ↑ 2"}

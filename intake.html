@@ -37,8 +37,10 @@ td input{padding:2px 4px}
   <button type="submit">open</button>
 </form>
 <section id="app" hidden>
-  <h1>add recs</h1>
-  <p class="h">One track per line: a Spotify track link, or <code>Artist - Song</code>, or <code>Artist - Song - 2026-11-03</code>. A link with no artist needs the artist typed in the preview.</p>
+  <h1>add to the list</h1>
+  <label style="margin-top:0">what are these</label>
+  <div style="margin:4px 0 8px"><label style="display:inline;margin:0 16px 0 0"><input type="radio" name="mode" value="rec" checked style="width:auto"> REC (a person's picks)</label><label style="display:inline;margin:0"><input type="radio" name="mode" value="press" style="width:auto"> PRESS (press finds)</label></div>
+  <p class="h" id="hint"></p>
   <label for="ini">initials of who these are from</label>
   <input id="ini" maxlength="24" style="max-width:160px">
   <label for="ta">tracks</label>

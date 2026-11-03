@@ -23,9 +23,10 @@ const akey=n=>String(n).split(/,| & | feat\.? | x /i)[0].trim().toLowerCase();
 const trkId=u=>{const m=/track\/([A-Za-z0-9]{22})/.exec(u||'');return m?m[1]:''};
 const songKey=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-const validDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&new Date(s+'T00:00:00Z').toISOString().slice(0,10)===s;
+const validDate=s=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const d=new Date(s+'T00:00:00Z');return !isNaN(d)&&d.toISOString().slice(0,10)===s};
 
 let DATA=null,API=null,ROWS=[],BUSY=false;
+const mode=()=>document.querySelector('input[name=mode]:checked').value;
 const URL_RE=/https?:\/\/open\.spotify\.com\/(?:intl-[a-z]{2,5}\/)?track\/([A-Za-z0-9]{22})\S*/i;
 
 // one line -> {artist, song, url, date, err}
@@ -39,11 +40,33 @@ function parseLine(line){
   else{if(parts.length<2){r.err='need "Artist - Song" or a track link';return r}r.artist=parts[0];r.song=parts.slice(1).join(' - ')}
   return r;
 }
+// PRESS line: Artist | 12,500 | 2026-11-03 | https://article | https://another   (also tab-separated; order after the
+// artist is free: https links are the articles, a spotify track link is the track, a date, a listener count, any other text is the song)
+function parsePress(line){
+  const r={raw:line,kind:'press',artist:'',song:'',url:'',date:today(),listeners:null,links:[],err:''};
+  const parts=line.split(/\t|\s\|\s|\|/).map(x=>x.trim()).filter(Boolean);
+  if(!parts.length||/^https?:/i.test(parts[0])){r.err='start with the artist, then | listeners | date | article link(s)';return r}
+  r.artist=parts.shift();
+  for(const t of parts){
+    if(/^https?:\/\//i.test(t)){
+      if(URL_RE.test(t)){r.url='https://open.spotify.com/track/'+URL_RE.exec(t)[1];continue}
+      if(!/^https:\/\//i.test(t)){r.err='article links must be https';return r}
+      if(!r.links.includes(t))r.links.push(t);continue}
+    if(/^\d{4}-\d{2}-\d{2}$/.test(t)){if(!validDate(t)){r.err='bad date '+t;return r}r.date=t;continue}
+    const m=/^([\d][\d,.]*)\s*([kKmM])?\s*(?:monthly\s+)?(?:listeners)?$/i.exec(t);
+    if(m){const v=parseFloat(m[1].replace(/,/g,''));if(isFinite(v)){r.listeners=Math.round(v*({k:1e3,m:1e6}[(m[2]||'').toLowerCase()]||1));continue}}
+    if(!r.song)r.song=t;
+  }
+  if(!r.links.length)r.err='needs at least one https article link';
+  else if(r.links.length>5)r.err='at most 5 article links';
+  return r;
+}
 async function oembedSong(url){
   try{const j=await (await fetch('https://open.spotify.com/oembed?url='+encodeURIComponent(url))).json();return j.title||''}catch(e){return ''}
 }
 function inBase(r){
-  if(!DATA)return false;const id=trkId(r.url),k=r.artist?akey(r.artist)+'|'+songKey(r.song):'';
+  if(!DATA)return false;
+  if(r.kind==='press'){const k=akey(r.artist);const have=new Set();DATA.songs.forEach(x=>{if(akey(x.artist)===k)(x.press||[]).forEach(p=>have.add(p.u))});return r.links.length>0&&r.links.every(u=>have.has(u))}const id=trkId(r.url),k=r.artist?akey(r.artist)+'|'+songKey(r.song):'';
   return DATA.songs.some(s=>(id&&trkId(s.track)===id)||(k&&s.song&&akey(s.artist)+'|'+songKey(s.song)===k));
 }
 function paint(){
@@ -54,9 +77,10 @@ function paint(){
       :r.status==='dup'?`<span class="m">${esc(r.msg||'duplicate, skipped')}</span>`
       :r.status==='err'?`<span class="bad">${esc(r.msg)}</span>`
       :r.status==='busy'?'<span class="m">…</span>':'<span class="m">ready</span>';
+    if(r.kind==='press')return `<tr><td>${esc(r.artist)}</td><td>${r.links.map((u,j)=>`<a class="m" href="${esc(u)}" target="_blank" rel="noopener">article ${j+1}</a>`).join(' ')}${r.song?' · '+esc(r.song):''}</td><td class="m">${r.listeners!=null?r.listeners.toLocaleString()+' listeners · ':'no count · '}${esc(r.date)}</td><td>${st}</td></tr>`;
     return `<tr><td>${art}</td><td>${esc(r.song)}${r.url?` <a class="m" href="${esc(r.url)}" target="_blank" rel="noopener">link</a>`:''}</td><td class="m">${esc(r.date)}</td><td>${st}</td></tr>`}).join('');
   const todo=ROWS.filter(r=>!r.status&&!r.err);
-  $('#go').disabled=BUSY||!todo.length||!todo.every(r=>r.artist.trim()&&r.song.trim());
+  $('#go').disabled=BUSY||!todo.length||!todo.every(r=>r.artist.trim()&&(r.kind==='press'?r.links.length:r.song.trim()));
   const n=k=>ROWS.filter(r=>r.status===k).length;
   $('#sum').textContent=ROWS.length?`${ROWS.length} lines · ${n('ok')} added · ${n('dup')} skipped · ${n('err')} errors`:'';
 }
@@ -65,6 +89,7 @@ async function preview(){
   $('#prev').disabled=true;$('#sum').textContent='reading…';
   ROWS=[];
   for(const l of lines){
+    if(mode()==='press'){const r=parsePress(l);if(r.err){r.status='err';r.msg=r.err}else if(inBase(r)){r.status='dup';r.msg='already on the site'}ROWS.push(r);continue}
     const r=parseLine(l);
     if(r.err){r.status='err';r.msg=r.err}
     else{
@@ -93,7 +118,9 @@ async function add(){
   for(const r of ROWS){
     if(r.status||r.err)continue;
     r.artist=r.artist.trim();r.status='busy';paint();
-    const j=await send({type:'rec',a:akey(r.artist),n:r.artist,i:ini,x:r.url+'|'+r.song+'|'+r.date});
+    const j=r.kind==='press'
+      ?await send({type:'press',a:akey(r.artist),n:r.artist,i:ini,x:JSON.stringify({d:r.date,l:r.listeners,s:r.song,t:r.url,u:r.links})})
+      :await send({type:'rec',a:akey(r.artist),n:r.artist,i:ini,x:r.url+'|'+r.song+'|'+r.date});
     if(j.ok&&j.deduped){r.status='dup';r.msg='duplicate, skipped'}
     else if(j.ok){r.status='ok';r.id=j.id;r.ini=ini}
     else{r.status='err';r.msg=j.error||'error'}
@@ -102,7 +129,7 @@ async function add(){
   BUSY=false;paint();
 }
 async function undo(r){
-  const j=await send({type:'unrec',a:akey(r.artist),n:r.artist,i:r.ini,x:r.id});
+  const j=await send({type:r.kind==='press'?'unpress':'unrec',a:akey(r.artist),n:r.artist,i:r.ini,x:r.id});
   if(j.ok){r.status='undone'}else{r.status='err';r.msg=j.error||'error'}
   paint();
 }
@@ -117,7 +144,7 @@ $('#prev').addEventListener('click',preview);
 $('#go').addEventListener('click',add);
 $('#tb').addEventListener('input',e=>{if(e.target.classList.contains('ai')){ROWS[+e.target.dataset.i].artist=e.target.value;paint0()}});
 // re-enable the add button while typing an artist without rebuilding (and so unfocusing) the table
-function paint0(){const todo=ROWS.filter(r=>!r.status&&!r.err);$('#go').disabled=BUSY||!todo.length||!todo.every(r=>r.artist.trim()&&r.song.trim())}
+function paint0(){const todo=ROWS.filter(r=>!r.status&&!r.err);$('#go').disabled=BUSY||!todo.length||!todo.every(r=>r.artist.trim()&&(r.kind==='press'?r.links.length:r.song.trim()))}
 $('#tb').addEventListener('click',e=>{const b=e.target.closest('[data-u]');if(b)undo(ROWS[+b.dataset.u])});
 // brute-force brake, same idea as the main site
 let FAILS=+(ss.get('instinct_fails')||0),LOCK=+(ss.get('instinct_lock')||0);
@@ -131,3 +158,9 @@ $('#gate').addEventListener('submit',async e=>{
 (async()=>{lockTick();const pw=ls.get('instinct_pw');
   if(pw){try{start(await open(pw));return}catch(e){}}
   $('#pw').focus()})();
+
+const HINT={rec:'One track per line: a Spotify track link, or <code>Artist - Song</code>, or <code>Artist - Song - 2026-11-03</code>. A link with no artist needs the artist typed in the preview.',
+  press:'One artist per line, parts split by <code>|</code>: <code>Artist | 12,500 | 2026-11-03 | https://article | https://another</code>. The listener count, date and song are optional; at least one https article link is required (up to 5). These get a PRESS tag, kept apart from recs.'};
+function setMode(){$('#hint').innerHTML=HINT[mode()];ROWS=[];paint();$('#ta').placeholder=mode()==='press'?'Artist | 12,500 | 2026-11-03 | https://...':'';}
+document.querySelectorAll('input[name=mode]').forEach(i=>i.addEventListener('change',setMode));
+setMode();
