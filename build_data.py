@@ -51,10 +51,15 @@ def links(c):
     return res
 
 
+import os
+_smp = os.path.join(os.path.dirname(os.path.abspath(src)), "src_map.json")
+if not os.path.exists(_smp):
+    _smp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "src_map.json")
+SRC_MAP = json.load(open(_smp)) if os.path.exists(_smp) else {}
 songs = []
 for sh in d["sheets"]:
     tab = sh["properties"]["title"]
-    if tab not in ("SP", "MP"):
+    if tab not in ("SP", "MP", "MUSIC"):
         continue
     rows = sh["data"][0]["rowData"]
     head = [(c.get("formattedValue") or "").strip() for c in rows[0].get("values", [])]
@@ -76,8 +81,16 @@ for sh in d["sheets"]:
         date = datetime.date(int(m[3]), int(m[1]), int(m[2])).isoformat() if m else None
         if not date:
             continue
+        # the sheet's single MUSIC tab replaced SP and MP: a row keeps the SCAN/REC label it was first built with
+        # (src_map.json, git-ignored); a new row is SCAN when it lists playlists, else REC
+        if tab == "MUSIC":
+            _k = f"{artist.lower()}|{song.lower()}"
+            _src = SRC_MAP.get(_k) or ("SP" if (cell(r, "SPOTIFY PLAYLISTS").get("formattedValue") or "").strip() else "MP")
+            SRC_MAP[_k] = _src
+        else:
+            _src = tab
         s = {
-            "src": tab,
+            "src": _src,
             "flag": (cell(r, "FLAG").get("formattedValue") or "").upper() == "TRUE",
             "date": date,
             "artist": artist,
@@ -92,7 +105,8 @@ for sh in d["sheets"]:
         }
         songs.append({k: v for k, v in s.items() if v not in (None, "", [], False)})
 
-import os, subprocess
+import subprocess
+json.dump(SRC_MAP, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "src_map.json"), "w"), indent=0)
 
 # growth: history.json (git-ignored) holds daily monthly-listener readings for tracked artists.
 # Each tracked artist's series = those readings + the listeners value stored on its own sheet rows.
