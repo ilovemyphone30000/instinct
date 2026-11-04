@@ -278,7 +278,7 @@ function renderSide(){
   $('#bk').innerHTML=bc.map((c,i)=>`<button data-act="bk" data-v="${i}" class="${S.bk.has(i)?'on':''}" style="height:${Math.max(2,Math.round(c/mx*44))}px" aria-label="${BK[i][2]} listeners: ${c} songs" aria-pressed="${S.bk.has(i)}" title="${c} songs"></button>`).join('');
   $('#bkl').innerHTML=BK.map(b=>`<span>${b[2]}</span>`).join('');
 }
-const TABS=[['all','all'],['new','new for me'],['week','last 7 days'],['press','has press'],['grow','monthly listeners 10%+'],['igrow','instagram 10%+']];
+const TABS=[['all','all'],['week','last 7 days'],['press','has press'],['grow','monthly listeners 10%+'],['igrow','instagram 10%+']];
 function renderTop(){
   document.body.classList.toggle('nosong',!S.flag);
   document.querySelectorAll('.pill[data-act]').forEach(b=>{const on=b.dataset.act==='flagged'?S.flag:b.dataset.act==='hs'?S.hs:false;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
