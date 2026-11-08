@@ -1,5 +1,5 @@
 :root{
-  --bg:#bfbfbf; --ink:#000; --dark:#000; --up:#0b6b2f; --dn:#b3261e; --mute:rgba(0,0,0,.55); --line:rgba(0,0,0,.18); --hover:rgba(255,255,255,.35);
+  --bg:#bfbfbf; --ink:#000; --dark:#000; --up:#0b6b2f; --dn:#b3261e; --mute:rgba(0,0,0,.68); --line:rgba(0,0,0,.18); --hover:rgba(255,255,255,.35);
   --lime:#d7ff5c; --lemon:#fff38a; --pink:#ffb3d9; --sky:#a8d8ff;
   --sans:-apple-system,system-ui,Inter,"Segoe UI",Roboto,sans-serif;
 }
@@ -21,7 +21,7 @@ button{cursor:pointer}
 .k1{--c:var(--lime)}.k2{--c:var(--lemon)}.k3{--c:var(--pink)}.k4{--c:var(--sky)}.k5{--c:#fff}
 .top .sp{flex:1}
 .meta{color:var(--mute);text-align:right;padding-top:4px}
-.tg{display:inline-block;font-size:8px;font-weight:800;padding:0 4px 1px;border-radius:2px;margin-left:6px;vertical-align:1px;border:1px solid var(--ink);color:#000;background:none;opacity:.55}
+.tg{display:inline-block;font-size:8px;font-weight:800;padding:0 4px 1px;border-radius:2px;margin-left:6px;vertical-align:1px;border:1px solid var(--ink);color:#000;background:none;opacity:.72}
 .tg.mp{background:var(--ink);color:var(--bg)}
 .tg:hover,.tg.on{opacity:1}
 
@@ -146,7 +146,7 @@ a.chip:hover{box-shadow:0 0 0 1px var(--dark)}
 .chip.pl{background:var(--lemon)}
 .chip.sp{background:#fff}
 .chip.sh{background:var(--lime)}
-a.chip::after{content:" ↗";opacity:.45}
+a.chip:hover{text-decoration:underline}
 .shw{display:inline-block;margin-top:4px;color:#000;background:var(--lime);padding:0 8px 1px;border-radius:99px;font-size:10px;font-weight:700}
 .shw:hover{box-shadow:0 0 0 1px var(--ink)}
 .shwl{display:flex;flex-direction:column;gap:2px;margin-top:5px;align-items:flex-start}
@@ -464,3 +464,16 @@ body.board #head,body.board .daycap{display:none}
 
 /* phones: no dangling ROSTR label on empty cells */
 @media(max-width:900px){.row .RS:empty{display:none!important}}
+
+/* polish pass: tabular figures, balanced headlines, a clear primary action, small feedback motion */
+body{font-variant-numeric:tabular-nums}
+h1,h2,h3,.logo,.hc h3{text-wrap:balance}
+.hn,.bio,p{text-wrap:pretty}
+.pill.tm{background:var(--lime);box-shadow:0 0 0 1px var(--ink);font-weight:800}
+.pill.tm:hover{box-shadow:0 0 0 2px var(--ink)}
+.rr .row{padding-top:8px;padding-bottom:8px}
+.fl{opacity:.6}
+button,.pill,a.chip{transition:box-shadow .12s ease,background-color .12s ease,transform .12s ease}
+button:active:not([disabled]){transform:scale(.97)}
+@media (prefers-reduced-motion:reduce){button,.pill,a.chip{transition:none}button:active:not([disabled]){transform:none}}
+.GR .gp:not(.up):not(.dn){font-weight:500;color:var(--mute)}
