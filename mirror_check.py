@@ -23,7 +23,7 @@ for r in rows[1:]:
     a, s = fv(v[ix["ARTIST"]]), fv(v[ix["SONG"]])
     if a or s:
         sheet[(a.lower(), s.lower())] = {k: fv(v[i]) for k, i in ix.items()}
-site = {(s["artist"].lower(), s["song"].lower()): s for s in d["songs"] if s["src"] in ("SP", "MP")}
+site = {(s["artist"].lower(), s.get("song", "").lower()): s for s in d["songs"] if s["src"] in ("SP", "MP")}
 team_only = sum(1 for s in d["songs"] if s["src"] not in ("SP", "MP"))
 bad = []
 for k in sorted(set(sheet) | set(site)):
