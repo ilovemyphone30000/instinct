@@ -1,19 +1,19 @@
 # A&R Instinct (Superplaylist dashboard)
 
-Password-protected static view of the Superplaylist Google Sheet (SP = SCAN, MP = REC) on GitHub Pages.
+Password-protected static view of the Superplaylist Google Sheet (tab MUSIC; each song is SCAN or REC) on GitHub Pages.
 Live: https://ilovemyphone30000.github.io/instinct/
 
 ## Files
 - `index.html`, `styles.css`, `app.js` - the page. `playlists.html` - the Playlists page.
 - `data.enc.json` - the ONLY data file committed (AES-256-GCM, key = PBKDF2 of the password, 600k rounds). A plaintext
   build stamp `b` sits beside it so the page can tell whether anything changed without decrypting.
-- `build_data.py <get_spreadsheet result> data.json` - reads SP/MP by header, merges listener + Instagram series
+- `build_data.py <get_spreadsheet result> data.json` - reads the MUSIC tab by header, merges listener + Instagram series
   (`history.json`), ROSTR (`rostr.json`), jumps, press dates, venue caps, and the team log (flags/notes/views/watchlist),
   runs `check_data.py` (refuses a broken build), then encrypts.
 - `check_data.py` - build gate: row count vs the published build, required fields, ordered series, no duplicate watch rows.
 - `verify_deploy.py [rows]` - canary: decrypts the LIVE site's data and checks rows and age. Run after every push.
-- `ig_public.py` - Instagram follower counts from the PUBLIC, LOGGED-OUT profile preview (plain HTTP, no cookies, no
-  browser, never a signed-in session). Daily for flagged/new/jumped, weekly for the rest.
+- `ig_public.py` - RETIRED (Nov 9, 2026). Instagram follower counts now come only from the Google Sheet's link-preview hover cards, read by the daily task; nothing here talks to Instagram.
+- `mirror_check.py <sheet fetch> [data.json]` - diffs every MUSIC row against the site row and counts team-only rows; 0 differences is the expected result.
 - `jumps.py`, `track_ids.py`, `all_ids.py`, `add_points.py`, `rostr_add.py`, `press_dates.py` - daily-routine helpers.
 - `rostr_label_add.py` - record label per artist from ROSTR (RECORD_LABEL team: indie / major / distribution; the site shows only the label names ROSTR lists - self-released entries and "no label" are not displayed), in git-ignored `rostr_labels.json`; rides inside the encrypted data.
 - `digest.py` - plain-text weekly digest for pasting (sends nothing).
