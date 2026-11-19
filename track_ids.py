@@ -2,13 +2,13 @@
 """Pick today's tracked artists and make sure each has a Spotify artist id in history.json.
 
 Tracked = artists with a FLAG ticked, or any song added in the last 14 days (SP or MP).
-Run with the superplaylist venv:  ~/Claude/Projects/superplaylist/.venv/bin/python track_ids.py
+Run with the superplaylist venv:  .venv/bin/python track_ids.py
 Prints JSON {"listeners":[{name,id}], "ig":[{name,igUrl}], "rostr":[name]} for the daily lookups.
 The "ig" list is legacy and unused: Instagram counts now come from ig_public.py (public, logged-out page preview,
 plain HTTP, no browser and no session). Never read Instagram in a signed-in browser.
 """
 import datetime, json, os, re, sys
-sys.path.insert(0, os.path.expanduser("~/Claude/Projects/superplaylist"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "superplaylist"))
 import auth, superplaylist as sp
 
 WINDOW = 14

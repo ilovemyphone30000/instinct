@@ -19,6 +19,8 @@ Live: https://ilovemyphone30000.github.io/instinct/
 - `digest.py` - plain-text weekly digest for pasting (sends nothing).
 - `team_log.gs` - the Apps Script backend (appends to the TEAM LOG tab only; rate-limited, size-capped).
 - `set_password.py` - change the password (prompts; never put it in chat or a commit).
+- `superplaylist/` - the weekly scan's support files (merged in 2026-11-18): Spotify auth (`auth.py`, needs `.env` + `.tokens.json`), the older Python port (`superplaylist.py`, `browser.py`, `move_to_folder.py`). Local only: `config.json` (44-playlist scan list), `scanned_playlists.md`, `runs/` (run records), `rostr.py`, `rostr_notes.md`.
+- `.venv/` (local) - Python for `track_ids.py` and `all_ids.py`: `.venv/bin/python track_ids.py`.
 
 ## Git-ignored (local only)
 `rostr_labels.json`, `agency_seen.json` (agency changes), `.password`, `data.json`, `history.json`, `superplaylists.json`, `press_dates.json`, `team_api.json`, `rostr.json`, `jumps.json`.

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Weekly full rescan list: EVERY artist in data.json (SP + MP, all dates), with Spotify artist ids kept in history.json.
 
-Run with the superplaylist venv:  ~/Claude/Projects/superplaylist/.venv/bin/python all_ids.py
+Run with the superplaylist venv:  .venv/bin/python all_ids.py
 Prints JSON {"listeners":[{name,id}]}. Ids missing from history.json are resolved from each artist's song link
 (single /tracks/{id} calls); if Spotify rate-limits partway, the rest are resolved on the next run and
 whoever has no id yet is simply left out of today's list.
 """
 import json, os, re, sys, time
-sys.path.insert(0, os.path.expanduser("~/Claude/Projects/superplaylist"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "superplaylist"))
 import auth, superplaylist as sp
 
 here = os.path.dirname(os.path.abspath(__file__))

@@ -12,3 +12,17 @@ HANDOFF-recs.md
 team_press.json
 src_map.json
 CLAUDE.md
+.venv/
+__pycache__/
+# superplaylist/: secrets, Spotify account config, run records, ROSTR tooling stay local
+superplaylist/.env
+superplaylist/.tokens.json
+superplaylist/.browser/
+superplaylist/config.json
+superplaylist/scanned_playlists.md
+superplaylist/runs/
+superplaylist/rostr.py
+superplaylist/rostr_notes.md
+superplaylist/out.csv
+superplaylist/last_run.json
+superplaylist/run.log
